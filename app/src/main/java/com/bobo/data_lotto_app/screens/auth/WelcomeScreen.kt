@@ -27,6 +27,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bobo.data_lotto_app.Routes.AuthRoute
 import com.bobo.data_lotto_app.Routes.AuthRouteAction
+import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.components.BaseButton
 import com.bobo.data_lotto_app.components.ButtonType
 import com.bobo.data_lotto_app.components.autoSizeText
@@ -36,7 +37,7 @@ import com.bobo.data_lotto_app.ui.theme.TextButtonColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
 
 @Composable
-fun WelcomeScreen(routeAction: AuthRouteAction) {
+fun WelcomeScreen(routeAction: AuthRouteAction, authViewModel: AuthViewModel) {
 
     val composition by rememberLottieComposition(
         LottieCompositionSpec.Asset(assetName = "cat.json")
@@ -124,7 +125,7 @@ fun WelcomeScreen(routeAction: AuthRouteAction) {
                 title = "회원가입",
                 type = ButtonType.OUTLINE,
                 onClick = {
-
+                          routeAction.navTo(AuthRoute.REGISTER)
                 },
                 modifier = Modifier.padding(horizontal = 20.dp))
 
@@ -135,7 +136,11 @@ fun WelcomeScreen(routeAction: AuthRouteAction) {
                 .wrapContentHeight(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                TextButton(onClick = { }) {
+                TextButton(onClick = {
+
+                    authViewModel.needAuthContext.value = true
+
+                }) {
                     Text(text = "게스트로 입장", color = TextButtonColor)
                 }
             }

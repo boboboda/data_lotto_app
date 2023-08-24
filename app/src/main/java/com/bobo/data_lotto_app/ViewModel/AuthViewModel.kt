@@ -10,6 +10,8 @@ class AuthViewModel: ViewModel() {
 
     val isLoadingFlow = MutableStateFlow(false)
 
+    val needAuthContext = MutableStateFlow(false)
+
     // 로그인
 
     val logInEmailInputFlow = MutableStateFlow("")
@@ -17,6 +19,18 @@ class AuthViewModel: ViewModel() {
     val logInPasswordInputFlow = MutableStateFlow("")
 
     val failedLogIn = MutableStateFlow(false)
+
+    //회원가입
+
+    val registerEmailInputFlow = MutableStateFlow<String>("")
+
+    val registerNicknameFlow = MutableStateFlow<String>("")
+
+    val registerPasswordInputFlow = MutableStateFlow<String>("")
+
+    val registerPasswordConfirmInputFlow = MutableStateFlow<String>("")
+
+    val registerIsLoadingFlow = MutableStateFlow<Boolean>(false)
 
 
 }

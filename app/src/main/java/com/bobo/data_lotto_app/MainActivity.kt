@@ -55,8 +55,10 @@ import com.bobo.data_lotto_app.screens.auth.WelcomeScreen
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
 import com.bobo.data_lotto_app.screens.auth.LoginScreen
+import com.bobo.data_lotto_app.screens.auth.RegisterScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 
 
 class MainActivity : ComponentActivity() {
@@ -116,9 +118,10 @@ fun AppScreen(
         AuthRouteAction(authNavController)
     }
 
+    val needAuth = authViewModel.needAuthContext.collectAsState()
 
 
-    if (isLoggedIn.value) {
+    if (needAuth.value) {
 
         Scaffold(
             scaffoldState = scaffoldState,
@@ -140,7 +143,8 @@ fun AppScreen(
                     mainNavController = mainNavController,
                     mainRouteAction = mainRouteAction,
                     mainViewModel = mainViewModel,
-                    dataViewModel = dataViewModel
+                    dataViewModel = dataViewModel,
+                    authViewModel = authViewModel
                 )
             }
 
@@ -176,6 +180,7 @@ fun MainNaHost(
     mainRouteAction: MainRouteAction,
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
+    authViewModel: AuthViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -183,7 +188,7 @@ fun MainNaHost(
         navController = mainNavController,
         startDestination = startRouter.routeName!!) {
         composable(MainRoute.Main.routeName!!) {
-            MainScreen(mainViewModel, dataViewModel)
+            MainScreen(mainViewModel, dataViewModel, authViewModel)
         }
         composable(MainRoute.Data.routeName!!) {
             DataScreen(dataViewModel)
@@ -212,11 +217,11 @@ fun AuthNavHost(
         }
 
         composable(AuthRoute.REGISTER.routeName) {
-
+            RegisterScreen(authViewModel = authViewModel, routeAction = routeAction)
         }
 
         composable(AuthRoute.WELCOME.routeName) {
-            WelcomeScreen(routeAction = routeAction)
+            WelcomeScreen(routeAction = routeAction, authViewModel)
         }
 
     }

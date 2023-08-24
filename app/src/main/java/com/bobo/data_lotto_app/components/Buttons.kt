@@ -101,7 +101,7 @@ fun MainFilledButton(
             .height(70.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
-            contentColor = Color.White,
+            contentColor = Color.Black,
             backgroundColor = WelcomeScreenLoginButtonColor,
             disabledContentColor = Color.Gray,
             disabledBackgroundColor = LoginEnableButtonColor
@@ -131,7 +131,7 @@ fun MainOutlineButton(
     title: String,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Button(
         modifier = modifier
@@ -189,3 +189,38 @@ fun LogInBackButton(
     }
 }
 
+@Composable
+fun CustomButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+    onClick: () -> Unit,
+    composable: @Composable () -> Unit
+) {
+    Button(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = Color.Black,
+            backgroundColor = WelcomeScreenLoginButtonColor,
+            disabledContentColor = Color.Gray,
+            disabledBackgroundColor = LoginEnableButtonColor
+        ),
+        enabled = enabled,
+        onClick = onClick
+    ) {
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier
+                    .scale(1f)
+                    .size(20.dp)
+            )
+        } else {
+            composable()
+        }
+    }
+}

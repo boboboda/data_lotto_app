@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -24,6 +26,7 @@ import androidx.compose.material.DrawerValue
 import androidx.compose.material.ModalDrawer
 import androidx.compose.material.TextButton
 import androidx.compose.material.rememberDrawerState
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,26 +34,38 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.components.NoticeBar
 import com.bobo.data_lotto_app.R
+import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
+import com.bobo.data_lotto_app.components.BaseButton
+import com.bobo.data_lotto_app.components.CustomButton
+import com.bobo.data_lotto_app.components.fontFamily
 import com.bobo.data_lotto_app.extentions.toWon
 import com.bobo.data_lotto_app.ui.theme.MainFirstBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.MainMenuBarColor
 import kotlinx.coroutines.launch
 
 
+
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel,
-    dataViewModel: DataViewModel) {
+    dataViewModel: DataViewModel,
+    authViewModel: AuthViewModel) {
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
@@ -60,9 +75,12 @@ fun MainScreen(
 
     ModalDrawer(
         drawerState = drawerState,
+        drawerShape = customShape(),
         drawerContent = {
-            DrawerCustom()
-        }) {
+            DrawerCustom(authViewModel)
+                        },
+
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -415,10 +433,16 @@ fun NoticeContent(
 
 
 @Composable
-fun DrawerCustom() {
+fun DrawerCustom(authViewModel: AuthViewModel) {
+
+    val needAuth = authViewModel.needAuthContext.collectAsState()
+
+    val isSignIn = authViewModel.isLoggedIn.collectAsState()
+
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxHeight()
+            .requiredWidth(250.dp)
             .padding(start = 5.dp)
     ) {
         Spacer(
@@ -434,17 +458,45 @@ fun DrawerCustom() {
             horizontalArrangement = Arrangement.Center
         ) {
 
+            if(isSignIn.value) {
 
-            androidx.compose.material.Text(text = "email: kju9038@Naver.com")
+                Text(text = "email: kju9038@Naver.com")
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(1f))
 
-            TextButton(onClick = {
+                TextButton(onClick = {
 
 
-            }) {
+                }) {
 
-                androidx.compose.material.Text(text = "로그아웃")
+                    androidx.compose.material.Text(text = "로그아웃")
+                }
+
+            } else {
+
+                Row(modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 10.dp)) {
+
+                    CustomButton(onClick = {authViewModel.needAuthContext.value = false},
+                        composable = {
+                            Text(
+                                text = "LOTTO",
+                                fontSize = 23.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = fontFamily,
+                                color = Color.Black)
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Text(
+                                text = "로그인",
+                                fontSize = 18.sp,
+                                fontFamily = fontFamily,
+                                color = Color.Black)
+                        }
+                    )
+                }
             }
         }
 
@@ -492,5 +544,23 @@ fun DrawerCustom() {
             androidx.compose.material.Text("개발자 유튜브: ")
             androidx.compose.material.Text("문의: 000-0000-0000")
         }
+    }
+}
+
+@Composable
+fun customShape() = object : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        return Outline.Rectangle(
+            Rect(
+                left = 0f,
+                top = 0f,
+                right = size.width * 2.3f / 3,
+                bottom = size.height
+            )
+        )
     }
 }
