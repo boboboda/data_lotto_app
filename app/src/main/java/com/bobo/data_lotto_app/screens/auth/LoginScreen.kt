@@ -1,0 +1,161 @@
+package com.bobo.data_lotto_app.screens.auth
+
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.CreationExtras
+import com.bobo.data_lotto_app.Routes.AuthRoute
+import com.bobo.data_lotto_app.Routes.AuthRouteAction
+import com.bobo.data_lotto_app.ViewModel.AuthViewModel
+import com.bobo.data_lotto_app.components.BaseButton
+import com.bobo.data_lotto_app.components.EmailTextField
+import com.bobo.data_lotto_app.components.LogInBackButton
+import com.bobo.data_lotto_app.components.PasswordTextField
+import com.bobo.data_lotto_app.components.fontFamily
+import com.bobo.data_lotto_app.ui.theme.TextButtonColor
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+
+@Composable
+fun LoginScreen(authViewModel: AuthViewModel,
+                routeAction: AuthRouteAction) {
+
+    val coroutineScope = rememberCoroutineScope()
+
+    val focusManager = LocalFocusManager.current
+
+    val emailInput = authViewModel.logInEmailInputFlow.collectAsState()
+
+    val passwordInput = authViewModel.logInPasswordInputFlow.collectAsState()
+
+    val isLoginBtnActive = emailInput.value.isNotEmpty() && passwordInput.value.isNotEmpty()
+
+    val logInIsLoading = authViewModel.isLoadingFlow.collectAsState()
+
+    val failedLogin = authViewModel.failedLogIn.collectAsState()
+
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .padding(top = 20.dp)) {
+        LogInBackButton(
+            modifier = Modifier,
+            onClick = {
+                coroutineScope.launch {
+                    authViewModel.isLoggedIn.emit(false)
+                    routeAction.navTo(AuthRoute.WELCOME)
+                }
+            }
+        )
+
+
+        Text(
+            "LOGIN",
+            fontSize = 35.sp,
+            fontFamily = fontFamily,
+            modifier = Modifier.padding(top = 20.dp, bottom = 30.dp)
+        )
+
+        EmailTextField(
+            label = "이메일",
+            value = emailInput.value,
+            onValueChanged = {
+                coroutineScope.launch {
+                    authViewModel.logInEmailInputFlow.emit(it)
+                }
+            },
+            keyboardActions = KeyboardActions(onNext = {
+                focusManager.moveFocus(FocusDirection.Down)
+            }),
+            modifier = Modifier
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        PasswordTextField(
+            label = "비밀번호",
+            value = passwordInput.value,
+            onValueChanged = {
+                coroutineScope.launch {
+                    authViewModel.logInPasswordInputFlow.emit(it)
+                }
+            },
+            keyboardActions = KeyboardActions(onNext = {
+                focusManager.moveFocus(FocusDirection.Down)
+            }),
+            modifier = Modifier
+        )
+
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+
+        BaseButton(
+            title = "로그인",
+            enabled = isLoginBtnActive,
+            isLoading = logInIsLoading.value,
+            onClick = {
+//                authViewModel.loginUser()
+                focusManager.clearFocus()
+                coroutineScope.launch {
+                    authViewModel.failedLogIn.collectLatest {
+                        if (failedLogin.value == true) {
+                            snackBarHostState.showSnackbar(
+                                "로그인에 실패하였습니다. 다시 확인해주세요",
+                                actionLabel = "닫기", SnackbarDuration.Short
+                            )
+                        }
+                    }
+                }
+                Log.d("웰컴스크린", "로그인 버튼 클릭")
+
+
+            },
+            modifier = Modifier.imePadding())
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "계정이 없으신가요?")
+            TextButton(onClick = { routeAction.navTo(AuthRoute.REGISTER)}) {
+                Text(text = "회원가입 하러가기", color = TextButtonColor)
+            }
+
+        }
+        SnackbarHost(hostState = snackBarHostState, modifier = Modifier.fillMaxSize())
+
+
+
+    }
+
+}

@@ -1,0 +1,191 @@
+package com.bobo.data_lotto_app.components
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.material.R
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.ui.theme.LoginEnableButtonColor
+import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
+import com.bobo.data_lotto_app.ui.theme.WelcomeScreenLoginButtonColor
+import com.bobo.data_lotto_app.ui.theme.WelcomeScreenRegisterButtonColor
+
+@Composable
+fun Buttons(
+    label: String,
+    onClicked:(()->Unit)?,
+    buttonColor: Color,
+    fontColor: Color,
+    enabled: Boolean = true,
+    modifier: Modifier,
+    fontSize: Int) {
+    Button(
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = buttonColor,
+            contentColor = fontColor,
+            disabledContentColor = Color.White,
+            disabledBackgroundColor = Color.Gray),
+        modifier = modifier,
+        enabled = enabled,
+        onClick = {onClicked?.invoke()})
+    {
+        autoSizeText(
+            value = label,
+            fontFamily = fontFamily ,
+            fontSize = fontSize.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(0.dp),
+            color = fontColor,
+            maxLines = 2,
+            minFontSize = 15.sp,
+            fontWeight = FontWeight.Bold)
+    }
+}
+
+
+
+
+enum class ButtonType {
+    FILL, OUTLINE
+}
+@Composable
+fun BaseButton(
+    modifier: Modifier = Modifier,
+    type: ButtonType = ButtonType.FILL,
+    title: String,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+    onClick: () -> Unit
+) {
+    when(type) {
+        ButtonType.FILL -> MainFilledButton(
+            modifier,
+            title,
+            enabled,
+            isLoading,
+            onClick
+        )
+        ButtonType.OUTLINE -> MainOutlineButton(
+            modifier,
+            title,
+            enabled,
+            isLoading,
+            onClick
+        )
+    }
+
+}
+
+@Composable
+fun MainFilledButton(
+    modifier: Modifier = Modifier,
+    title: String,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+    onClick: () -> Unit
+) {
+    Button(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(70.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = Color.White,
+            backgroundColor = WelcomeScreenLoginButtonColor,
+            disabledContentColor = Color.Gray,
+            disabledBackgroundColor = LoginEnableButtonColor
+        ),
+        enabled = enabled,
+        onClick = onClick
+    ) {
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier
+                    .scale(1f)
+                    .size(20.dp)
+            )
+        } else {
+            Text(text = title,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(16.dp))
+        }
+    }
+}
+
+@Composable
+fun MainOutlineButton(
+    modifier: Modifier = Modifier,
+    title: String,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+    onClick: () -> Unit
+) {
+    Button(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(70.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = Color.Black,
+            backgroundColor = WelcomeScreenRegisterButtonColor,
+            disabledContentColor = Color.White,
+            disabledBackgroundColor = Color.White
+        ),
+        enabled = enabled,
+        border = BorderStroke(1.dp, Color.Black),
+        onClick = onClick
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = Color.Black,
+                modifier = Modifier
+                    .scale(1f)
+                    .size(20.dp)
+            )
+        } else {
+            Text(text = title,
+                fontSize = 15.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(16.dp))
+        }
+    }
+}
+
+@Composable
+fun LogInBackButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit) {
+    Button(
+        modifier = modifier
+            .size(50.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = Color.Black,
+            backgroundColor = Color.White,
+            disabledContentColor = Color.White,
+            disabledBackgroundColor = Color.White
+        ),
+//        border = BorderStroke(1.dp, color = Color.Black),
+        onClick = onClick
+    ) {
+        Image(
+            painter = painterResource(id = com.bobo.data_lotto_app.R.drawable.back_arrow),
+            "뒤로가기 버튼",
+            modifier = Modifier.size(20.dp))
+
+    }
+}
+
