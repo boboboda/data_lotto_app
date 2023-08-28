@@ -20,12 +20,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ButtonColors
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
+import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -94,7 +97,7 @@ fun rangeDateDialog(
             modifier = Modifier
                 .wrapContentSize()
                 .background(
-                    color = Color.LightGray,
+                    color = Color.White,
                     shape = RoundedCornerShape(16.dp)
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -189,7 +192,8 @@ fun rangeDateDialog(
                 Button(
                     onClick = {
                         onDismissRequest(false)
-                })
+                },
+                    colors = ButtonDefaults.buttonColors(WelcomeScreenBackgroundColor))
                 {
                     Box(
                         modifier = Modifier
@@ -211,7 +215,9 @@ fun rangeDateDialog(
                 Button(
                     onClick = {
                         onDismissRequest(false)
-                    }) {
+                    },
+                    colors = ButtonDefaults.buttonColors(WelcomeScreenBackgroundColor)
+                ) {
 
                     Box(
                         modifier = Modifier

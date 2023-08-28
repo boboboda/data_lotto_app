@@ -46,3 +46,6 @@ val WelcomeScreenLoginButtonColor = Color(0xFFF0E588)
 val LoginEnableButtonColor = Color(0xFFB1AE95)
 
 val WelcomeScreenRegisterButtonColor = Color(0xFFFDFCED)
+
+
+val DateBackgroundColor = Color(0xFFF8EEFF)

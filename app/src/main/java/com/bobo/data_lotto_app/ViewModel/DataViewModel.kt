@@ -102,7 +102,7 @@ class DataViewModel: ViewModel() {
         }
     }
 
-    // 로또 날짜 범위 값
+    // 모든 로또 번호 로또 날짜 범위 값
 
     val startDateFlow = MutableStateFlow("${LocalDate.now()}")
 
@@ -130,6 +130,12 @@ class DataViewModel: ViewModel() {
 
     }
 
+
+    // 나의 로또 번호 조회를 위한 로또 날짜 범위 설정
+
+    val myNumberStartDateFlow = MutableStateFlow("${LocalDate.now()}")
+
+    val myNumberEndDateFlow = MutableStateFlow("${LocalDate.now()}")
 
 
 

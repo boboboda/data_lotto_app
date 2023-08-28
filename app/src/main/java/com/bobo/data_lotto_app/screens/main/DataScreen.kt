@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,23 +45,15 @@ import com.bobo.data_lotto_app.components.autoSizeText
 import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.extentions.toPer
 import com.bobo.data_lotto_app.screens.main.BallDraw
+import com.bobo.data_lotto_app.ui.theme.DateBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
+import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-
+// 데이터 리셋 추가, 데이터 리스트 조회하기 팝업
 @Composable
 fun DataScreen(dataViewModel: DataViewModel) {
-
-    val scrollState = rememberScrollState()
-
-    val lottoNumber = (1..45).toList()
-
-    val resentLottoNumber = dataViewModel.resentLottoNumber.collectAsState()
-
-    val selectedRangeLotto = dataViewModel.selectRangeLottoNumber.collectAsState()
-    
-    val showOpenDialog = remember { mutableStateOf(false) }
 
     val currentId = dataViewModel.dataCardId.collectAsState()
 
@@ -81,166 +74,23 @@ fun DataScreen(dataViewModel: DataViewModel) {
             SelectCard(dataViewModel = dataViewModel)
         }
 
-        when (currentId.value) {
-            1 -> {
-
-                Column(modifier = Modifier
-                    .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-
-                    Spacer(modifier = Modifier
-                        .height(20.dp))
-
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(0.3f)
-                        .padding(horizontal = 15.dp)
-                        .clip(shape = RoundedCornerShape(10.dp))
-
-                    ) {
-                        Column(modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .background(Color.LightGray),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-
-                            dataRangeView(dataViewModel = dataViewModel)
-
-                        }
-
-                        Column(modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                            .background(Color.LightGray),
-                            verticalArrangement = Arrangement.Center) {
-
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .padding(horizontal = 10.dp)
-                                    .clip(shape = RoundedCornerShape(5.dp))
-                                    .background(color = DbContentColor),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                autoSizeText(
-                                    value = "조회 로또 번호: ${selectedRangeLotto.value.count()}개",
-                                    fontSize = 15.sp,
-                                    minFontSize = 13.sp,
-                                    modifier = Modifier
-                                        .padding(5.dp),
-                                    color = Color.Black,
-                                    maxLines = 1,
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(20.dp))
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .padding(horizontal = 5.dp)
-                                    .clip(shape = RoundedCornerShape(5.dp))
-                                    .background(color = DbContentColor),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-
-                                autoSizeText(
-                                    value = "최근 로또 회차: ${resentLottoNumber.value.drwNo}회",
-                                    fontSize = 15.sp,
-                                    minFontSize = 13.sp,
-                                    color = Color.Black,
-                                    modifier = Modifier
-                                        .padding(5.dp),
-                                    maxLines = 1
-                                )
-                            }
-
-
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-
-                    Row(modifier = Modifier
-                        .fillMaxWidth()) {
-                        Text(
-                            modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
-                            text = "데이터 리스트",
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Column(modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .weight(1f)
-                        .background(Color.White, shape = RoundedCornerShape(5.dp))
-                        .verticalScroll(scrollState),
-                    ) {
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        lottoNumber.forEach { number ->
-                            val dataValue = dataViewModel.calculate(number.toString())
-                            StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString()))
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        
-                        FloatingActionButton(
-                            onClick = {
-                                showOpenDialog.value = true
-                            },
-                            modifier = Modifier.padding(8.dp)) {
-                            Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
-                        }
-
-                        if(showOpenDialog.value) {
-                            rangeDateDialog(
-                                onDismissRequest = {
-                                    showOpenDialog.value = it
-                                },
-                                dataViewModel
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.width(5.dp))
-                        
-                        FloatingActionButton(
-                            onClick = {
-                                dataViewModel.filterRange()
-                            },
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
-                        }
-                    }
+        Column(
+            modifier = Modifier
+            .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            when (currentId.value) {
+                1 -> {
+                    
+                    BigDataSearchView(dataViewModel = dataViewModel)
                 }
-            }
 
-            2 -> {
-                
-                Column(modifier = Modifier.weight(1f)) {
-
+                2 -> {
+                    MyNumberSearchView(dataViewModel = dataViewModel)
                 }
-                
             }
         }
+
+
 
 
     }
@@ -289,7 +139,8 @@ fun StickBar(
 
 @Composable
 fun dataRangeView(
-                 dataViewModel: DataViewModel
+    startDate: String,
+    endDate: String
 ) {
     val time = Calendar.getInstance().time
 
@@ -297,13 +148,9 @@ fun dataRangeView(
 
     val today = formatter.format(time)
 
-    val callStartDate = dataViewModel.startDateFlow.collectAsState()
+    var firstDate = if(today == "") "$today" else {startDate}
 
-    var callEndDate = dataViewModel.endDateFlow.collectAsState()
-
-    var firstDate = if(today == "") "$today" else {callStartDate.value}
-
-    var secondDate = if(today == "") "$today" else {callEndDate.value}
+    var secondDate = if(today == "") "$today" else {endDate}
 
 
 
@@ -314,58 +161,415 @@ fun dataRangeView(
         verticalArrangement = Arrangement.Center
     ) {
 
-        OutlinedCard(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
-            border = BorderStroke(1.dp, color = Color.Black),
+                .weight(1f)
+                .padding(horizontal = 5.dp)
+                .clip(shape = RoundedCornerShape(5.dp))
+                .background(color = DateBackgroundColor),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(all = 10.dp)
-                    .padding(horizontal = 5.dp),
-                contentAlignment = Alignment.Center
-            ) {
 
-                autoSizeText(
-                    value = "시작: $firstDate",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier,
-                    maxLines = 1,
-                    minFontSize = 13.sp,
-                    color = Color.Black)
-            }
+            autoSizeText(
+                value = "시작: ${firstDate}",
+                fontSize = 15.sp,
+                minFontSize = 13.sp,
+                color = Color.Black,
+                modifier = Modifier
+                    .padding(5.dp),
+                maxLines = 1
+            )
         }
+
         
         Spacer(modifier = Modifier.height(15.dp))
 
-        OutlinedCard(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
-            border = BorderStroke(1.dp, color = Color.Black)
+                .weight(1f)
+                .padding(horizontal = 5.dp)
+                .clip(shape = RoundedCornerShape(5.dp))
+                .background(color = DateBackgroundColor),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Box(
+
+            autoSizeText(
+                value = "종료: ${secondDate}",
+                fontSize = 15.sp,
+                minFontSize = 13.sp,
+                color = Color.Black,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(all = 10.dp)
-                    .padding(horizontal = 5.dp)
-                , contentAlignment = Alignment.Center
-            ) {
-                autoSizeText(
-                    value = "종료: $secondDate",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier,
-                    maxLines = 1,
-                    minFontSize = 13.sp,
-                    color = Color.Black)
-            }
+                    .padding(5.dp),
+                maxLines = 1
+            )
         }
     }
  }
 
+@Composable
+fun dataRangeRowTypeView(
+    startDate: String,
+    endDate: String
+) {
+    val time = Calendar.getInstance().time
+
+    val formatter = SimpleDateFormat("yyyy-MM-dd")
+
+    val today = formatter.format(time)
+
+    var firstDate = if(today == "") "$today" else {startDate}
+
+    var secondDate = if(today == "") "$today" else {endDate}
+
+
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .padding(horizontal = 5.dp)
+                .clip(shape = RoundedCornerShape(5.dp))
+                .background(color = DateBackgroundColor),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+
+            autoSizeText(
+                value = "시작: ${firstDate}",
+                fontSize = 15.sp,
+                minFontSize = 13.sp,
+                color = Color.Black,
+                modifier = Modifier
+                    .padding(5.dp),
+                maxLines = 1
+            )
+        }
+
+        Spacer(modifier = Modifier.width(15.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .padding(horizontal = 5.dp)
+                .clip(shape = RoundedCornerShape(5.dp))
+                .background(color = DateBackgroundColor),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+
+            autoSizeText(
+                value = "종료: ${secondDate}",
+                fontSize = 15.sp,
+                minFontSize = 13.sp,
+                color = Color.Black,
+                modifier = Modifier
+                    .padding(5.dp),
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+fun BigDataSearchView(dataViewModel: DataViewModel) {
+
+    val scrollState = rememberScrollState()
+
+    val showOpenDialog = remember { mutableStateOf(false) }
+
+    val lottoNumber = (1..45).toList()
+
+    val resentLottoNumber = dataViewModel.resentLottoNumber.collectAsState()
+
+    val selectedRangeLotto = dataViewModel.selectRangeLottoNumber.collectAsState()
+
+
+
+    val callStartDate = dataViewModel.startDateFlow.collectAsState()
+
+    var callEndDate = dataViewModel.endDateFlow.collectAsState()
+
+    Column(modifier = Modifier
+        .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Spacer(modifier = Modifier
+            .height(20.dp))
+
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .weight(0.33f)
+            .padding(horizontal = 15.dp)
+            .clip(shape = RoundedCornerShape(10.dp))
+
+        ) {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+                .background(Color.LightGray),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                dataRangeView(
+                    startDate = callStartDate.value,
+                    endDate = callEndDate.value)
+
+            }
+
+            Column(modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .background(Color.LightGray),
+                verticalArrangement = Arrangement.Center) {
+
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 10.dp)
+                        .clip(shape = RoundedCornerShape(5.dp))
+                        .background(color = DbContentColor),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    autoSizeText(
+                        value = "조회 로또 번호: ${selectedRangeLotto.value.count()}개",
+                        fontSize = 15.sp,
+                        minFontSize = 13.sp,
+                        modifier = Modifier
+                            .padding(5.dp),
+                        color = Color.Black,
+                        maxLines = 1,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 5.dp)
+                        .clip(shape = RoundedCornerShape(5.dp))
+                        .background(color = DbContentColor),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+
+                    autoSizeText(
+                        value = "최근 로또 회차: ${resentLottoNumber.value.drwNo}회",
+                        fontSize = 15.sp,
+                        minFontSize = 13.sp,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .padding(5.dp),
+                        maxLines = 1
+                    )
+                }
+
+
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+
+        Row(modifier = Modifier
+            .fillMaxWidth()) {
+            Text(
+                modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
+                text = "데이터 리스트",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Column(modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .weight(1f)
+            .background(Color.White, shape = RoundedCornerShape(5.dp))
+            .verticalScroll(scrollState),
+        ) {
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            lottoNumber.forEach { number ->
+                val dataValue = dataViewModel.calculate(number.toString())
+                StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString()))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            FloatingActionButton(
+                onClick = {
+                    showOpenDialog.value = true
+                },
+                modifier = Modifier.padding(8.dp)) {
+                Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
+            }
+
+            if(showOpenDialog.value) {
+                rangeDateDialog(
+                    onDismissRequest = {
+                        showOpenDialog.value = it
+                    },
+                    dataViewModel
+                )
+            }
+
+            Spacer(modifier = Modifier.width(5.dp))
+
+            FloatingActionButton(
+                onClick = {
+                    dataViewModel.filterRange()
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
+            }
+        }
+    }
+}
+
+@Composable
+fun MyNumberSearchView(dataViewModel: DataViewModel) {
+
+    val callStartDate = dataViewModel.myNumberStartDateFlow.collectAsState()
+
+    val callEndDate = dataViewModel.myNumberEndDateFlow.collectAsState()
+
+    val scrollState = rememberScrollState()
+
+    val showOpenDialog = remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Spacer(
+            modifier = Modifier
+                .height(20.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.2f)
+                .padding(horizontal = 15.dp)
+                .clip(shape = RoundedCornerShape(10.dp))
+
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .background(Color.Red),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                dataRangeRowTypeView(
+                    startDate = callStartDate.value,
+                    endDate = callEndDate.value
+                )
+
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.33f)
+                .background(Color.Green)
+        ) {
+
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+
+        Row(modifier = Modifier
+            .fillMaxWidth()) {
+            Text(
+                modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
+                text = "데이터 리스트",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Column(modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .weight(1f)
+            .background(Color.White, shape = RoundedCornerShape(5.dp))
+            .verticalScroll(scrollState),
+        ) {
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+//            lottoNumber.forEach { number ->
+//                val dataValue = dataViewModel.calculate(number.toString())
+//                StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString()))
+//            }
+        }
+
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            FloatingActionButton(
+                onClick = {
+                    showOpenDialog.value = true
+                },
+                modifier = Modifier.padding(8.dp)) {
+                Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
+            }
+
+            if(showOpenDialog.value) {
+                rangeDateDialog(
+                    onDismissRequest = {
+                        showOpenDialog.value = it
+                    },
+                    dataViewModel
+                )
+            }
+
+            Spacer(modifier = Modifier.width(5.dp))
+
+            FloatingActionButton(
+                onClick = {
+
+//                    dataViewModel.filterRange()
+
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
+            }
+    }
+}
+}
