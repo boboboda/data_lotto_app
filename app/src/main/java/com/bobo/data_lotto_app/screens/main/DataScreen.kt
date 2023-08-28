@@ -2,6 +2,11 @@
 
 package com.bobo.data_lotto_app.screens.main
 
+import android.app.Activity
+import android.content.Context
+import android.provider.ContactsContract.CommonDataKinds.Im
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +26,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.TextField
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
@@ -35,12 +44,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import com.bobo.data_lotto_app.components.SelectCard
 import com.bobo.data_lotto_app.components.StickGageBar
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
+import com.bobo.data_lotto_app.components.LottoNumberTextField
 import com.bobo.data_lotto_app.components.autoSizeText
 import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.extentions.toPer
@@ -48,7 +62,10 @@ import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.ui.theme.DateBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
 import java.util.Calendar
 
 // 데이터 리셋 추가, 데이터 리스트 조회하기 팝업
@@ -432,7 +449,14 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
                     onDismissRequest = {
                         showOpenDialog.value = it
                     },
-                    dataViewModel
+                    callStartDate.value,
+                    callEndDate.value,
+                    selectedStartDate = {
+                        dataViewModel.startDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                    },
+                    selectedEndDate = {
+                        dataViewModel.endDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                    }
                 )
             }
 
@@ -450,6 +474,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
@@ -460,6 +485,24 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
     val scrollState = rememberScrollState()
 
     val showOpenDialog = remember { mutableStateOf(false) }
+
+    val oneNumber = dataViewModel.myNumberOneFlow.collectAsState()
+
+    val twoNumber = dataViewModel.myNumberTwoFlow.collectAsState()
+
+    val threeNumber = dataViewModel.myNumberThreeFlow.collectAsState()
+
+    val fourNumber = dataViewModel.myNumberFourFlow.collectAsState()
+
+    val fiveNumber = dataViewModel.myNumberFiveFlow.collectAsState()
+
+    val sixNumber = dataViewModel.myNumberSixFlow.collectAsState()
+
+    val coroutineScope = rememberCoroutineScope()
+
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -474,7 +517,7 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.2f)
+                .weight(0.12f)
                 .padding(horizontal = 15.dp)
                 .clip(shape = RoundedCornerShape(10.dp))
 
@@ -496,12 +539,140 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
             }
         }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(modifier = Modifier
+            .fillMaxWidth()) {
+            Text(
+                modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
+                text = "나의 로또 번호",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.33f)
-                .background(Color.Green)
+                .weight(0.20f)
+                .padding(horizontal = 15.dp)
         ) {
+
+            Column(modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
+                LottoNumberTextField(
+                    modifier = Modifier,
+                    value = oneNumber.value,
+                    onValueChanged = {
+
+                        val cgValue = it.toIntOrNull()
+
+                        if (cgValue != null) {
+                            if (0 < cgValue && cgValue > 45) {
+                                dataViewModel.myNumberOneFlow.value = it
+
+                            } else {
+                                dataViewModel.myNumberOneFlow.value = ""
+                                coroutineScope.launch {
+
+                                    keyboardController?.hide()
+                                    snackBarHostState.showSnackbar(
+                                        "1~45 범위의 숫자만 입력해주세요.",
+                                        actionLabel = "닫기", SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        } else {
+                            dataViewModel.myNumberOneFlow.value = ""
+                            coroutineScope.launch {
+
+                                keyboardController?.hide()
+                                snackBarHostState.showSnackbar(
+                                    "숫자를 입력해주세요.",
+                                    actionLabel = "닫기", SnackbarDuration.Short
+                                )
+                            }
+                        }
+
+                    })
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
+                LottoNumberTextField(
+                    modifier = Modifier,
+                    value = twoNumber.value,
+                    onValueChanged = {
+                        dataViewModel.myNumberTwoFlow.value = it
+                    })
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
+                LottoNumberTextField(
+                    modifier = Modifier,
+                    value = threeNumber.value,
+                    onValueChanged = {
+                        dataViewModel.myNumberThreeFlow.value = it
+                    })
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
+                LottoNumberTextField(
+                    modifier = Modifier,
+                    value = fourNumber.value,
+                    onValueChanged = {
+                        dataViewModel.myNumberFourFlow.value = it
+                    })
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
+                LottoNumberTextField(
+                    modifier = Modifier,
+                    value = fiveNumber.value,
+                    onValueChanged = {
+                        dataViewModel.myNumberFiveFlow.value = it
+                    })
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(
+                modifier = Modifier
+                    .weight(0.5f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center) {
+                Image(painter = painterResource(id = R.drawable.plus_icon), contentDescription = "")
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
+                LottoNumberTextField(
+                    modifier = Modifier,
+                    value = sixNumber.value,
+                    onValueChanged = {
+                        dataViewModel.myNumberSixFlow.value = it
+                    })
+            }
+
+
 
         }
 
@@ -554,7 +725,14 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                     onDismissRequest = {
                         showOpenDialog.value = it
                     },
-                    dataViewModel
+                    callStartDate = callStartDate.value,
+                    callEndDate = callEndDate.value,
+                    selectedStartDate = {
+                        dataViewModel.myNumberStartDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                    },
+                    selectedEndDate = {
+                        dataViewModel.myNumberEndDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                    }
                 )
             }
 
@@ -571,5 +749,11 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                 Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
             }
     }
+
+        Column(modifier = Modifier.weight(0.2f)) {
+            SnackbarHost(hostState = snackBarHostState, modifier = Modifier)
+        }
 }
+
+
 }

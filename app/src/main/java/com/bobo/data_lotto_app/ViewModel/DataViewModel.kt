@@ -138,6 +138,21 @@ class DataViewModel: ViewModel() {
     val myNumberEndDateFlow = MutableStateFlow("${LocalDate.now()}")
 
 
+    // 입력한 나의 로또 번호
+
+    val myNumberOneFlow = MutableStateFlow("")
+
+    val myNumberTwoFlow = MutableStateFlow("")
+
+    val myNumberThreeFlow = MutableStateFlow("")
+
+    val myNumberFourFlow = MutableStateFlow("")
+
+    val myNumberFiveFlow = MutableStateFlow("")
+
+    val myNumberSixFlow = MutableStateFlow("")
+
+
 
     //데이터 리스트 조회
     fun calculate(
@@ -212,5 +227,7 @@ class DataViewModel: ViewModel() {
 
         return matchNumbers
     }
+
+
 }
 

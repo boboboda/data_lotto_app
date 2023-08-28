@@ -68,7 +68,10 @@ import java.time.temporal.ChronoField
 @Composable
 fun rangeDateDialog(
     onDismissRequest: (Boolean) -> Unit,
-    dataViewModel: DataViewModel
+    callStartDate: String,
+    callEndDate: String,
+    selectedStartDate: (Long) -> Unit,
+    selectedEndDate: (Long) -> Unit
 ) {
 
     val time = java.util.Calendar.getInstance().time
@@ -77,13 +80,11 @@ fun rangeDateDialog(
 
     val today = formatter.format(time)
 
-    val callStartDate = dataViewModel.startDateFlow.collectAsState()
 
-    var callEndDate = dataViewModel.endDateFlow.collectAsState()
 
-    var firstDate = if(callStartDate.value == "${LocalDate.now()}") "클릭하여 시작 날짜를 선택해주세요" else {"시작: ${callStartDate.value}"}
+    var firstDate = if(callStartDate == "${LocalDate.now()}") "클릭하여 시작 날짜를 선택해주세요" else {"시작: ${callStartDate}"}
 
-    var secondDate = if(callEndDate.value == "${LocalDate.now()}") "클릭하여 종료 날짜를 선택해주세요" else {"종료: ${callEndDate.value}"}
+    var secondDate = if(callEndDate == "${LocalDate.now()}") "클릭하여 종료 날짜를 선택해주세요" else {"종료: ${callEndDate}"}
 
     val isStartDateOpen = remember { mutableStateOf(false) }
 
@@ -134,13 +135,14 @@ fun rangeDateDialog(
                     startDatePickerDialog(
                         selectedStartDate = isStartDateOpen.value,
                         onDateSelected = {
-                            dataViewModel.startDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                                         selectedStartDate.invoke(it)
                             isStartDateOpen.value = false
                         },
                         onDismissRequest = {
                                            isStartDateOpen.value = false
                         },
-                        dataViewModel = dataViewModel
+                        startDate = callStartDate,
+                        endDate = callEndDate
                     )
                 }
 
@@ -172,13 +174,14 @@ fun rangeDateDialog(
                     endDatePickerDialog(
                         selectedEndDate = isEndDateOpen.value,
                         onDateSelected = {
-                            dataViewModel.endDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                            selectedEndDate.invoke(it)
                             isEndDateOpen.value = false
                         },
                         onDismissRequest = {
                             isEndDateOpen.value = false
                         },
-                        dataViewModel = dataViewModel
+                        startDate = callStartDate,
+                        endDate = callEndDate
                     )
                 }
             }
@@ -250,11 +253,12 @@ fun startDatePickerDialog(
     selectedStartDate: Boolean,
     onDateSelected: ((Long) -> Unit)?,
     onDismissRequest: () -> Unit,
-    dataViewModel: DataViewModel) {
+    endDate: String,
+    startDate: String) {
 
-    val date: State<String> = dataViewModel.endDateFlow.collectAsState()
 
-    val Cgdate: LocalDate = LocalDate.parse(date.value, DateTimeFormatter.ISO_DATE)
+
+    val Cgdate: LocalDate = LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE)
 
     val year: Int = Cgdate.get(ChronoField.YEAR)
     val month: Int = Cgdate.get(ChronoField.MONTH_OF_YEAR)
@@ -266,9 +270,7 @@ fun startDatePickerDialog(
 //    val today = calendar.get(Calendar.DATE)
     calendar.set(today.year, today.monthValue , today.dayOfMonth) // add year, month (Jan), date
 
-    val selectedDate = dataViewModel.startDateFlow.collectAsState()
-
-    val cgDate = selectedDate.value.let {
+    val cgDate = startDate.let {
         val data = LocalDate.parse(it)
         calendar.set(data.year, data.monthValue - 1, data.dayOfMonth)
         val cgData = calendar
@@ -328,11 +330,10 @@ fun endDatePickerDialog(
     selectedEndDate: Boolean,
     onDateSelected: ((Long) -> Unit)?,
     onDismissRequest: () -> Unit,
-    dataViewModel: DataViewModel
+    endDate: String,
+    startDate: String
 ) {
-    val date: State<String> = dataViewModel.startDateFlow.collectAsState()
-
-    val Cgdate: LocalDate = LocalDate.parse(date.value, DateTimeFormatter.ISO_DATE)
+    val Cgdate: LocalDate = LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE)
 
     val year: Int = Cgdate.get(ChronoField.YEAR)
     val month: Int = Cgdate.get(ChronoField.MONTH_OF_YEAR)
@@ -346,9 +347,7 @@ fun endDatePickerDialog(
 
 //    var selectedDate = remember { mutableStateOf(calendar.timeInMillis) }
 
-    val selectedDate = dataViewModel.endDateFlow.collectAsState()
-
-    val cgDate = selectedDate.value.let {
+    val cgDate = endDate.let {
         val data = LocalDate.parse(it)
         calendar.set(data.year, data.monthValue - 1, data.dayOfMonth)
         val cgData = calendar

@@ -31,10 +31,12 @@ import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.R
@@ -123,3 +125,31 @@ fun PasswordTextField(
                 )
         }
     }
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LottoNumberTextField(
+    modifier: Modifier,
+    value: String,
+    onValueChanged: (String) -> Unit,
+    keyboardActions: KeyboardActions = KeyboardActions()
+) {
+
+        TextField(
+            modifier = modifier,
+            textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+            keyboardActions = keyboardActions,
+            singleLine = true,
+            value = value,
+            onValueChange = onValueChanged,
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = White,
+                focusedIndicatorColor = Gray,
+                unfocusedIndicatorColor = White
+            )
+        )
+
+}
