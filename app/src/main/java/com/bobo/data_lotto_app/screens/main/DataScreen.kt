@@ -525,8 +525,7 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .weight(1f)
-                    .background(Color.Red),
+                    .weight(1f),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -553,24 +552,31 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.20f)
+                .weight(0.15f)
                 .padding(horizontal = 15.dp)
         ) {
 
-            Column(modifier = Modifier
+            Column(
+                modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
+                .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center,
+                Alignment.CenterHorizontally) {
                 LottoNumberTextField(
                     modifier = Modifier,
                     value = oneNumber.value,
                     onValueChanged = {
 
-                        val cgValue = it.toIntOrNull()
+                        // 스트링을 숫자로 변환합니다.
+                        val number = it.toIntOrNull()
 
-                        if (cgValue != null) {
-                            if (0 < cgValue && cgValue > 45) {
-                                dataViewModel.myNumberOneFlow.value = it
-
+                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                        if (number == null) {
+                            dataViewModel.myNumberOneFlow.value = ""
+                        } else {
+                            // 숫자 범위를 확인합니다.
+                            if (0 < number && number <= 45) {
+                                dataViewModel.myNumberOneFlow.value = number.toString()
                             } else {
                                 dataViewModel.myNumberOneFlow.value = ""
                                 coroutineScope.launch {
@@ -581,16 +587,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                                         actionLabel = "닫기", SnackbarDuration.Short
                                     )
                                 }
-                            }
-                        } else {
-                            dataViewModel.myNumberOneFlow.value = ""
-                            coroutineScope.launch {
-
-                                keyboardController?.hide()
-                                snackBarHostState.showSnackbar(
-                                    "숫자를 입력해주세요.",
-                                    actionLabel = "닫기", SnackbarDuration.Short
-                                )
                             }
                         }
 
@@ -605,7 +601,30 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                     modifier = Modifier,
                     value = twoNumber.value,
                     onValueChanged = {
-                        dataViewModel.myNumberTwoFlow.value = it
+
+                        // 스트링을 숫자로 변환합니다.
+                        val number = it.toIntOrNull()
+
+                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                        if (number == null) {
+                            dataViewModel.myNumberTwoFlow.value = ""
+                        } else {
+                            // 숫자 범위를 확인합니다.
+                            if (0 < number && number <= 45) {
+                                dataViewModel.myNumberTwoFlow.value = number.toString()
+                            } else {
+                                dataViewModel.myNumberTwoFlow.value = ""
+                                coroutineScope.launch {
+
+                                    keyboardController?.hide()
+                                    snackBarHostState.showSnackbar(
+                                        "1~45 범위의 숫자만 입력해주세요.",
+                                        actionLabel = "닫기", SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        }
+
                     })
             }
 
@@ -618,7 +637,30 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                     modifier = Modifier,
                     value = threeNumber.value,
                     onValueChanged = {
-                        dataViewModel.myNumberThreeFlow.value = it
+
+                        // 스트링을 숫자로 변환합니다.
+                        val number = it.toIntOrNull()
+
+                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                        if (number == null) {
+                            dataViewModel.myNumberThreeFlow.value = ""
+                        } else {
+                            // 숫자 범위를 확인합니다.
+                            if (0 < number && number <= 45) {
+                                dataViewModel.myNumberThreeFlow.value = number.toString()
+                            } else {
+                                dataViewModel.myNumberThreeFlow.value = ""
+                                coroutineScope.launch {
+
+                                    keyboardController?.hide()
+                                    snackBarHostState.showSnackbar(
+                                        "1~45 범위의 숫자만 입력해주세요.",
+                                        actionLabel = "닫기", SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        }
+
                     })
             }
 
@@ -631,7 +673,30 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                     modifier = Modifier,
                     value = fourNumber.value,
                     onValueChanged = {
-                        dataViewModel.myNumberFourFlow.value = it
+
+                        // 스트링을 숫자로 변환합니다.
+                        val number = it.toIntOrNull()
+
+                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                        if (number == null) {
+                            dataViewModel.myNumberFourFlow.value = ""
+                        } else {
+                            // 숫자 범위를 확인합니다.
+                            if (0 < number && number <= 45) {
+                                dataViewModel.myNumberFourFlow.value = number.toString()
+                            } else {
+                                dataViewModel.myNumberFourFlow.value = ""
+                                coroutineScope.launch {
+
+                                    keyboardController?.hide()
+                                    snackBarHostState.showSnackbar(
+                                        "1~45 범위의 숫자만 입력해주세요.",
+                                        actionLabel = "닫기", SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        }
+
                     })
             }
 
@@ -644,19 +709,31 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                     modifier = Modifier,
                     value = fiveNumber.value,
                     onValueChanged = {
-                        dataViewModel.myNumberFiveFlow.value = it
+
+                        // 스트링을 숫자로 변환합니다.
+                        val number = it.toIntOrNull()
+
+                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                        if (number == null) {
+                            dataViewModel.myNumberFiveFlow.value = ""
+                        } else {
+                            // 숫자 범위를 확인합니다.
+                            if (0 < number && number <= 45) {
+                                dataViewModel.myNumberFiveFlow.value = number.toString()
+                            } else {
+                                dataViewModel.myNumberFiveFlow.value = ""
+                                coroutineScope.launch {
+
+                                    keyboardController?.hide()
+                                    snackBarHostState.showSnackbar(
+                                        "1~45 범위의 숫자만 입력해주세요.",
+                                        actionLabel = "닫기", SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        }
+
                     })
-            }
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Column(
-                modifier = Modifier
-                    .weight(0.5f)
-                    .fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center) {
-                Image(painter = painterResource(id = R.drawable.plus_icon), contentDescription = "")
             }
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -668,12 +745,31 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                     modifier = Modifier,
                     value = sixNumber.value,
                     onValueChanged = {
-                        dataViewModel.myNumberSixFlow.value = it
+
+                        // 스트링을 숫자로 변환합니다.
+                        val number = it.toIntOrNull()
+
+                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                        if (number == null) {
+                            dataViewModel.myNumberSixFlow.value = ""
+                        } else {
+                            // 숫자 범위를 확인합니다.
+                            if (0 < number && number <= 45) {
+                                dataViewModel.myNumberSixFlow.value = number.toString()
+                            } else {
+                                dataViewModel.myNumberSixFlow.value = ""
+                                coroutineScope.launch {
+
+                                    keyboardController?.hide()
+                                    snackBarHostState.showSnackbar(
+                                        "1~45 범위의 숫자만 입력해주세요.",
+                                        actionLabel = "닫기", SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        }
                     })
             }
-
-
-
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -683,7 +779,7 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
             .fillMaxWidth()) {
             Text(
                 modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
-                text = "데이터 리스트",
+                text = "내 번호 조회 결과",
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -704,56 +800,61 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
         }
 
         Spacer(modifier = Modifier.height(5.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            FloatingActionButton(
-                onClick = {
-                    showOpenDialog.value = true
-                },
-                modifier = Modifier.padding(8.dp)) {
-                Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
-            }
-
-            if(showOpenDialog.value) {
-                rangeDateDialog(
-                    onDismissRequest = {
-                        showOpenDialog.value = it
-                    },
-                    callStartDate = callStartDate.value,
-                    callEndDate = callEndDate.value,
-                    selectedStartDate = {
-                        dataViewModel.myNumberStartDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                    },
-                    selectedEndDate = {
-                        dataViewModel.myNumberEndDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.width(5.dp))
-
-            FloatingActionButton(
-                onClick = {
-
-//                    dataViewModel.filterRange()
-
-                },
-                modifier = Modifier.padding(8.dp)
+        Box(modifier = Modifier.fillMaxWidth()){
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
+
+                FloatingActionButton(
+                    onClick = {
+                        showOpenDialog.value = true
+                    },
+                    modifier = Modifier.padding(8.dp)) {
+                    Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
+                }
+
+                if(showOpenDialog.value) {
+                    rangeDateDialog(
+                        onDismissRequest = {
+                            showOpenDialog.value = it
+                        },
+                        callStartDate = callStartDate.value,
+                        callEndDate = callEndDate.value,
+                        selectedStartDate = {
+                            dataViewModel.myNumberStartDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                        },
+                        selectedEndDate = {
+                            dataViewModel.myNumberEndDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(5.dp))
+
+                FloatingActionButton(
+                    onClick = {
+
+                    dataViewModel.searchLotto()
+
+                    },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
+                }
             }
-    }
 
-        Column(modifier = Modifier.weight(0.2f)) {
-            SnackbarHost(hostState = snackBarHostState, modifier = Modifier)
+            Row(modifier = Modifier.fillMaxWidth()) {
+                SnackbarHost(hostState = snackBarHostState, modifier = Modifier)
+            }
         }
+
 }
 
 
 }
+

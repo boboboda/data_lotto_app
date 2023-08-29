@@ -3,14 +3,20 @@ package com.bobo.data_lotto_app.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.Divider
 import androidx.compose.material.IconButton
 import androidx.compose.material.Surface
@@ -24,6 +30,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
@@ -40,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.R
+import okhttp3.internal.wait
 import kotlin.math.sin
 
 
@@ -136,20 +146,35 @@ fun LottoNumberTextField(
     onValueChanged: (String) -> Unit,
     keyboardActions: KeyboardActions = KeyboardActions()
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
 
-        TextField(
-            modifier = modifier,
-            textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-            keyboardActions = keyboardActions,
-            singleLine = true,
+    BasicTextField(
+        modifier = Modifier.fillMaxSize(),
+        value = value,
+        textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+        onValueChange = onValueChanged,
+        interactionSource = interactionSource,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        singleLine = true,
+        keyboardActions = keyboardActions
+    ) {
+        TextFieldDefaults.TextFieldDecorationBox(
             value = value,
-            onValueChange = onValueChanged,
+            visualTransformation = VisualTransformation.None,
+            innerTextField = it,
+            singleLine = true,
+            enabled = true,
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = White,
-                focusedIndicatorColor = Gray,
-                unfocusedIndicatorColor = White
+                containerColor = Color.White,
+                unfocusedIndicatorColor = White,
+                focusedIndicatorColor = Color.Gray
+            ),
+            interactionSource = interactionSource,
+            // keep vertical paddings but change the horizontal
+            contentPadding = TextFieldDefaults.textFieldWithoutLabelPadding(
+                start = 2.dp, top = 1.dp, end = 1.dp, bottom = 3.dp
             )
         )
 
+}
 }

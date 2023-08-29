@@ -7,24 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.service.Lotto
 import com.bobo.data_lotto_app.service.LottoApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.flatMap
-import kotlinx.coroutines.flow.forEach
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.ZoneId
 
 class DataViewModel: ViewModel() {
 
@@ -57,10 +47,11 @@ class DataViewModel: ViewModel() {
     var selectRangeLottoNumber = _selectRangeLottoNumber.asStateFlow()
 
 
-    // 유저 선택 값
-    val testNumbers: List<Int> = listOf(1, 2, 11, 16, 21, 22)
+
 
     val sameBallTwo = mutableStateOf(0)
+
+    val sameBallThree = mutableStateOf(0)
 
     // 업로드 로또 모든 로또 번호
     fun allFetched() {
@@ -152,8 +143,6 @@ class DataViewModel: ViewModel() {
 
     val myNumberSixFlow = MutableStateFlow("")
 
-
-
     //데이터 리스트 조회
     fun calculate(
         filterNumber: String,
@@ -170,64 +159,126 @@ class DataViewModel: ViewModel() {
     }
 
 
+    // 유저 선택 값
+
+    val twoChunkNumberFlow = MutableStateFlow<List<TwoChunkNumber>>(emptyList())
 
     fun searchLotto () {
-        allLottoNumberDataFlow.value.forEach {
-            demoPlayForOneGame(numbers = testNumbers, it)
+        allLottoNumberDataFlow.value.forEach { lotto ->
+
+            val aOne = myNumberOneFlow.value.toIntOrNull()
+            val aTwo = myNumberTwoFlow.value.toIntOrNull()
+            val aThree = myNumberThreeFlow.value.toIntOrNull()
+            val aFour = myNumberFourFlow.value.toIntOrNull()
+            val aFive = myNumberFiveFlow.value.toIntOrNull()
+            val aSix = myNumberSixFlow.value.toIntOrNull()
+
+            val numbers = listOf(1, 2, 3, 4, 5, 6)
+
+
+            val twoNumberList = numbers.flatMap { a ->
+                numbers.filter { b -> a != b }.map { b -> listOf( a, b) }
+            }
+
+
+
+
+
+
+            Log.d(TAG, "2개씩 숫자 묶음 $removeSameValue")
+
+            val a = listOf<Int>(1, 2).let {
+
+            }
+
+            demoPlayForOneGame(numbers = numbers, lotto)
+
         }
     }
 
-    // 지정된 날짜 범위
-    fun demoPlayForOneGame(numbers: List<Int>,
-                           rangeLottoNumber: Lotto = Lotto(
-                               drwNo = 23,
-                               drwNoDate = "2023-06-04",
-                               drwtNo1 = 1,
-                               drwtNo2 =  6,
-                               drwtNo3 = 11,
-                               drwtNo4 = 16,
-                               drwtNo5 =  21,
-                               drwtNo6 =  26))
-            : List<Int>
+    fun demoPlayForOneGame(
+        numbers: List<Int>,
+        rangeLottoNumber: Lotto)
     {
 
-        val matchOrNotList : List<Pair<Int, Boolean>> = numbers.map { number ->
+        val matchOrNotList : List<Triple<Boolean, Int, Lotto>> = numbers.map { number ->
             val match = rangeLottoNumber.hasNumber("$number")
-            val matchAndNumber = Pair(number, match)
-            matchAndNumber
+
+            val matchAndNumberAndRangeLottoNumber = Triple(match ,number, rangeLottoNumber)
+
+            matchAndNumberAndRangeLottoNumber
         }
+
+        val twoOrMoreMatches = matchOrNotList.filter { it.first }
+//
+        Log.d(TAG, "2개 이상 매치된 번호 ${twoOrMoreMatches}")
+
 
         // 맞춘 숫자들
         val matchNumbers : List<Int> = matchOrNotList
-            .filter { it.second }
-            .map{ it.first }
+            .filter { it.first }
+            .map{ it.second }
 
         // 일치하는 값의 갯수
         val matchBoolean : List<Boolean> = matchOrNotList
-            .map { it.second }
+            .map { it.first }
         Log.d(TAG, "트루 값 ${matchBoolean}")
         Log.d(TAG, "횟차 ${rangeLottoNumber.drwNo}")
         Log.d(TAG, "트루 값 숫자${matchNumbers}")
 
         // 한개 이상인 회차
 
+        var sameBall = 0
 
-        // 트루가 2개 이상인 회차
-        val matchSameTwo = matchBoolean.count { it == true } >= 2
-        viewModelScope.launch {
-            if(matchSameTwo == true) {
-                sameBallTwo.value ++
+        when(numbers.count()) {
+            2 -> {
+                // 트루가 2개 이상인 회차
+                val matchSameTwo = matchBoolean.count { it == true } >= 2
+                viewModelScope.launch {
+                    if(matchSameTwo == true) {
+                        sameBall ++
+                    }
+                }
+
+                Log.d(TAG, "트루 값 2개 이상 ${matchSameTwo}")
+                Log.d(TAG, "트루 값이 2개 이상의 값의 갯수 ${sameBallTwo.value}")
+            }
+            3 -> {
+                // 트루가 3개 이상인 회차
+                val matchSameThree = matchBoolean.count { it == true } >= 3
+                viewModelScope.launch {
+                    if(matchSameThree == true) {
+                        sameBall ++
+                    }
+                }
+                Log.d(TAG, "트루 값 3개 이상 ${matchSameThree}")
+                Log.d(TAG, "트루 값이 3개 이상의 값의 갯수 ${sameBallThree.value}")
+            }
+
+            4 -> {
+
+            }
+
+            5 -> {
+
+            }
+
+            6 -> {
+
             }
         }
-
-        Log.d(TAG, "트루 값 2개 이상 ${matchSameTwo}")
-        Log.d(TAG, "트루 값이 2개 이상의 값의 갯수 ${sameBallTwo.value}")
-
-        // 트루가 3개 이상인 회차
-
-        return matchNumbers
     }
-
 
 }
 
+data class TwoChunkNumber (
+    val firstNumber: Int,
+    val secondNumber: Int,
+    val result: Int)
+
+data class ThreeChunkNumber(
+    val firstNumber: Int,
+    val secondNumber: Int,
+    val thirdNumber: Int,
+    val result: Int
+        )
