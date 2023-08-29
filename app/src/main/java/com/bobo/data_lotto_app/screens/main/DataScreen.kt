@@ -5,6 +5,7 @@ package com.bobo.data_lotto_app.screens.main
 import android.app.Activity
 import android.content.Context
 import android.provider.ContactsContract.CommonDataKinds.Im
+import android.util.Log
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.compose.foundation.BorderStroke
@@ -50,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.components.SelectCard
 import com.bobo.data_lotto_app.components.StickGageBar
 import com.bobo.data_lotto_app.R
@@ -422,7 +424,6 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
             Spacer(modifier = Modifier.height(10.dp))
 
             lottoNumber.forEach { number ->
-                val dataValue = dataViewModel.calculate(number.toString())
                 StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString()))
             }
         }
@@ -504,6 +505,8 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val twoChunkNumber = dataViewModel.twoChunkNumberFlow.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -558,8 +561,8 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
             Column(
                 modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+                    .weight(1f)
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.Center,
                 Alignment.CenterHorizontally) {
                 LottoNumberTextField(
@@ -793,10 +796,28 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-//            lottoNumber.forEach { number ->
-//                val dataValue = dataViewModel.calculate(number.toString())
-//                StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString()))
-//            }
+
+            twoChunkNumber.value.forEach {
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+
+                    val testValue = dataViewModel.searchLotto(it)
+
+                    Text(text = "$it")
+
+                    Text(text = "${testValue.second} 중 ${testValue.first}")
+
+
+                    // view
+                    // 리절트 값
+
+
+                    Log.d(TAG,"전체 리스트 갯수 -> ${testValue.second}")
+                    Log.d(TAG,"2개 묶음 트루값 -> $testValue")
+                }
+
+            }
+
         }
 
         Spacer(modifier = Modifier.height(5.dp))
@@ -839,7 +860,30 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                 FloatingActionButton(
                     onClick = {
 
-                    dataViewModel.searchLotto()
+//                    dataViewModel.searchLotto()
+
+                        if(oneNumber.value == "" &&
+                            twoNumber.value == "" &&
+                            threeNumber.value == "" &&
+                            fourNumber.value == "" &&
+                            fiveNumber.value == "" &&
+                            sixNumber.value == "") {
+                            return@FloatingActionButton
+                        } else {
+
+                            val twoNumberCollect = dataViewModel.chunkMake()
+
+                            coroutineScope.launch {
+                                dataViewModel.twoChunkNumberFlow.emit(twoNumberCollect)
+                            }
+
+                            Log.d(TAG,"2개 묶음 값 -> $twoNumberCollect")
+
+
+
+
+                        }
+
 
                     },
                     modifier = Modifier.padding(8.dp)

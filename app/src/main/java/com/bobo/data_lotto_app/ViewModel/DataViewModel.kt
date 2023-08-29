@@ -161,113 +161,120 @@ class DataViewModel: ViewModel() {
 
     // 유저 선택 값
 
-    val twoChunkNumberFlow = MutableStateFlow<List<TwoChunkNumber>>(emptyList())
+    val twoChunkNumberFlow = MutableStateFlow<List<List<Int>>>(emptyList())
 
-    fun searchLotto () {
+    fun chunkMake(): List<List<Int>> {
+
+        val aOne = myNumberOneFlow.value.toIntOrNull()
+        val aTwo = myNumberTwoFlow.value.toIntOrNull()
+        val aThree = myNumberThreeFlow.value.toIntOrNull()
+        val aFour = myNumberFourFlow.value.toIntOrNull()
+        val aFive = myNumberFiveFlow.value.toIntOrNull()
+        val aSix = myNumberSixFlow.value.toIntOrNull()
+
+        val numbers = listOf(aOne!!, aTwo!!, aThree!! ,aFour!!, aFive!!, aSix!!)
+
+        val aValue = numbers.flatMap { a ->
+            numbers.filter { b -> a != b }.map { b ->
+
+                val listNumber = listOf(a, b).sorted().let {
+                    val removeSame = it.distinctBy { it }
+                    removeSame
+                }
+                listNumber
+            }
+        }
+
+        val twoNumberList = aValue.distinct()
+
+        return twoNumberList
+    }
+
+    fun searchLotto (numbers: List<Int>): Pair<Int, Int> {
+        var trueValueCount = 0
+
+        val allDataCount = allLottoNumberDataFlow.value.count()
+
         allLottoNumberDataFlow.value.forEach { lotto ->
 
-            val aOne = myNumberOneFlow.value.toIntOrNull()
-            val aTwo = myNumberTwoFlow.value.toIntOrNull()
-            val aThree = myNumberThreeFlow.value.toIntOrNull()
-            val aFour = myNumberFourFlow.value.toIntOrNull()
-            val aFive = myNumberFiveFlow.value.toIntOrNull()
-            val aSix = myNumberSixFlow.value.toIntOrNull()
+            val result = demoPlayForOneGame(numbers = numbers, lotto)
 
-            val numbers = listOf(1, 2, 3, 4, 5, 6)
-
-
-            val twoNumberList = numbers.flatMap { a ->
-                numbers.filter { b -> a != b }.map { b -> listOf( a, b) }
-            }
-
-
-
-
-
-
-            Log.d(TAG, "2개씩 숫자 묶음 $removeSameValue")
-
-            val a = listOf<Int>(1, 2).let {
-
-            }
-
-            demoPlayForOneGame(numbers = numbers, lotto)
-
+            if(result) trueValueCount ++
         }
+        return Pair(trueValueCount, allDataCount)
     }
 
     fun demoPlayForOneGame(
         numbers: List<Int>,
-        rangeLottoNumber: Lotto)
+        rangeLottoNumber: Lotto): Boolean
     {
 
-        val matchOrNotList : List<Triple<Boolean, Int, Lotto>> = numbers.map { number ->
-            val match = rangeLottoNumber.hasNumber("$number")
+            val matchOrNotList : List<Triple<Boolean, Int, Lotto>> = numbers.map { listNumber ->
 
-            val matchAndNumberAndRangeLottoNumber = Triple(match ,number, rangeLottoNumber)
+                    val match = rangeLottoNumber.hasNumber("$listNumber")
 
-            matchAndNumberAndRangeLottoNumber
-        }
+                    val matchAndNumberAndRangeLottoNumber = Triple(match ,listNumber, rangeLottoNumber)
 
-        val twoOrMoreMatches = matchOrNotList.filter { it.first }
+                    matchAndNumberAndRangeLottoNumber
+            }
+
+            val twoOrMoreMatches = matchOrNotList.filter { it.first }
+
+//        Log.d(TAG, "2개 이상 매치된 번호 ${twoOrMoreMatches}")
+
+
+            // 맞춘 숫자들
+            val matchNumbers : List<Int> = matchOrNotList
+                .filter { it.first }
+                .map{ it.second }
+
+            // 일치하는 값의 갯수
+            val matchBoolean : List<Boolean> = matchOrNotList
+                .map { it.first }
+//        Log.d(TAG, "트루 값 ${matchBoolean}")
+//        Log.d(TAG, "횟차 ${rangeLottoNumber.drwNo}")
+//        Log.d(TAG, "트루 값 숫자${matchNumbers}")
+
+          val trueValue =  when(numbers.count()) {
+                2 -> {
+                    // 트루가 2개 이상인 회차
+                    val matchSameTwo = matchBoolean.count { it == true } >= 2
+
+//                Log.d(TAG, "트루 값 2개 이상 ${matchSameTwo}")
+//                Log.d(TAG, "트루 값이 2개 이상의 값의 갯수 ${sameBallTwo.value}")
+
+                    return matchSameTwo
+                }
+                3 -> {
+                    // 트루가 3개 이상인 회차
+                    val matchSameThree = matchBoolean.count { it == true } >= 3
+
+//                    Log.d(TAG, "트루 값 3개 이상 ${matchSameThree}")
+//                    Log.d(TAG, "트루 값이 3개 이상의 값의 갯수 ${sameBallThree.value}")
+
+                    return matchSameThree
+                }
+
+//                4 -> {
 //
-        Log.d(TAG, "2개 이상 매치된 번호 ${twoOrMoreMatches}")
+//                }
+//
+//                5 -> {
+//
+//                }
+//
+//                6 -> {
+//
+//                }
 
-
-        // 맞춘 숫자들
-        val matchNumbers : List<Int> = matchOrNotList
-            .filter { it.first }
-            .map{ it.second }
-
-        // 일치하는 값의 갯수
-        val matchBoolean : List<Boolean> = matchOrNotList
-            .map { it.first }
-        Log.d(TAG, "트루 값 ${matchBoolean}")
-        Log.d(TAG, "횟차 ${rangeLottoNumber.drwNo}")
-        Log.d(TAG, "트루 값 숫자${matchNumbers}")
-
-        // 한개 이상인 회차
-
-        var sameBall = 0
-
-        when(numbers.count()) {
-            2 -> {
-                // 트루가 2개 이상인 회차
-                val matchSameTwo = matchBoolean.count { it == true } >= 2
-                viewModelScope.launch {
-                    if(matchSameTwo == true) {
-                        sameBall ++
-                    }
-                }
-
-                Log.d(TAG, "트루 값 2개 이상 ${matchSameTwo}")
-                Log.d(TAG, "트루 값이 2개 이상의 값의 갯수 ${sameBallTwo.value}")
-            }
-            3 -> {
-                // 트루가 3개 이상인 회차
-                val matchSameThree = matchBoolean.count { it == true } >= 3
-                viewModelScope.launch {
-                    if(matchSameThree == true) {
-                        sameBall ++
-                    }
-                }
-                Log.d(TAG, "트루 값 3개 이상 ${matchSameThree}")
-                Log.d(TAG, "트루 값이 3개 이상의 값의 갯수 ${sameBallThree.value}")
+              else -> false
             }
 
-            4 -> {
 
-            }
-
-            5 -> {
-
-            }
-
-            6 -> {
-
-            }
+        return trueValue
         }
-    }
+
+
 
 }
 
