@@ -23,15 +23,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DismissDirection
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.TextField
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.draw.clip
@@ -57,6 +63,7 @@ import com.bobo.data_lotto_app.components.StickGageBar
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.LottoNumberTextField
+import com.bobo.data_lotto_app.components.StickBar
 import com.bobo.data_lotto_app.components.autoSizeText
 import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.extentions.toPer
@@ -69,6 +76,8 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.util.Calendar
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.ThresholdConfig
 
 // 데이터 리셋 추가, 데이터 리스트 조회하기 팝업
 @Composable
@@ -121,37 +130,7 @@ fun DataScreen(dataViewModel: DataViewModel) {
 
 
 
-@Composable
-fun StickBar(
-    ballNumber: Int,
-    data: Float) {
 
-    Row(modifier = Modifier
-        .wrapContentHeight()
-        .padding(bottom = 3.dp),
-        verticalAlignment = Alignment.CenterVertically) {
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        BallDraw(ballOder = "$ballNumber 번", ballValue = ballNumber)
-
-        StickGageBar(percent = data,
-            modifier = Modifier
-                .height(50.dp)
-                .weight(1f)
-                .padding(end = 3.dp))
-
-        autoSizeText(
-            value = "${data.toPer()} %",
-            fontSize = 18.sp,
-            minFontSize = 13.sp,
-            color = Color.Black,
-            modifier = Modifier
-                .weight(0.4f)
-                .padding(end = 20.dp),
-            maxLines = 1)
-    }
-}
 
 
 
@@ -475,7 +454,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
@@ -506,6 +485,14 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val twoChunkNumber = dataViewModel.twoChunkNumberFlow.collectAsState()
+
+    val threeChunkNumber = dataViewModel.threeChunkNumberFlow.collectAsState()
+
+    val viewStateValue = remember { mutableStateOf(0) }
+
+
+
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -794,29 +781,56 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
             .verticalScroll(scrollState),
         ) {
 
+            val dismissState = rememberDismissState()
+
             Spacer(modifier = Modifier.height(10.dp))
 
 
-            twoChunkNumber.value.forEach {
 
-                Row(modifier = Modifier.fillMaxWidth()) {
+//            when(viewStateValue.value) {
+//
+//                0 -> {
+//                    twoChunkNumber.value.forEach {
+//
+//                        Row(modifier = Modifier.fillMaxWidth()) {
+//
+//                            val testValue = dataViewModel.searchLotto(it)
+//
+//                            Text(text = "$it")
+//
+//                            Text(text = "${testValue.second} 중 ${testValue.first}")
+//
+//                            Log.d(TAG,"전체 리스트 갯수 -> ${testValue.second}")
+//                            Log.d(TAG,"2개 묶음 트루값 -> $testValue")
+//                        }
+//
+//                    }
+//                }
+//
+//                1 -> {
+//                    threeChunkNumber.value.forEach {
+//
+//                        Row(modifier = Modifier.fillMaxWidth()) {
+//
+//                            val testValue = dataViewModel.searchLotto(it)
+//
+//                            Text(text = "$it")
+//
+//                            Text(text = "${testValue.second} 중 ${testValue.first}")
+//
+//                            Log.d(TAG,"전체 리스트 갯수 -> ${testValue.second}")
+//                            Log.d(TAG,"3개 묶음 트루값 -> $testValue")
+//                        }
+//                    }
+//                }
+//
+//            }
 
-                    val testValue = dataViewModel.searchLotto(it)
-
-                    Text(text = "$it")
-
-                    Text(text = "${testValue.second} 중 ${testValue.first}")
 
 
-                    // view
-                    // 리절트 값
 
 
-                    Log.d(TAG,"전체 리스트 갯수 -> ${testValue.second}")
-                    Log.d(TAG,"2개 묶음 트루값 -> $testValue")
-                }
 
-            }
 
         }
 
@@ -871,20 +885,23 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                             return@FloatingActionButton
                         } else {
 
-                            val twoNumberCollect = dataViewModel.chunkMake()
+                            val chunkValue = dataViewModel.chunkMake()
 
                             coroutineScope.launch {
-                                dataViewModel.twoChunkNumberFlow.emit(twoNumberCollect)
+                                dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
+
+                                dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
+
+                                dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
+
+                                dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
+
+                                dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
                             }
 
-                            Log.d(TAG,"2개 묶음 값 -> $twoNumberCollect")
-
-
-
+                            Log.d(TAG,"2개 묶음 값 -> $chunkValue")
 
                         }
-
-
                     },
                     modifier = Modifier.padding(8.dp)
                 ) {

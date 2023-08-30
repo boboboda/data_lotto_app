@@ -163,7 +163,18 @@ class DataViewModel: ViewModel() {
 
     val twoChunkNumberFlow = MutableStateFlow<List<List<Int>>>(emptyList())
 
-    fun chunkMake(): List<List<Int>> {
+    val threeChunkNumberFlow = MutableStateFlow<List<List<Int>>>(emptyList())
+
+    val fourChunkNumberFlow = MutableStateFlow<List<List<Int>>>(emptyList())
+
+    val fiveChunkNumberFlow = MutableStateFlow<List<List<Int>>>(emptyList())
+
+    val sixChunkNumberFlow = MutableStateFlow<List<Int>>(emptyList())
+
+    val myNumberSearchViewState = MutableStateFlow(0)
+
+
+    fun chunkMake(): ChunkNumber {
 
         val aOne = myNumberOneFlow.value.toIntOrNull()
         val aTwo = myNumberTwoFlow.value.toIntOrNull()
@@ -174,20 +185,50 @@ class DataViewModel: ViewModel() {
 
         val numbers = listOf(aOne!!, aTwo!!, aThree!! ,aFour!!, aFive!!, aSix!!)
 
-        val aValue = numbers.flatMap { a ->
-            numbers.filter { b -> a != b }.map { b ->
+        val twoValue = mutableListOf<List<Int>>()
 
-                val listNumber = listOf(a, b).sorted().let {
-                    val removeSame = it.distinctBy { it }
-                    removeSame
-                }
-                listNumber
+        for (i in 0 until numbers.size) {
+            for (j in i + 1 until numbers.size) {
+                twoValue.add(listOf(numbers[i], numbers[j]))
             }
         }
 
-        val twoNumberList = aValue.distinct()
 
-        return twoNumberList
+        val threeValue = mutableListOf<List<Int>>()
+
+        for (i in 0 until numbers.size) {
+            for (j in i + 1 until numbers.size) {
+                for (k in j + 1 until numbers.size) {
+                    threeValue.add(listOf(numbers[i], numbers[j], numbers[k]))
+                }
+            }
+        }
+
+        val fourValue = mutableListOf<List<Int>>()
+
+        for (i in 0 until numbers.size) {
+            for (j in i + 1 until numbers.size) {
+                for (k in j + 1 until numbers.size) {
+                    for (l in k + 1 until numbers.size) {
+                        fourValue.add(listOf(numbers[i], numbers[j], numbers[k], numbers[l]))
+                    }
+                }
+            }
+        }
+
+        val fiveValue = mutableListOf<List<Int>>()
+
+        for (i in 0 until numbers.size - 4) {
+            fiveValue.add(listOf(numbers[i], numbers[i + 1], numbers[i + 2], numbers[i + 3], numbers[i + 4]))
+        }
+
+        return ChunkNumber(
+            twoValue.distinct(),
+            threeValue.distinct(),
+            fourValue.distinct(),
+            fiveValue.distinct(),
+            numbers
+            )
     }
 
     fun searchLotto (numbers: List<Int>): Pair<Int, Int> {
@@ -278,10 +319,12 @@ class DataViewModel: ViewModel() {
 
 }
 
-data class TwoChunkNumber (
-    val firstNumber: Int,
-    val secondNumber: Int,
-    val result: Int)
+data class ChunkNumber (
+    val secondNumber: List<List<Int>>,
+    val thirdNumber: List<List<Int>>,
+    val fourthNumber: List<List<Int>>,
+    val fifthNumber: List<List<Int>>,
+    val sixthNumber: List<Int>)
 
 data class ThreeChunkNumber(
     val firstNumber: Int,

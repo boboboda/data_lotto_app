@@ -1,7 +1,14 @@
 package com.bobo.data_lotto_app.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -11,6 +18,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.extentions.toPer
+import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.ui.theme.AColor
 import com.bobo.data_lotto_app.ui.theme.BColor
 import com.bobo.data_lotto_app.ui.theme.CColor
@@ -113,4 +124,80 @@ fun StickGageBar(percent: Float = 0f,
         strokeWidth = 100f,
         modifier = modifier
     )
+}
+
+@Composable
+fun StickBar(
+    ballNumber: Int,
+    data: Float) {
+
+    Row(modifier = Modifier
+        .wrapContentHeight()
+        .padding(bottom = 3.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        BallDraw(ballOder = "$ballNumber 번", ballValue = ballNumber)
+
+        StickGageBar(percent = data,
+            modifier = Modifier
+                .height(50.dp)
+                .weight(1f)
+                .padding(end = 3.dp))
+
+        autoSizeText(
+            value = "${data.toPer()} %",
+            fontSize = 18.sp,
+            minFontSize = 13.sp,
+            color = Color.Black,
+            modifier = Modifier
+                .weight(0.4f)
+                .padding(end = 20.dp),
+            maxLines = 1)
+    }
+}
+
+
+@Composable
+fun MyNumberStickBar(
+    firstBall: Int? = null,
+    secondBall: Int? = null,
+    thirdBall: Int? = null,
+    fourthBall: Int? = null,
+    fifthBall: Int? = null,
+    sixthBall: Int? = null,
+    allData: Int,
+    partData: Int,
+    data: Float) {
+
+    Row(modifier = Modifier
+        .wrapContentHeight()
+        .padding(bottom = 3.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        if(firstBall != null) {
+            BallDraw(ballOder = "$firstBall 번", ballValue = firstBall)
+        }
+
+
+
+        StickGageBar(percent = data,
+            modifier = Modifier
+                .height(50.dp)
+                .weight(1f)
+                .padding(end = 3.dp))
+
+        autoSizeText(
+            value = "${data.toPer()} %",
+            fontSize = 18.sp,
+            minFontSize = 13.sp,
+            color = Color.Black,
+            modifier = Modifier
+                .weight(0.4f)
+                .padding(end = 20.dp),
+            maxLines = 1)
+    }
 }

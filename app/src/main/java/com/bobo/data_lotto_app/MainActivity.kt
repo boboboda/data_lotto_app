@@ -2,27 +2,40 @@ package com.bobo.data_lotto_app
 
 import androidx.compose.animation.core.Animatable
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
+import androidx.compose.material.Card
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.Scaffold
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -35,8 +48,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Image
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -44,6 +59,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.Routes.AuthRoute
 import com.bobo.data_lotto_app.Routes.AuthRouteAction
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
@@ -231,39 +247,79 @@ fun AuthNavHost(
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun DrawScreen() {
 
-//
-//    Column(modifier = Modifier.fillMaxSize()) {
-//        Button(
-//            onClick = {
-//                showDatePicker.value = true
-//            }
-//        ) {
-//            Text(text = "Show Date Picker")
-//        }
-//
-//        val formatLocalDate = Instant.ofEpochMilli(selectedDate.value).atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-//
-//        val localDate = Instant.ofEpochMilli(selectedDate.value).atZone(ZoneId.systemDefault()).toLocalDate()
-//
-//        val cgLocalDate = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-//
-//        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT)
-//        Text(
-//            text = "Selected date: ${formatter.format(Date(selectedDate.value))}"
-//        )
-//
-//        Text(
-//            text = "localDate: ${formatLocalDate}"
-//        )
-//
-//        Text(
-//            text = "cgDate: ${formatter.format(Date(cgLocalDate))}"
-//        )
-//    }
+    val viewStateValue = remember { mutableStateOf(0) }
+
+Column(modifier = Modifier.fillMaxSize()) {
+
+    val dismissState = rememberDismissState(confirmStateChange = { dismissValue ->
+        when (dismissValue) {
+            DismissValue.Default -> { // dismissThresholds 만족 안한 상태
+                false
+            }
+            DismissValue.DismissedToEnd -> { // -> 방향 스와이프 (수정)
+                viewStateValue.value = viewStateValue.value - 1
+                Log.d(TAG, "-> 방향 스와이프 (수정)")
+                true
+            }
+            DismissValue.DismissedToStart -> { // <- 방향 스와이프 (삭제)
+                viewStateValue.value = viewStateValue.value + 1
+                Log.d(TAG, "<- 방향 스와이프 (삭제), ${viewStateValue.value}")
+                true
+            }
+        }
+    })
+
+    SwipeToDismiss(
+        state = dismissState,
+        modifier = Modifier,
+        directions = setOf(DismissDirection.EndToStart, DismissDirection.StartToEnd),
+        dismissThresholds = {
+            when (it) {
+                DismissDirection.EndToStart -> FractionalThreshold(0.25f)
+                DismissDirection.StartToEnd -> FractionalThreshold(0.25f)
+            }
+        },
+        background = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.LightGray)
+            )
+        },
+        dismissContent = {
+
+            Card(
+                elevation = animateDpAsState(
+                    if (dismissState.dismissDirection != null) 4.dp else 0.dp).value,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Dp(50f))
+                    .padding(0.dp)
+            ) {
+                when(viewStateValue.value) {
+                    0 -> {
+                        Column {
+                            Text(text = "1번")
+                        }
+
+                    }
+                    1 -> {
+                        Column {
+                            Text(text = "1번")
+                        }
+                    }
+                     }
+
+
+            }
+
+        }
+    )
+}
 
 }
 
