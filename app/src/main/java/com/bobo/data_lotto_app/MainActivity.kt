@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -44,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -247,78 +249,21 @@ fun AuthNavHost(
 
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DrawScreen() {
 
+
+
     val viewStateValue = remember { mutableStateOf(0) }
+
+
 
 Column(modifier = Modifier.fillMaxSize()) {
 
-    val dismissState = rememberDismissState(confirmStateChange = { dismissValue ->
-        when (dismissValue) {
-            DismissValue.Default -> { // dismissThresholds 만족 안한 상태
-                false
-            }
-            DismissValue.DismissedToEnd -> { // -> 방향 스와이프 (수정)
-                viewStateValue.value = viewStateValue.value - 1
-                Log.d(TAG, "-> 방향 스와이프 (수정)")
-                true
-            }
-            DismissValue.DismissedToStart -> { // <- 방향 스와이프 (삭제)
-                viewStateValue.value = viewStateValue.value + 1
-                Log.d(TAG, "<- 방향 스와이프 (삭제), ${viewStateValue.value}")
-                true
-            }
-        }
-    })
-
-    SwipeToDismiss(
-        state = dismissState,
-        modifier = Modifier,
-        directions = setOf(DismissDirection.EndToStart, DismissDirection.StartToEnd),
-        dismissThresholds = {
-            when (it) {
-                DismissDirection.EndToStart -> FractionalThreshold(0.25f)
-                DismissDirection.StartToEnd -> FractionalThreshold(0.25f)
-            }
-        },
-        background = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.LightGray)
-            )
-        },
-        dismissContent = {
-
-            Card(
-                elevation = animateDpAsState(
-                    if (dismissState.dismissDirection != null) 4.dp else 0.dp).value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(Dp(50f))
-                    .padding(0.dp)
-            ) {
-                when(viewStateValue.value) {
-                    0 -> {
-                        Column {
-                            Text(text = "1번")
-                        }
-
-                    }
-                    1 -> {
-                        Column {
-                            Text(text = "1번")
-                        }
-                    }
-                     }
 
 
-            }
 
-        }
-    )
 }
 
 }

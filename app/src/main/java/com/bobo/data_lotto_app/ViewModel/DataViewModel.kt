@@ -41,17 +41,17 @@ class DataViewModel: ViewModel() {
     val allLottoNumberDataFlow = _allLottoNumberDataFlow.asStateFlow()
 
     // 범위가 선택된 로또 번호 데이터
-
+    // 빅데이터
     private val _selectRangeLottoNumber = MutableStateFlow<List<Lotto>>(emptyList())
 
     var selectRangeLottoNumber = _selectRangeLottoNumber.asStateFlow()
 
+    // 범위가 설정된 날짜에서 나의 로또 번호 데이터 조회
 
+    private val _selectRangeMyLottoNumber = MutableStateFlow<List<Lotto>>(emptyList())
 
+    var selectRangeMyLottoNumber = _selectRangeMyLottoNumber.asStateFlow()
 
-    val sameBallTwo = mutableStateOf(0)
-
-    val sameBallThree = mutableStateOf(0)
 
     // 업로드 로또 모든 로또 번호
     fun allFetched() {
@@ -106,11 +106,11 @@ class DataViewModel: ViewModel() {
         sellRecordList.filter { it.drwNoDate!! <= endDate }
     }
 
-    val testValue = MutableStateFlow<Lotto>(
+    val cgStateValue = MutableStateFlow<Lotto>(
         Lotto()
     )
 
-    val cgValue = testValue.replayCache
+    val cgValue = cgStateValue.replayCache
 
     val endFilerStateFlow = endFilterRecordFlow.stateIn(viewModelScope, SharingStarted.Eagerly, cgValue)
 
@@ -122,11 +122,30 @@ class DataViewModel: ViewModel() {
     }
 
 
+
+
     // 나의 로또 번호 조회를 위한 로또 날짜 범위 설정
 
     val myNumberStartDateFlow = MutableStateFlow("${LocalDate.now()}")
 
     val myNumberEndDateFlow = MutableStateFlow("${LocalDate.now()}")
+
+    val startFilterMyNumber = allLottoNumberDataFlow.combine(myNumberStartDateFlow.filterNot { it.isEmpty() }) { recordList, startDate ->
+        recordList.filter { it.drwNoDate!! >= startDate } }
+
+    var endFilterMyNumber = startFilterMyNumber.combine(endDateFlow) { sellRecordList, endDate ->
+        sellRecordList.filter { it.drwNoDate!! <= endDate }
+    }
+
+
+    val myNumberStateFlow = endFilterMyNumber.stateIn(viewModelScope, SharingStarted.Eagerly, allLottoNumberDataFlow.value)
+
+
+    fun myNumberFilterRange() {
+        viewModelScope.launch {
+            _selectRangeMyLottoNumber.emit(myNumberStateFlow.value)
+        }
+    }
 
 
     // 입력한 나의 로또 번호
@@ -170,8 +189,6 @@ class DataViewModel: ViewModel() {
     val fiveChunkNumberFlow = MutableStateFlow<List<List<Int>>>(emptyList())
 
     val sixChunkNumberFlow = MutableStateFlow<List<Int>>(emptyList())
-
-    val myNumberSearchViewState = MutableStateFlow(0)
 
 
     fun chunkMake(): ChunkNumber {
@@ -234,15 +251,17 @@ class DataViewModel: ViewModel() {
     fun searchLotto (numbers: List<Int>): Pair<Int, Int> {
         var trueValueCount = 0
 
-        val allDataCount = allLottoNumberDataFlow.value.count()
+        val data = if(myNumberStateFlow.value.isEmpty()) { allLottoNumberDataFlow.value } else { myNumberStateFlow.value }
 
-        allLottoNumberDataFlow.value.forEach { lotto ->
+        val dataCount = data.count()
+
+        data.forEach { lotto ->
 
             val result = demoPlayForOneGame(numbers = numbers, lotto)
 
             if(result) trueValueCount ++
         }
-        return Pair(trueValueCount, allDataCount)
+        return Pair(trueValueCount, dataCount)
     }
 
     fun demoPlayForOneGame(
@@ -259,30 +278,14 @@ class DataViewModel: ViewModel() {
                     matchAndNumberAndRangeLottoNumber
             }
 
-            val twoOrMoreMatches = matchOrNotList.filter { it.first }
-
-//        Log.d(TAG, "2개 이상 매치된 번호 ${twoOrMoreMatches}")
-
-
-            // 맞춘 숫자들
-            val matchNumbers : List<Int> = matchOrNotList
-                .filter { it.first }
-                .map{ it.second }
-
             // 일치하는 값의 갯수
             val matchBoolean : List<Boolean> = matchOrNotList
                 .map { it.first }
-//        Log.d(TAG, "트루 값 ${matchBoolean}")
-//        Log.d(TAG, "횟차 ${rangeLottoNumber.drwNo}")
-//        Log.d(TAG, "트루 값 숫자${matchNumbers}")
 
           val trueValue =  when(numbers.count()) {
                 2 -> {
                     // 트루가 2개 이상인 회차
                     val matchSameTwo = matchBoolean.count { it == true } >= 2
-
-//                Log.d(TAG, "트루 값 2개 이상 ${matchSameTwo}")
-//                Log.d(TAG, "트루 값이 2개 이상의 값의 갯수 ${sameBallTwo.value}")
 
                     return matchSameTwo
                 }
@@ -290,23 +293,26 @@ class DataViewModel: ViewModel() {
                     // 트루가 3개 이상인 회차
                     val matchSameThree = matchBoolean.count { it == true } >= 3
 
-//                    Log.d(TAG, "트루 값 3개 이상 ${matchSameThree}")
-//                    Log.d(TAG, "트루 값이 3개 이상의 값의 갯수 ${sameBallThree.value}")
-
                     return matchSameThree
                 }
 
-//                4 -> {
-//
-//                }
-//
-//                5 -> {
-//
-//                }
-//
-//                6 -> {
-//
-//                }
+                4 -> {
+                    val matchSameFour = matchBoolean.count { it == true } >= 4
+
+                    return matchSameFour
+                }
+
+                5 -> {
+                    val matchSameFive = matchBoolean.count { it == true } >= 5
+
+                    return matchSameFive
+                }
+
+                6 -> {
+                    val matchSameSix = matchBoolean.count { it == true } >= 6
+
+                    return matchSameSix
+                }
 
               else -> false
             }
@@ -325,10 +331,3 @@ data class ChunkNumber (
     val fourthNumber: List<List<Int>>,
     val fifthNumber: List<List<Int>>,
     val sixthNumber: List<Int>)
-
-data class ThreeChunkNumber(
-    val firstNumber: Int,
-    val secondNumber: Int,
-    val thirdNumber: Int,
-    val result: Int
-        )

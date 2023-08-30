@@ -1,12 +1,16 @@
 package com.bobo.data_lotto_app.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +22,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.extentions.toPer
@@ -167,37 +172,75 @@ fun MyNumberStickBar(
     fourthBall: Int? = null,
     fifthBall: Int? = null,
     sixthBall: Int? = null,
-    allData: Int,
-    partData: Int,
-    data: Float) {
+    allDataCount: Int,
+    partDataCount: Int) {
 
-    Row(modifier = Modifier
-        .wrapContentHeight()
-        .padding(bottom = 3.dp),
-        verticalAlignment = Alignment.CenterVertically) {
+    var data = (partDataCount.toFloat()/allDataCount.toFloat()) * 100
 
-        Spacer(modifier = Modifier.width(10.dp))
+    Column {
 
-        if(firstBall != null) {
-            BallDraw(ballOder = "$firstBall 번", ballValue = firstBall)
+        Row(modifier = Modifier
+            .wrapContentHeight()
+            .padding(bottom = 3.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.width(10.dp))
+
+            if(firstBall != null) {
+                BallDraw(ballOder = "$firstBall 번", ballValue = firstBall)
+            }
+
+            if(secondBall != null) {
+                BallDraw(ballOder = "$secondBall 번", ballValue = secondBall)
+            }
+
+            if(thirdBall != null) {
+                BallDraw(ballOder = "$thirdBall 번", ballValue = thirdBall)
+            }
+
+            if(fourthBall != null) {
+                BallDraw(ballOder = "$fourthBall 번", ballValue = fourthBall)
+            }
+
+            if(fifthBall != null) {
+                BallDraw(ballOder = "$fifthBall 번", ballValue = fifthBall)
+            }
+
+            if(sixthBall != null) {
+                BallDraw(ballOder = "$sixthBall 번", ballValue = sixthBall)
+            }
         }
 
+        Row(modifier = Modifier
+            .wrapContentHeight()
+            .padding(start = 10.dp,bottom = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start) {
+            Text(text = "${allDataCount} 중 ${partDataCount} 일치", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        }
+
+        Row(modifier = Modifier
+            .wrapContentHeight()
+            .padding(bottom = 3.dp),
+            verticalAlignment = Alignment.CenterVertically) {
 
 
-        StickGageBar(percent = data,
-            modifier = Modifier
-                .height(50.dp)
-                .weight(1f)
-                .padding(end = 3.dp))
+            StickGageBar(percent = data,
+                modifier = Modifier
+                    .height(50.dp)
+                    .weight(1f)
+                    .padding(end = 3.dp))
 
-        autoSizeText(
-            value = "${data.toPer()} %",
-            fontSize = 18.sp,
-            minFontSize = 13.sp,
-            color = Color.Black,
-            modifier = Modifier
-                .weight(0.4f)
-                .padding(end = 20.dp),
-            maxLines = 1)
+            autoSizeText(
+                value = "${data.toPer()} %",
+                fontSize = 18.sp,
+                minFontSize = 13.sp,
+                color = Color.Black,
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(end = 20.dp),
+                maxLines = 1)
+        }
     }
+
+
 }

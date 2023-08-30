@@ -28,6 +28,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SnackbarDuration
@@ -78,6 +79,8 @@ import java.time.ZoneId
 import java.util.Calendar
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.ThresholdConfig
+import com.bobo.data_lotto_app.screens.main.views.MyNumberViewPager
+
 
 // 데이터 리셋 추가, 데이터 리스트 조회하기 팝업
 @Composable
@@ -118,21 +121,9 @@ fun DataScreen(dataViewModel: DataViewModel) {
             }
         }
 
-
-
-
     }
         
 }
-
-
-
-
-
-
-
-
-
 
 
 @Composable
@@ -462,8 +453,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
     val callEndDate = dataViewModel.myNumberEndDateFlow.collectAsState()
 
-    val scrollState = rememberScrollState()
-
     val showOpenDialog = remember { mutableStateOf(false) }
 
     val oneNumber = dataViewModel.myNumberOneFlow.collectAsState()
@@ -484,11 +473,11 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val twoChunkNumber = dataViewModel.twoChunkNumberFlow.collectAsState()
 
-    val threeChunkNumber = dataViewModel.threeChunkNumberFlow.collectAsState()
 
-    val viewStateValue = remember { mutableStateOf(0) }
+
+
+
 
 
 
@@ -778,60 +767,10 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
             .fillMaxWidth(0.9f)
             .weight(1f)
             .background(Color.White, shape = RoundedCornerShape(5.dp))
-            .verticalScroll(scrollState),
         ) {
+//            MyNumberSearchResultListView(dataViewModel = dataViewModel)
 
-            val dismissState = rememberDismissState()
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-
-
-//            when(viewStateValue.value) {
-//
-//                0 -> {
-//                    twoChunkNumber.value.forEach {
-//
-//                        Row(modifier = Modifier.fillMaxWidth()) {
-//
-//                            val testValue = dataViewModel.searchLotto(it)
-//
-//                            Text(text = "$it")
-//
-//                            Text(text = "${testValue.second} 중 ${testValue.first}")
-//
-//                            Log.d(TAG,"전체 리스트 갯수 -> ${testValue.second}")
-//                            Log.d(TAG,"2개 묶음 트루값 -> $testValue")
-//                        }
-//
-//                    }
-//                }
-//
-//                1 -> {
-//                    threeChunkNumber.value.forEach {
-//
-//                        Row(modifier = Modifier.fillMaxWidth()) {
-//
-//                            val testValue = dataViewModel.searchLotto(it)
-//
-//                            Text(text = "$it")
-//
-//                            Text(text = "${testValue.second} 중 ${testValue.first}")
-//
-//                            Log.d(TAG,"전체 리스트 갯수 -> ${testValue.second}")
-//                            Log.d(TAG,"3개 묶음 트루값 -> $testValue")
-//                        }
-//                    }
-//                }
-//
-//            }
-
-
-
-
-
-
-
+            MyNumberViewPager(dataViewModel = dataViewModel)
         }
 
         Spacer(modifier = Modifier.height(5.dp))
@@ -918,4 +857,5 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
 
 }
+
 
