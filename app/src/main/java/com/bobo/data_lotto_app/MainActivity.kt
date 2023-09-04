@@ -1,29 +1,18 @@
 package com.bobo.data_lotto_app
 
-import androidx.compose.animation.core.Animatable
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -114,7 +103,7 @@ class MainActivity : ComponentActivity() {
 fun AppScreen(
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
 ) {
 
     val mainNavController = rememberNavController()
@@ -223,7 +212,7 @@ fun AuthNavHost(
     authNavController: NavHostController,
     startRouter: AuthRoute = AuthRoute.WELCOME,
     routeAction: AuthRouteAction,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
 ) {
 
 

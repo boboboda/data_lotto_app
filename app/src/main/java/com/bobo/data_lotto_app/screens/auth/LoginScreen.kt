@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
@@ -26,7 +28,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.CreationExtras
+import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.Routes.AuthRoute
 import com.bobo.data_lotto_app.Routes.AuthRouteAction
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
@@ -39,6 +41,7 @@ import com.bobo.data_lotto_app.ui.theme.TextButtonColor
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun LoginScreen(authViewModel: AuthViewModel,
                 routeAction: AuthRouteAction) {
@@ -140,6 +143,56 @@ fun LoginScreen(authViewModel: AuthViewModel,
             modifier = Modifier.imePadding())
 
         Spacer(modifier = Modifier.height(15.dp))
+
+
+        Row(
+            modifier = Modifier
+            .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Divider(modifier = Modifier.weight(1f))
+            
+            Text(modifier = Modifier
+                .padding(horizontal = 10.dp),
+                text = "Or Login with")
+
+            Divider(modifier = Modifier.weight(1f))
+
+        }
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+
+            BaseButton(
+                title = "카카오 로그인",
+                isLoading = logInIsLoading.value,
+                image = R.drawable.kakaotalk_icon,
+                onClick = {
+//                authViewModel.loginUser()
+                    focusManager.clearFocus()
+                    coroutineScope.launch {
+
+                        authViewModel.failedLogIn.collectLatest {
+                            authViewModel.handleKakaoLogin()
+                        }
+                    }
+                    Log.d("웰컴스크린", "로그인 버튼 클릭")
+
+
+                },
+                modifier = Modifier.imePadding())
+
+
+
+        }
+
 
         Row(
             modifier = Modifier.fillMaxWidth(),

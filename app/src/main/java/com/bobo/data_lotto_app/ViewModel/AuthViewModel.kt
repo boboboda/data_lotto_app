@@ -18,7 +18,7 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
         const val KAKAO = "카카오"
     }
 
-    private val context = application
+    private val context = application.applicationContext
 
     val isLoggedIn = MutableStateFlow<Boolean>(false)
 
@@ -55,9 +55,9 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
 // 카카오톡으로 로그인 할 수 없어 카카오계정으로 로그인할 경우 사용됨
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
             if (error != null) {
-                Log.e(KAKAO, "카카오계정으로 로그인 실패", error)
+                Log.e(TAG, "카카오계정으로 로그인 실패", error)
             } else if (token != null) {
-                Log.i(KAKAO, "카카오계정으로 로그인 성공 ${token.accessToken}")
+                Log.i(TAG, "카카오계정으로 로그인 성공 ${token.accessToken}")
             }
         }
 
@@ -65,7 +65,7 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
         if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
             UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
                 if (error != null) {
-                    Log.e(MainActivity.TAG, "카카오톡으로 로그인 실패", error)
+                    Log.e(TAG, "카카오톡으로 로그인 실패", error)
 
                     // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
                     // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
@@ -76,12 +76,27 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
                     // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인 시도
                     UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
                 } else if (token != null) {
-                    Log.i(MainActivity.TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
+                    Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
                 }
             }
         } else {
             UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
         }
+
+
+// 사용 가능한 모든 동의 항목을 대상으로 추가 동의 필요 여부 확인 및 추가 동의를 요청하는 예제입니다.
+        UserApiClient.instance.me { user, error ->
+            if (error != null) {
+                Log.e(TAG, "사용자 정보 요청 실패", error)
+            }
+            else if (user != null) {
+                Log.i(TAG, "사용자 정보 요청 성공" +
+                        "\n회원번호: ${user.id}" +
+                        "\n이메일: ${user.kakaoAccount?.email}" +
+                        "\n닉네임: ${user.kakaoAccount?.profile?.nickname}")
+            }
+        }
+
     }
 
 

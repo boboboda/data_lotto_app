@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.R
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -66,7 +67,8 @@ fun BaseButton(
     title: String,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    image: Int? = null
 ) {
     when(type) {
         ButtonType.FILL -> MainFilledButton(
@@ -74,7 +76,8 @@ fun BaseButton(
             title,
             enabled,
             isLoading,
-            onClick
+            onClick,
+            image
         )
         ButtonType.OUTLINE -> MainOutlineButton(
             modifier,
@@ -93,7 +96,8 @@ fun MainFilledButton(
     title: String,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    image: Int?
 ) {
     Button(
         modifier = modifier
@@ -109,6 +113,19 @@ fun MainFilledButton(
         enabled = enabled,
         onClick = onClick
     ) {
+        Row(modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.Start) {
+            if(image != null) {
+
+                Image(
+                    painter = painterResource(id = image),
+                    contentDescription = "",
+                    alignment = Alignment.Center
+                )
+
+
+            }
+        }
 
         if (isLoading) {
             CircularProgressIndicator(
@@ -122,6 +139,8 @@ fun MainFilledButton(
                 fontSize = 15.sp,
                 modifier = Modifier.padding(16.dp))
         }
+
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
