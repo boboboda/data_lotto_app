@@ -28,6 +28,8 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.MainRoute
+import com.bobo.data_lotto_app.MainRouteAction
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.Routes.AuthRoute
 import com.bobo.data_lotto_app.Routes.AuthRouteAction
@@ -59,6 +61,10 @@ fun LoginScreen(authViewModel: AuthViewModel,
     val logInIsLoading = authViewModel.isLoadingFlow.collectAsState()
 
     val failedLogin = authViewModel.failedLogIn.collectAsState()
+
+    val isLoggedIn = authViewModel.isLoggedIn.collectAsState()
+
+    val needAuth = authViewModel.needAuthContext.collectAsState()
 
     val snackBarHostState = remember { SnackbarHostState() }
 
@@ -129,6 +135,12 @@ fun LoginScreen(authViewModel: AuthViewModel,
                 authViewModel.loginUser(AuthViewModel.LoginType.DEFAULT)
                 focusManager.clearFocus()
                 coroutineScope.launch {
+
+                    authViewModel.isLoggedIn.collectLatest {
+                        authViewModel.needAuthContext.emit(true)
+                    }
+
+
                     authViewModel.failedLogIn.collectLatest {
                         if (failedLogin.value == true) {
                             snackBarHostState.showSnackbar(

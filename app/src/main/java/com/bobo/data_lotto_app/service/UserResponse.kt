@@ -29,6 +29,7 @@ data class User (
 
 data class UserRequest(
     val type: String? = null,
+    val authState: Boolean? = null,
     val username: String? = null,
     val email: String? = null,
     val password: String? = null,

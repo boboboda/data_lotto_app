@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bobo.data_lotto_app.MainActivity
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
+import com.bobo.data_lotto_app.service.User
 import com.bobo.data_lotto_app.service.UserApi
 import com.bobo.data_lotto_app.service.UserRequest
 import com.bobo.data_lotto_app.service.UserResponse
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.DeclaredMemberIndex.Empty
 
 class AuthViewModel(application: Application): AndroidViewModel(application) {
@@ -40,6 +42,8 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
     val logInEmailInputFlow = MutableStateFlow("")
 
     val logInPasswordInputFlow = MutableStateFlow("")
+
+    val receiveUserDataFlow = MutableStateFlow<User>(User())
 
     val failedLogIn = MutableStateFlow(false)
 
@@ -72,6 +76,7 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
                 password = registerPasswordInputFlow.value
             ))
 
+
             Log.d(TAG, "유저 정보 - ${response}")
 
             if(response != null) {
@@ -91,25 +96,32 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
             LoginType.DEFAULT -> {
                 viewModelScope.launch {
 
-                    val response = UserApi.retrofitService.UserLogin(
-                        request = UserRequest(
-                            type = "${type.type}",
-                            email = registerEmailInputFlow.value,
-                            password = registerPasswordInputFlow.value
-                        ))
+                    try {
+                        val response = UserApi.retrofitService.UserLogin(
+                            request = UserRequest(
+                                type = "${type.type}",
+                                email = logInEmailInputFlow.value,
+                                password = logInPasswordInputFlow.value
+                            )
+                        )
 
-                       Log.d(TAG, "유저 정보 - ${response}")
+                        receiveUserDataFlow.emit(response.users!!)
+
+                        Log.d(TAG, "유저 정보 - ${receiveUserDataFlow.value}")
+
+                        if (response == null) {
+                            failedLogIn.value = true
+                        } else {
+                            isLoggedIn.emit(true)
+                        }
 
 
-
-                    if(response == null) {
-                        failedLogIn.value = true
-                    } else {
+                    } catch (e: HttpException) {
+                        Log.d(TAG, "로그인 실패 $e")
                     }
                 }
             }
             LoginType.KAKAO -> {
-
                 handleKakaoLogin(type = type.type)
             }
         }
@@ -132,6 +144,8 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
                 Log.e(TAG, "카카오계정으로 로그인 실패", error)
             } else if (token != null) {
                 Log.i(TAG, "카카오계정으로 로그인 성공 ${token.accessToken}")
+
+                kakaoDataRequest(type)
             }
         }
 
@@ -150,8 +164,10 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
                     // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인 시도
                     UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
                 } else if (token != null) {
+
                     Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
 
+                    kakaoDataRequest(type)
 
                 }
             }
@@ -160,43 +176,49 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
         }
 
 
-// 사용 가능한 모든 동의 항목을 대상으로 추가 동의 필요 여부 확인 및 추가 동의를 요청하는 예제입니다.
-        UserApiClient.instance.me { user, error ->
-            if (error != null) {
-                Log.e(TAG, "사용자 정보 요청 실패", error)
-            }
-            else if (user != null) {
 
-                viewModelScope.launch {
-
-                        Log.i(TAG, "사용자 정보 요청 성공" +
-                                "\n회원번호: ${user.id}" +
-                                "\n이메일: ${user.kakaoAccount?.email}" +
-                                "\n닉네임: ${user.kakaoAccount?.profile?.nickname}")
-
-                        kakaoUserEmailFlow.emit(user.kakaoAccount?.email!!)
-                        kakaoUsernameFlow.emit(user.kakaoAccount?.profile?.nickname!!)
-
-                    viewModelScope.launch {
-                        val response = UserApi.retrofitService.UserLogin(request = UserRequest(
-                            type = "${type}",
-                            email = kakaoUserEmailFlow.value,
-                            username = kakaoUsernameFlow.value
-                        ))
-
-                        Log.d(TAG, "유저 정보 - ${response}")
-
-                        if(response == null) {
-                            failedLogIn.value = true
-                        }
-                    }
-
-                }
-
-            }
-        }
 
     }
+
+
+   fun kakaoDataRequest(type: String) {
+       UserApiClient.instance.me { user, error ->
+           if (error != null) {
+               Log.e(TAG, "사용자 정보 요청 실패", error)
+           }
+           else if (user != null) {
+
+               viewModelScope.launch {
+
+                   Log.i(TAG, "사용자 정보 요청 성공" +
+                           "\n회원번호: ${user.id}" +
+                           "\n이메일: ${user.kakaoAccount?.email}" +
+                           "\n닉네임: ${user.kakaoAccount?.profile?.nickname}")
+
+                   kakaoUserEmailFlow.emit(user.kakaoAccount?.email!!)
+                   kakaoUsernameFlow.emit(user.kakaoAccount?.profile?.nickname!!)
+
+                   viewModelScope.launch {
+                       val response = UserApi.retrofitService.UserLogin(request = UserRequest(
+                           type = "${type}",
+                           email = kakaoUserEmailFlow.value,
+                           username = kakaoUsernameFlow.value
+                       ))
+
+                       Log.d(TAG, "유저 정보 - ${response}")
+
+                       if(response == null) {
+                           failedLogIn.value = true
+                       } else {
+                           needAuthContext.emit(true)
+                       }
+                   }
+
+               }
+
+           }
+       }
+   }
 
 
 }

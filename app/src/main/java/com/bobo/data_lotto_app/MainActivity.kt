@@ -171,7 +171,9 @@ fun AppScreen(
                 AuthNavHost(
                     authNavController = authNavController,
                     routeAction = authRouteAction,
-                    authViewModel = authViewModel)
+                    authViewModel = authViewModel,
+
+                    mainRouteAction = mainRouteAction)
 
             }
         }
@@ -213,6 +215,7 @@ fun AuthNavHost(
     startRouter: AuthRoute = AuthRoute.WELCOME,
     routeAction: AuthRouteAction,
     authViewModel: AuthViewModel,
+    mainRouteAction: MainRouteAction
 ) {
 
 
