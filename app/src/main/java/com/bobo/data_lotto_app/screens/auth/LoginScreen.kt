@@ -62,6 +62,8 @@ fun LoginScreen(authViewModel: AuthViewModel,
 
     val snackBarHostState = remember { SnackbarHostState() }
 
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -124,7 +126,7 @@ fun LoginScreen(authViewModel: AuthViewModel,
             enabled = isLoginBtnActive,
             isLoading = logInIsLoading.value,
             onClick = {
-//                authViewModel.loginUser()
+                authViewModel.loginUser(AuthViewModel.LoginType.DEFAULT)
                 focusManager.clearFocus()
                 coroutineScope.launch {
                     authViewModel.failedLogIn.collectLatest {
@@ -175,12 +177,18 @@ fun LoginScreen(authViewModel: AuthViewModel,
                 isLoading = logInIsLoading.value,
                 image = R.drawable.kakaotalk_icon,
                 onClick = {
-//                authViewModel.loginUser()
                     focusManager.clearFocus()
                     coroutineScope.launch {
 
+                        authViewModel.loginUser(type = AuthViewModel.LoginType.KAKAO)
+
                         authViewModel.failedLogIn.collectLatest {
-                            authViewModel.handleKakaoLogin()
+                            if (failedLogin.value == true) {
+                                snackBarHostState.showSnackbar(
+                                    "로그인에 실패하였습니다. 다시 확인해주세요",
+                                    actionLabel = "닫기", SnackbarDuration.Short
+                                )
+                            }
                         }
                     }
                     Log.d("웰컴스크린", "로그인 버튼 클릭")

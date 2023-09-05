@@ -8,7 +8,7 @@ data class LottoListResponse (
     @Json(name = "data")
     val lottos: List<Lotto>? = null
 )
-//
+
 
 data class Lotto (
     val id: Long? = null,

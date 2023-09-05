@@ -38,6 +38,7 @@ import com.bobo.data_lotto_app.components.EmailTextField
 import com.bobo.data_lotto_app.components.LogInBackButton
 import com.bobo.data_lotto_app.components.PasswordTextField
 import com.bobo.data_lotto_app.components.fontFamily
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
@@ -69,29 +70,13 @@ fun RegisterScreen(authViewModel: AuthViewModel,
 
     val isLoading = authViewModel.registerIsLoadingFlow.collectAsState()
 
-//    val registerSuccess = authViewModel.registerSuccessFlow.collectAsState()
+    val registerSuccess = authViewModel.registerSuccessFlow.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
 
 
 
-    LaunchedEffect(key1 = Unit, block = {
-//        authViewModel.registerCompleteFlow.collectLatest {
-//            snackBarHostState
-//                .showSnackbar(
-//                    "회원가입 완료! 로그인 해주세요!",
-//                    actionLabel = "확인", SnackbarDuration.Short)
-//                .let{
-//                    when(it) {
-//                        SnackbarResult.Dismissed -> Log.d("TAG", "스낵바 닫힘")
-//                        SnackbarResult.ActionPerformed ->{
-//                            routeAction.navTo(AuthRoute.LOGIN)
-//                        }
-//                    }
-//                }
-//        }
-    })
 
 
     Column(
@@ -182,10 +167,18 @@ fun RegisterScreen(authViewModel: AuthViewModel,
             enabled = isRegisterBtnActive,
             isLoading = isLoading.value,
             onClick = {
-                Log.d("회원가입화면", "로그인 버튼 클릭")
+                Log.d("회원가입화면", "회원가입 클릭")
                 coroutineScope.launch {
-//                    authViewModel.registerUser()
-//                    authViewModel.registerNickName()
+                    focusManager.clearFocus()
+                    authViewModel.registerUser()
+
+                    authViewModel.registerSuccessFlow.collectLatest {
+                        if(registerSuccess.value) {
+                            routeAction.navTo(AuthRoute.LOGIN)
+                        }
+                    }
+
+
 
                 }
 
@@ -205,7 +198,6 @@ fun RegisterScreen(authViewModel: AuthViewModel,
         }
     }
 
-    SnackbarHost(hostState = snackBarHostState)
     Spacer(modifier = Modifier.height(30.dp))
 
 }
