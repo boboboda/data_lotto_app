@@ -122,6 +122,55 @@ fun SelectCard(dataViewModel: DataViewModel) {
 }
 
 
+@Composable
+fun LottoSelectCard(dataViewModel: DataViewModel) {
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+
+        val currentId = dataViewModel.dataCardId.collectAsState()
+
+
+        CardButtonCustom(
+            title = "일반 모드",
+            id = 1,
+            selectedValue = currentId.value,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 20.dp),
+            clickedAction = {
+                dataViewModel.dataCardId.value = it
+            },
+            fontSize = 20.sp,
+            textModifier = Modifier.padding(vertical = 5.dp),
+            firstButtonColor = DataSelectFirstColor,
+            secondButtonColor = DataSelectSecondColor
+        )
+
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        CardButtonCustom(
+            title = "빅데이터 모드",
+            id = 2,
+            selectedValue = currentId.value,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 20.dp),
+            clickedAction = {
+                dataViewModel.dataCardId.value = it
+            },
+            fontSize = 20.sp,
+            textModifier = Modifier.padding(vertical = 5.dp),
+            firstButtonColor = DataSelectFirstColor,
+            secondButtonColor = DataSelectSecondColor
+        )
+    }
+}
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardButtonCustom(

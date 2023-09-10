@@ -49,3 +49,6 @@ val WelcomeScreenRegisterButtonColor = Color(0xFFFDFCED)
 
 
 val DateBackgroundColor = Color(0xFFF8EEFF)
+
+
+val NormalModeLottoNumberBackgroundColor = Color(0xFFF0F0EE)

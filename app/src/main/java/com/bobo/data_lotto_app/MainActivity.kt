@@ -63,6 +63,7 @@ import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
 import com.bobo.data_lotto_app.screens.auth.LoginScreen
 import com.bobo.data_lotto_app.screens.auth.RegisterScreen
+import com.bobo.data_lotto_app.screens.main.DrawScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -203,7 +204,7 @@ fun MainNaHost(
             DataScreen(dataViewModel)
         }
         composable(MainRoute.Draw.routeName!!) {
-            DrawScreen()
+            DrawScreen(dataViewModel)
         }
     }
 }
@@ -237,28 +238,6 @@ fun AuthNavHost(
     }
 }
 
-
-
-
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun DrawScreen() {
-
-
-
-    val viewStateValue = remember { mutableStateOf(0) }
-
-
-
-Column(modifier = Modifier.fillMaxSize()) {
-
-
-
-
-}
-
-}
 
 
 

@@ -1,6 +1,7 @@
 package com.bobo.data_lotto_app.ViewModel
 
 import android.util.Log
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,9 +13,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.NotNull
 import java.time.LocalDate
+import java.util.UUID
 
 class DataViewModel: ViewModel() {
 
@@ -22,8 +28,6 @@ class DataViewModel: ViewModel() {
         viewModelScope.launch {
             allFetched()
 
-//            delay(1000)
-//            searchLotto()
 
             if(allLottoNumberDataFlow != null) {
                 Log.d(TAG, "${allLottoNumberDataFlow.value}")
@@ -34,6 +38,8 @@ class DataViewModel: ViewModel() {
     }
 
     val dataCardId = MutableStateFlow(1)
+
+    val lottoCardId = MutableStateFlow(1)
 
     // 전체 로또 번호 데이터
     private val _allLottoNumberDataFlow = MutableStateFlow<List<Lotto>>(emptyList())
@@ -322,6 +328,99 @@ class DataViewModel: ViewModel() {
         }
 
 
+    // 로또번호 추첨 일반 모드
+
+
+    val normalLottoNumberList = MutableStateFlow<List<LottoNumber>>(emptyList())
+
+    val removeNumber = MutableStateFlow<List<Int>>(emptyList())
+
+    val fixFirstNumber = MutableStateFlow(null)
+
+    val fixSecondNumber = MutableStateFlow(null)
+
+    val fixThirdNumber = MutableStateFlow(null)
+
+    val fixFourNumber = MutableStateFlow(null)
+
+    val fixFifthNumber = MutableStateFlow(null)
+
+    val fixSixthNumber = MutableStateFlow(null)
+
+    suspend fun normalLottery() {
+
+        val rangeNumber = normalFilterNumber()
+
+        var randomNumberList = listOf<Int>(
+            rangeNumber.random(),
+            rangeNumber.random(),
+            rangeNumber.random(),
+            rangeNumber.random(),
+            rangeNumber.random(),
+            rangeNumber.random()
+        )
+
+        val sortList = randomNumberList.sorted()
+
+        val firstNumber = if(fixFirstNumber.value == null) {
+            sortList[0]
+        } else fixFirstNumber.value
+
+        val secondNumber = if(fixSecondNumber.value == null) {
+            sortList[1]
+        } else fixSecondNumber.value
+
+        val thirdNumber = if(fixThirdNumber.value == null) {
+            sortList[2]
+        } else fixThirdNumber.value
+
+        val fourthNumber = if(fixFourNumber.value == null) {
+            sortList[3]
+        } else fixFourNumber.value
+
+        val fifthNumber = if(fixFifthNumber.value == null) {
+            sortList[4]
+        } else fixFifthNumber.value
+
+        val sixthNumber = if(fixSixthNumber.value == null) {
+            sortList[5]
+        } else fixSixthNumber.value
+
+        viewModelScope.launch {
+
+            val newData = LottoNumber(
+                id = UUID.randomUUID(),
+                firstNumber = firstNumber,
+                secondNumber = secondNumber,
+                thirdNumber = thirdNumber,
+                fourthNumber = fourthNumber,
+                fifthNumber = fifthNumber,
+                sixthNumber = sixthNumber)
+
+           val list = normalLottoNumberList.value + newData
+
+            normalLottoNumberList.emit(list)
+
+
+        }
+
+        Log.d(TAG, "일반 로또번호 추첨 - ${normalLottoNumberList.value}")
+
+    }
+    fun normalFilterNumber(): MutableList<Int> {
+
+        // 제외수
+        val rangeNumber = 1..45
+
+        val listNumber: MutableList<Int> = rangeNumber.toMutableList()
+
+        listNumber.removeAll(removeNumber.value)
+
+        return listNumber
+    }
+
+
+
 
 }
 
@@ -331,3 +430,15 @@ data class ChunkNumber (
     val fourthNumber: List<List<Int>>,
     val fifthNumber: List<List<Int>>,
     val sixthNumber: List<Int>)
+
+
+
+data class LottoNumber(
+    val id: UUID? = null,
+    val firstNumber: Int? = null,
+    val secondNumber: Int? = null,
+    val thirdNumber: Int? = null,
+    val fourthNumber: Int? = null,
+    val fifthNumber: Int? = null,
+    val sixthNumber: Int? = null
+)

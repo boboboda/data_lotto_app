@@ -473,16 +473,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-
-
-
-
-
-
-
-
-
-
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally

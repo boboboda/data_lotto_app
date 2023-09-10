@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.util.UUID
 import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.DeclaredMemberIndex.Empty
 
 class AuthViewModel(application: Application): AndroidViewModel(application) {
@@ -222,3 +223,5 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
 
 
 }
+
+
