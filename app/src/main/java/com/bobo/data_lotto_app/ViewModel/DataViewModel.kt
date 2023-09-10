@@ -5,13 +5,19 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bobo.data_lotto_app.Localdb.LocalRepository
+import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.service.Lotto
 import com.bobo.data_lotto_app.service.LottoApi
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
@@ -21,12 +27,28 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.NotNull
 import java.time.LocalDate
 import java.util.UUID
+import javax.inject.Inject
 
-class DataViewModel: ViewModel() {
+
+@HiltViewModel
+class DataViewModel @Inject constructor(private val localRepository: LocalRepository): ViewModel() {
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             allFetched()
+
+            localRepository.getAll().distinctUntilChanged()
+                .collect{ listNumber ->
+
+                    if(listNumber.isNullOrEmpty()) {
+                        Log.d(TAG, "Empty number list")
+                    } else {
+                        normalLottoNumberList.value = listNumber
+                    }
+
+                }
+
+
 
 
             if(allLottoNumberDataFlow != null) {
@@ -331,7 +353,7 @@ class DataViewModel: ViewModel() {
     // 로또번호 추첨 일반 모드
 
 
-    val normalLottoNumberList = MutableStateFlow<List<LottoNumber>>(emptyList())
+    val normalLottoNumberList = MutableStateFlow<List<NormalModeNumber>>(emptyList())
 
     val removeNumber = MutableStateFlow<List<Int>>(emptyList())
 
@@ -388,7 +410,7 @@ class DataViewModel: ViewModel() {
 
         viewModelScope.launch {
 
-            val newData = LottoNumber(
+            val newData = NormalModeNumber(
                 id = UUID.randomUUID(),
                 firstNumber = firstNumber,
                 secondNumber = secondNumber,
@@ -399,12 +421,21 @@ class DataViewModel: ViewModel() {
 
            val list = normalLottoNumberList.value + newData
 
+
+            Log.d(TAG, "체크 리스트 - ${list}")
+
+            Log.d(TAG, "체크 데이터 - ${newData}")
+
+            Log.d(TAG, "일반 로또번호 추첨 - ${normalLottoNumberList.value}")
+
+
             normalLottoNumberList.emit(list)
 
+            localRepository.add(newData)
 
         }
 
-        Log.d(TAG, "일반 로또번호 추첨 - ${normalLottoNumberList.value}")
+
 
     }
     fun normalFilterNumber(): MutableList<Int> {
@@ -417,6 +448,20 @@ class DataViewModel: ViewModel() {
         listNumber.removeAll(removeNumber.value)
 
         return listNumber
+    }
+
+    fun deleteNormalNumber(normalModeNumber: NormalModeNumber) {
+        viewModelScope.launch {
+            localRepository.delete(normalModeNumber)
+
+            val list = normalLottoNumberList.value
+            val removeLists = list.toMutableList().apply {
+                remove(normalModeNumber)
+            }.toList()
+
+            normalLottoNumberList.value = removeLists
+        }
+
     }
 
 
@@ -433,12 +478,4 @@ data class ChunkNumber (
 
 
 
-data class LottoNumber(
-    val id: UUID? = null,
-    val firstNumber: Int? = null,
-    val secondNumber: Int? = null,
-    val thirdNumber: Int? = null,
-    val fourthNumber: Int? = null,
-    val fifthNumber: Int? = null,
-    val sixthNumber: Int? = null
-)
+

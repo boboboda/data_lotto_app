@@ -1,5 +1,8 @@
 package com.bobo.data_lotto_app.screens.main
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,30 +22,44 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.Icon
+import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
-import com.bobo.data_lotto_app.ViewModel.LottoNumber
+import com.bobo.data_lotto_app.components.FilterDialog
 import com.bobo.data_lotto_app.components.LottoSelectCard
-import com.bobo.data_lotto_app.components.SelectCard
+import com.bobo.data_lotto_app.ui.theme.DeleteColor
+import com.bobo.data_lotto_app.ui.theme.FilterIconColor
 import com.bobo.data_lotto_app.ui.theme.NormalModeLottoNumberBackgroundColor
-import com.bobo.data_lotto_app.ui.theme.WelcomeScreenRegisterButtonColor
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -89,12 +106,18 @@ fun DrawScreen(dataViewModel: DataViewModel) {
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NormalModeView(dataViewModel: DataViewModel) {
 
     val lottoNumberData = dataViewModel.normalLottoNumberList.collectAsState()
 
     val scope = rememberCoroutineScope()
+
+    var lazyListState = rememberLazyListState()
+
+    val showOpenDialog = remember { mutableStateOf(false) }
+
 
     Column(
         modifier = Modifier
@@ -129,11 +152,67 @@ fun NormalModeView(dataViewModel: DataViewModel) {
                     .background(color = Color.White)
                     .weight(1f)
                     ,
-                state = rememberLazyListState()
+                state = lazyListState
             ) {
-                itemsIndexed(lottoNumberData.value) { index, item ->
+                items(lottoNumberData.value, {item -> item.id}) {item ->
 
-                    LottoNumberArrayView(listNumber = index + 1, data = item)
+
+                    val dismissState = rememberDismissState()
+
+                    if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+                        dataViewModel.deleteNormalNumber(item)
+
+                    }
+                    SwipeToDismiss(
+                        state = dismissState,
+                        modifier = Modifier
+                            .padding(vertical = Dp(1f)),
+                        directions = setOf(
+                            DismissDirection.EndToStart),
+                        dismissThresholds = { FractionalThreshold(0.25f) },
+                        background = {
+                            val color by animateColorAsState(
+                                when (dismissState.targetValue) {
+                                    DismissValue.Default -> Color.White
+                                    else -> DeleteColor
+                                }
+                            )
+                            val alignment = Alignment.CenterEnd
+                            val icon = Icons.Default.Delete
+
+                            val scale by animateFloatAsState(
+                                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                            )
+
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .background(color)
+                                    .padding(horizontal = Dp(20f)),
+                                contentAlignment = alignment
+                            ) {
+                                Image(
+                                    icon,
+                                    contentDescription = "Delete Icon",
+                                    modifier = Modifier.scale(scale)
+                                )
+                            }
+                        },
+                        dismissContent = {
+
+
+                            Card(
+                                elevation = animateDpAsState(
+                                    if (dismissState.dismissDirection != null) 4.dp else 0.dp).value,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(Dp(50f))
+                                    .padding(0.dp)
+                            ) {
+                                LottoNumberArrayView(data = item)
+                            }
+                        }
+                    )
                 }
             }
 
@@ -146,6 +225,25 @@ fun NormalModeView(dataViewModel: DataViewModel) {
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch {
+                                showOpenDialog.value = true
+                            }
+
+                        },
+                        modifier = Modifier
+                            .size(80.dp)
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(70.dp),
+                            painter = painterResource(id = R.drawable.filter_icon),
+                            contentDescription = "",
+                            tint = FilterIconColor
+                        )
+                    }
 
                     FloatingActionButton(
                         onClick = {
@@ -167,29 +265,30 @@ fun NormalModeView(dataViewModel: DataViewModel) {
                 }
             }
 
+            if(showOpenDialog.value) {
+                FilterDialog(
+                    dataViewModel = dataViewModel,
+                    onDismissRequest = {
+                    showOpenDialog.value = it
+                })
+            }
+
 
         }
     }
 }
 
 @Composable
-fun LottoNumberArrayView(listNumber: Int,
-                         data: LottoNumber) {
+fun LottoNumberArrayView(data: NormalModeNumber) {
 
     Row(modifier = Modifier
         .fillMaxSize()
-        .padding(vertical = 5.dp)
-        .padding(horizontal = 10.dp)
         .background(color = NormalModeLottoNumberBackgroundColor, shape = RoundedCornerShape(5.dp)),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically) {
 
         Spacer(modifier = Modifier.width(15.dp))
 
-        Text(text = "$listNumber",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
 
         Spacer(modifier = Modifier.width(20.dp))
 

@@ -38,6 +38,10 @@
                     android:scheme="@string/kakao_oauth_host" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_sample_app_id"/>
     </application>
 
 </manifest>

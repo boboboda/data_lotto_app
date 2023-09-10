@@ -51,4 +51,12 @@ val WelcomeScreenRegisterButtonColor = Color(0xFFFDFCED)
 val DateBackgroundColor = Color(0xFFF8EEFF)
 
 
-val NormalModeLottoNumberBackgroundColor = Color(0xFFF0F0EE)
+val NormalModeLottoNumberBackgroundColor = Color(0xFFFCFCC5)
+
+val DeleteColor = Color(0xFFD62F56)
+
+val FilterIconColor = Color(0xFF22B7DD)
+
+val EnableButtonColor = Color(0xFFEB427B)
+
+val DisableButtonColor = Color(0xFFDB89A5)

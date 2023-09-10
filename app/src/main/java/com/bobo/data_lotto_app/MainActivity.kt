@@ -65,10 +65,12 @@ import com.bobo.data_lotto_app.screens.auth.LoginScreen
 import com.bobo.data_lotto_app.screens.auth.RegisterScreen
 import com.bobo.data_lotto_app.screens.main.DrawScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     companion object {
