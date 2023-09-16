@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun autoSizeText(
+fun AutoSizeText(
     value: String,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 18.sp,

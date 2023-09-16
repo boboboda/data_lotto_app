@@ -51,3 +51,5 @@ data class Lotto (
         }
     }
 }
+
+

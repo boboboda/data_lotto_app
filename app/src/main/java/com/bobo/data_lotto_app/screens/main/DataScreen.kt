@@ -65,7 +65,6 @@ import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.LottoNumberTextField
 import com.bobo.data_lotto_app.components.StickBar
-import com.bobo.data_lotto_app.components.autoSizeText
 import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.extentions.toPer
 import com.bobo.data_lotto_app.screens.main.BallDraw
@@ -79,6 +78,7 @@ import java.time.ZoneId
 import java.util.Calendar
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.ThresholdConfig
+import com.bobo.data_lotto_app.components.AutoSizeText
 import com.bobo.data_lotto_app.screens.main.views.MyNumberViewPager
 
 
@@ -161,7 +161,7 @@ fun dataRangeView(
             horizontalArrangement = Arrangement.Center
         ) {
 
-            autoSizeText(
+            AutoSizeText(
                 value = "시작: ${firstDate}",
                 fontSize = 15.sp,
                 minFontSize = 13.sp,
@@ -186,7 +186,7 @@ fun dataRangeView(
             horizontalArrangement = Arrangement.Center
         ) {
 
-            autoSizeText(
+            AutoSizeText(
                 value = "종료: ${secondDate}",
                 fontSize = 15.sp,
                 minFontSize = 13.sp,
@@ -232,7 +232,7 @@ fun dataRangeRowTypeView(
             horizontalArrangement = Arrangement.Center
         ) {
 
-            autoSizeText(
+            AutoSizeText(
                 value = "시작: ${firstDate}",
                 fontSize = 15.sp,
                 minFontSize = 13.sp,
@@ -256,7 +256,7 @@ fun dataRangeRowTypeView(
             horizontalArrangement = Arrangement.Center
         ) {
 
-            autoSizeText(
+            AutoSizeText(
                 value = "종료: ${secondDate}",
                 fontSize = 15.sp,
                 minFontSize = 13.sp,
@@ -333,7 +333,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    autoSizeText(
+                    AutoSizeText(
                         value = "조회 로또 번호: ${selectedRangeLotto.value.count()}개",
                         fontSize = 15.sp,
                         minFontSize = 13.sp,
@@ -357,7 +357,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
                     horizontalArrangement = Arrangement.Center
                 ) {
 
-                    autoSizeText(
+                    AutoSizeText(
                         value = "최근 로또 회차: ${resentLottoNumber.value.drwNo}회",
                         fontSize = 15.sp,
                         minFontSize = 13.sp,
@@ -394,7 +394,8 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
             Spacer(modifier = Modifier.height(10.dp))
 
             lottoNumber.forEach { number ->
-                StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString()))
+                StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString(),
+                    type = DataViewModel.ModeType.SEARCH))
             }
         }
 

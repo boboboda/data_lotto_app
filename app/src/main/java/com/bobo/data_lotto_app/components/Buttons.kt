@@ -41,7 +41,7 @@ fun Buttons(
         enabled = enabled,
         onClick = {onClicked?.invoke()})
     {
-        autoSizeText(
+        AutoSizeText(
             value = label,
             fontFamily = fontFamily ,
             fontSize = fontSize.sp,

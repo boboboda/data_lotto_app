@@ -28,9 +28,9 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bobo.data_lotto_app.Routes.AuthRoute
 import com.bobo.data_lotto_app.Routes.AuthRouteAction
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
+import com.bobo.data_lotto_app.components.AutoSizeText
 import com.bobo.data_lotto_app.components.BaseButton
 import com.bobo.data_lotto_app.components.ButtonType
-import com.bobo.data_lotto_app.components.autoSizeText
 import com.bobo.data_lotto_app.components.fontFamily
 import com.bobo.data_lotto_app.ui.theme.MainTextColor
 import com.bobo.data_lotto_app.ui.theme.TextButtonColor
@@ -66,7 +66,7 @@ fun WelcomeScreen(routeAction: AuthRouteAction, authViewModel: AuthViewModel) {
                 .background(color = WelcomeScreenBackgroundColor),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center) {
-                autoSizeText(
+                AutoSizeText(
                     value = "데이터 기반 로또 추첨 앱",
                     fontFamily = fontFamily,
                     fontSize = 35.sp,
@@ -102,7 +102,7 @@ fun WelcomeScreen(routeAction: AuthRouteAction, authViewModel: AuthViewModel) {
                 .background(color = Color.White),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center) {
-                autoSizeText(
+                AutoSizeText(
                     value = "환영합니다 모두 부자되세요",
                     fontFamily = fontFamily,
                     fontSize = 25.sp,

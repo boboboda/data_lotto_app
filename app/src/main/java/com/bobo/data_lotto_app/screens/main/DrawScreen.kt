@@ -1,5 +1,8 @@
 package com.bobo.data_lotto_app.screens.main
 
+import android.text.AutoText
+import android.util.Log
+import android.widget.ScrollView
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -17,23 +20,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,16 +64,19 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
+import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
+import com.bobo.data_lotto_app.components.AutoSizeText
 import com.bobo.data_lotto_app.components.FilterDialog
+import com.bobo.data_lotto_app.components.LottoAnimationDialog
 import com.bobo.data_lotto_app.components.LottoSelectCard
 import com.bobo.data_lotto_app.ui.theme.DeleteColor
-import com.bobo.data_lotto_app.ui.theme.FilterIconColor
 import com.bobo.data_lotto_app.ui.theme.NormalModeLottoNumberBackgroundColor
 import kotlinx.coroutines.launch
 
@@ -91,8 +109,8 @@ fun DrawScreen(dataViewModel: DataViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally) {
             when (currentId.value) {
                 1 -> {
-
                     NormalModeView(dataViewModel = dataViewModel)
+
                 }
 
                 2 -> {
@@ -116,20 +134,21 @@ fun NormalModeView(dataViewModel: DataViewModel) {
 
     var lazyListState = rememberLazyListState()
 
+    val addNumber = dataViewModel.normalFixNumber.collectAsState()
+
+    val removeNumber = dataViewModel.viewRemoveNumber.collectAsState()
+
     val showOpenDialog = remember { mutableStateOf(false) }
+
+    val showLottoAnimationDialog = remember{ mutableStateOf( false ) }
 
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Row() {
-            Spacer(modifier = Modifier.height(30.dp))
-        }
-
-        Column(modifier =  Modifier,
-            horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(modifier = Modifier.height(5.dp))
 
             Row(
                 modifier = Modifier
@@ -144,6 +163,51 @@ fun NormalModeView(dataViewModel: DataViewModel) {
                     fontWeight = FontWeight.Bold
                 )
             }
+            
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentSize()
+                    .padding(horizontal = 13.dp),
+                columns = GridCells.Fixed(4), content = {
+                items(addNumber.value) {addNumber ->
+                    FilterCard(number = " 고정수 $addNumber",
+                        deleteClicked = {
+                            scope.launch {
+                            val addList = dataViewModel.normalFixNumber.value.toMutableList().apply {
+                                remove(addNumber)
+                            }
+                                dataViewModel.normalFixNumber.emit(addList)
+
+                            val removeList = dataViewModel.normalRemoveNumber.value.toMutableList().apply {
+                                remove(addNumber)
+                            }
+                                dataViewModel.normalRemoveNumber.emit(removeList)
+                            }
+                        })
+                }
+
+                items(removeNumber.value) { removeNumber ->
+
+                    FilterCard(number = " 제외수 $removeNumber",
+                        deleteClicked = {
+                            scope.launch {
+                                val removeList = dataViewModel.normalRemoveNumber.value.toMutableList().apply {
+                                    remove(removeNumber)
+                                }
+                                dataViewModel.normalRemoveNumber.emit(removeList)
+
+                                val viewRemoveNumber = dataViewModel.viewRemoveNumber.value.toMutableList().apply {
+                                    remove(removeNumber)
+                                }
+
+                                dataViewModel.viewRemoveNumber.emit(viewRemoveNumber)
+                            }
+                        })
+                }
+            })
+        
+        Spacer(modifier = Modifier.height(5.dp))
 
             LazyColumn(
                 modifier = Modifier
@@ -154,6 +218,7 @@ fun NormalModeView(dataViewModel: DataViewModel) {
                     ,
                 state = lazyListState
             ) {
+
                 items(lottoNumberData.value, {item -> item.id}) {item ->
 
 
@@ -237,18 +302,17 @@ fun NormalModeView(dataViewModel: DataViewModel) {
                             .size(80.dp)
                             .padding(8.dp)
                     ) {
-                        Icon(
+                        Image(
                             modifier = Modifier.size(70.dp),
                             painter = painterResource(id = R.drawable.filter_icon),
-                            contentDescription = "",
-                            tint = FilterIconColor
+                            contentDescription = ""
                         )
                     }
 
                     FloatingActionButton(
                         onClick = {
                             scope.launch {
-                                dataViewModel.normalLottery()
+                                showLottoAnimationDialog.value = true
                             }
 
                         },
@@ -273,7 +337,16 @@ fun NormalModeView(dataViewModel: DataViewModel) {
                 })
             }
 
-
+        if(showLottoAnimationDialog.value) {
+            LottoAnimationDialog(
+                closeClicked = {
+                              showLottoAnimationDialog.value = it
+                },
+                dataViewModel = dataViewModel,
+                onDismissRequest = {
+                    showLottoAnimationDialog.value = it
+                }
+            )
         }
     }
 }
@@ -287,10 +360,7 @@ fun LottoNumberArrayView(data: NormalModeNumber) {
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically) {
 
-        Spacer(modifier = Modifier.width(15.dp))
-
-
-        Spacer(modifier = Modifier.width(20.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         BallDraw(ballOder = "", ballValue = data.firstNumber!!)
         Spacer(modifier = Modifier.width(8.dp))
@@ -304,12 +374,300 @@ fun LottoNumberArrayView(data: NormalModeNumber) {
         Spacer(modifier = Modifier.width(8.dp))
         BallDraw(ballOder = "", ballValue = data.sixthNumber!!)
 
+        Spacer(modifier = Modifier.weight(1f))
+
     }
 
 }
 
 
+
+@Composable
+fun FilterCard(number: String, deleteClicked: () -> Unit) {
+    Card(
+        elevation = 8.dp,
+        modifier = Modifier
+            .wrapContentSize()
+            .height(35.dp)
+            .padding(3.dp),
+        backgroundColor = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .wrapContentSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AutoSizeText(
+                value = number,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                maxLines = 1,
+                minFontSize = 8.sp,
+                color = Color.Black
+            )
+
+            IconButton(
+                modifier = Modifier
+                    .size(18.dp)
+                    .clip(shape = CircleShape)
+                    .padding(end = 3.dp),
+                onClick = deleteClicked) {
+                val icon = Icons.Default.Clear
+                Icon(imageVector = icon, contentDescription = "")
+            }
+        }
+
+
+    }
+}
+
+
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BigDataModeView(dataViewModel: DataViewModel) {
 
+    val callStartDate = dataViewModel.bigDataModeStartDateFlow.collectAsState()
+
+    var callEndDate = dataViewModel.bigDataModeEndDateFlow.collectAsState()
+
+    val lottoNumberData = dataViewModel.bigDataLottoNumberList.collectAsState()
+
+    val scope = rememberCoroutineScope()
+
+    var lazyListState = rememberLazyListState()
+
+    val addNumber = dataViewModel.bigDataFixNumber.collectAsState()
+
+    val removeNumber = dataViewModel.bigDataViewRemoveNumber.collectAsState()
+
+    val showOpenDialog = remember { mutableStateOf(false) }
+
+    val showLottoAnimationDialog = remember{ mutableStateOf( false ) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(start = 20.dp),
+                text = "추첨번호",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LazyVerticalGrid(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize()
+                .padding(horizontal = 13.dp),
+            columns = GridCells.Fixed(4), content = {
+                items(addNumber.value) {addNumber ->
+                    FilterCard(number = " 고정수 $addNumber",
+                        deleteClicked = {
+                            scope.launch {
+                                val addList = dataViewModel.normalFixNumber.value.toMutableList().apply {
+                                    remove(addNumber)
+                                }
+                                dataViewModel.normalFixNumber.emit(addList)
+
+                                val removeList = dataViewModel.normalRemoveNumber.value.toMutableList().apply {
+                                    remove(addNumber)
+                                }
+                                dataViewModel.normalRemoveNumber.emit(removeList)
+                            }
+                        })
+                }
+
+                items(removeNumber.value) { removeNumber ->
+
+                    FilterCard(number = " 제외수 $removeNumber",
+                        deleteClicked = {
+                            scope.launch {
+                                val removeList = dataViewModel.normalRemoveNumber.value.toMutableList().apply {
+                                    remove(removeNumber)
+                                }
+                                dataViewModel.normalRemoveNumber.emit(removeList)
+
+
+                            }
+                        })
+                }
+            })
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        LazyColumn(
+            modifier = Modifier
+                .clip(shape = RoundedCornerShape(10.dp))
+                .fillMaxWidth(0.9f)
+                .background(color = Color.White)
+                .weight(1f)
+            ,
+            state = lazyListState
+        ) {
+
+            items(lottoNumberData.value, {item -> item.id}) {item ->
+
+
+                val dismissState = rememberDismissState()
+
+                if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+                    dataViewModel.deleteNormalNumber(item)
+
+                }
+                SwipeToDismiss(
+                    state = dismissState,
+                    modifier = Modifier
+                        .padding(vertical = Dp(1f)),
+                    directions = setOf(
+                        DismissDirection.EndToStart),
+                    dismissThresholds = { FractionalThreshold(0.25f) },
+                    background = {
+                        val color by animateColorAsState(
+                            when (dismissState.targetValue) {
+                                DismissValue.Default -> Color.White
+                                else -> DeleteColor
+                            }
+                        )
+                        val alignment = Alignment.CenterEnd
+                        val icon = Icons.Default.Delete
+
+                        val scale by animateFloatAsState(
+                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                        )
+
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(color)
+                                .padding(horizontal = Dp(20f)),
+                            contentAlignment = alignment
+                        ) {
+                            Image(
+                                icon,
+                                contentDescription = "Delete Icon",
+                                modifier = Modifier.scale(scale)
+                            )
+                        }
+                    },
+                    dismissContent = {
+
+
+                        Card(
+                            elevation = animateDpAsState(
+                                if (dismissState.dismissDirection != null) 4.dp else 0.dp).value,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(Dp(50f))
+                                .padding(0.dp)
+                        ) {
+//                            LottoNumberArrayView(data = item)
+                        }
+                    }
+                )
+            }
+        }
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+
+                        }
+
+                    },
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(8.dp)
+                ) {
+                    Image(
+                        modifier = Modifier.size(70.dp),
+                        painter = painterResource(id = R.drawable.date_filter_icon),
+                        contentDescription = ""
+                    )
+                }
+
+
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            showOpenDialog.value = true
+                        }
+
+                    },
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(8.dp)
+                ) {
+                    Image(
+                        modifier = Modifier.size(70.dp),
+                        painter = painterResource(id = R.drawable.filter_icon),
+                        contentDescription = ""
+                    )
+                }
+
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            showLottoAnimationDialog.value = true
+                        }
+
+                    },
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.lottey_icon),
+                        contentScale = ContentScale.Fit,
+                        contentDescription = ""
+                    )
+                }
+            }
+        }
+
+        if(showOpenDialog.value) {
+            FilterDialog(
+                dataViewModel = dataViewModel,
+                onDismissRequest = {
+                    showOpenDialog.value = it
+                })
+        }
+
+        if(showLottoAnimationDialog.value) {
+            LottoAnimationDialog(
+                closeClicked = {
+                    showLottoAnimationDialog.value = it
+                },
+                dataViewModel = dataViewModel,
+                onDismissRequest = {
+                    showLottoAnimationDialog.value = it
+                }
+            )
+        }
+    }
+
+
 }
+
+

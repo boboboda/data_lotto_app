@@ -1,5 +1,6 @@
 package com.bobo.data_lotto_app.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import com.bobo.data_lotto_app.ViewModel.MainViewModel
 import com.bobo.data_lotto_app.ui.theme.MainSelectButtonColor
 import com.bobo.data_lotto_app.ui.theme.MainUnSelectButtonColor
 import androidx.compose.ui.graphics.Color
+import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ui.theme.DataSelectFirstColor
 import com.bobo.data_lotto_app.ui.theme.DataSelectSecondColor
 
@@ -129,7 +131,7 @@ fun LottoSelectCard(dataViewModel: DataViewModel) {
         horizontalArrangement = Arrangement.Center
     ) {
 
-        val currentId = dataViewModel.dataCardId.collectAsState()
+        val currentId = dataViewModel.lottoCardId.collectAsState()
 
 
         CardButtonCustom(
@@ -140,7 +142,8 @@ fun LottoSelectCard(dataViewModel: DataViewModel) {
                 .weight(1f)
                 .padding(horizontal = 20.dp),
             clickedAction = {
-                dataViewModel.dataCardId.value = it
+                Log.d(TAG, "dataCard: $it")
+                dataViewModel.lottoCardId.value = it
             },
             fontSize = 20.sp,
             textModifier = Modifier.padding(vertical = 5.dp),
@@ -159,7 +162,9 @@ fun LottoSelectCard(dataViewModel: DataViewModel) {
                 .weight(1f)
                 .padding(horizontal = 20.dp),
             clickedAction = {
-                dataViewModel.dataCardId.value = it
+                Log.d(TAG, "dataCard: $it")
+
+                dataViewModel.lottoCardId.value = it
             },
             fontSize = 20.sp,
             textModifier = Modifier.padding(vertical = 5.dp),

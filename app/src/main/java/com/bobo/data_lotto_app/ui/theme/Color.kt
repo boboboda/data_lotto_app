@@ -55,8 +55,10 @@ val NormalModeLottoNumberBackgroundColor = Color(0xFFFCFCC5)
 
 val DeleteColor = Color(0xFFD62F56)
 
-val FilterIconColor = Color(0xFF22B7DD)
-
 val EnableButtonColor = Color(0xFFEB427B)
 
 val DisableButtonColor = Color(0xFFDB89A5)
+
+val LottoButtonColor = Color(0xFFDFCD2D)
+
+val DialogBackgroundColor = Color(0xFFF5F5DC)

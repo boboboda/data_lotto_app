@@ -5,6 +5,7 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
 import com.bobo.data_lotto_app.Localdb.LocalRepository
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
@@ -14,10 +15,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
@@ -69,6 +72,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     val allLottoNumberDataFlow = _allLottoNumberDataFlow.asStateFlow()
 
     // 범위가 선택된 로또 번호 데이터
+
     // 빅데이터
     private val _selectRangeLottoNumber = MutableStateFlow<List<Lotto>>(emptyList())
 
@@ -87,8 +91,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
             var response = LottoApi.retrofitService.fetchLottos()
 
             Log.d(TAG, "모든 로또번호 - ${response}")
-
-
 
             response?.let{
                val mapDataResponse = it.lottos
@@ -146,10 +148,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         viewModelScope.launch {
             _selectRangeLottoNumber.emit(endFilerStateFlow.value)
         }
-
     }
-
-
 
 
     // 나의 로또 번호 조회를 위한 로또 날짜 범위 설정
@@ -161,19 +160,11 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     val startFilterMyNumber = allLottoNumberDataFlow.combine(myNumberStartDateFlow.filterNot { it.isEmpty() }) { recordList, startDate ->
         recordList.filter { it.drwNoDate!! >= startDate } }
 
-    var endFilterMyNumber = startFilterMyNumber.combine(endDateFlow) { sellRecordList, endDate ->
+    var endFilterMyNumber = startFilterMyNumber.combine(myNumberEndDateFlow) { sellRecordList, endDate ->
         sellRecordList.filter { it.drwNoDate!! <= endDate }
     }
 
-
     val myNumberStateFlow = endFilterMyNumber.stateIn(viewModelScope, SharingStarted.Eagerly, allLottoNumberDataFlow.value)
-
-
-    fun myNumberFilterRange() {
-        viewModelScope.launch {
-            _selectRangeMyLottoNumber.emit(myNumberStateFlow.value)
-        }
-    }
 
 
     // 입력한 나의 로또 번호
@@ -191,16 +182,39 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     val myNumberSixFlow = MutableStateFlow("")
 
     //데이터 리스트 조회
+    enum class ModeType {
+        SEARCH, LOTTERY
+    }
     fun calculate(
         filterNumber: String,
+        type: ModeType = ModeType.SEARCH
     ): Float {
-        val selectData = _selectRangeLottoNumber.value
-        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(filterNumber) }
-        val rangeCount = _selectRangeLottoNumber.value.count()
-        val countNumber = numberFilterData.count()
 
-        Log.d(TAG, "number:${filterNumber} rangeCount: ${rangeCount}, filterNumber:${countNumber}")
-        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+      var result = when(type) {
+            ModeType.SEARCH -> {
+                val selectData = _selectRangeLottoNumber.value
+                val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(filterNumber) }
+                val rangeCount = _selectRangeLottoNumber.value.count()
+                val countNumber = numberFilterData.count()
+
+                Log.d(TAG, "number:${filterNumber} rangeCount: ${rangeCount}, filterNumber:${countNumber}")
+                val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+
+                return result
+            }
+
+            ModeType.LOTTERY -> {
+                val selectData = _selectRangeLottoNumber.value
+                val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(filterNumber) }
+                val rangeCount = _selectRangeLottoNumber.value.count()
+                val countNumber = numberFilterData.count()
+
+                Log.d(TAG, "number:${filterNumber} rangeCount: ${rangeCount}, filterNumber:${countNumber}")
+                val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+
+                return result
+            }
+        }
 
         return result
     }
@@ -350,120 +364,295 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         }
 
 
-    // 로또번호 추첨 일반 모드
+    // 로또번호 추첨
 
-
+    //일반
     val normalLottoNumberList = MutableStateFlow<List<NormalModeNumber>>(emptyList())
 
-    val removeNumber = MutableStateFlow<List<Int>>(emptyList())
+    val haveNormalNumberData = MutableStateFlow(NormalModeNumber())
 
-    val fixFirstNumber = MutableStateFlow(null)
+    val normalFixNumber = MutableStateFlow<List<Int>>(emptyList())
 
-    val fixSecondNumber = MutableStateFlow(null)
+    val normalRemoveNumber = MutableStateFlow<List<Int>>(emptyList())
 
-    val fixThirdNumber = MutableStateFlow(null)
+    val viewRemoveNumber = MutableStateFlow<List<Int>>(emptyList())
 
-    val fixFourNumber = MutableStateFlow(null)
+    //빅데이터
 
-    val fixFifthNumber = MutableStateFlow(null)
+    val bigDataLottoNumberList = MutableStateFlow<List<BigDataModeNumber>>(emptyList())
 
-    val fixSixthNumber = MutableStateFlow(null)
+    val haveBigDataNumberData = MutableStateFlow(BigDataModeNumber())
 
-    suspend fun normalLottery() {
+    val bigDataFixNumber = MutableStateFlow<List<Int>>(emptyList())
 
-        val rangeNumber = normalFilterNumber()
+    val bigDataRemoveNumber = MutableStateFlow<List<Int>>(emptyList())
+
+    val bigDataViewRemoveNumber = MutableStateFlow<List<Int>>(emptyList())
+
+    fun removeNumberFromRange(rangeNumber: List<Int>): Pair<List<Int>, Int> {
+
+        var tempNumberList = rangeNumber
+
+        val randomNumber = rangeNumber.random()
+
+        val finalNumberList = tempNumberList.filter { it != randomNumber }
+
+        return Pair(finalNumberList, randomNumber)
+    }
+
+
+    enum class LotteryType {
+        NORMAL,
+        BIGDATA
+    }
+    fun lottery(
+        removeNumber: List<Int>,
+        modeType: LotteryType = LotteryType.NORMAL) {
+
+        val rangeNumber = filterNumber(removeNumber)
+
+        val sortData = rangeNumber.sorted()
+
+        val (firstFilterList, firstRandomNumber) = removeNumberFromRange(sortData)
+
+        val (secondFilterList, secondRandomNumber) = removeNumberFromRange(firstFilterList)
+
+        val (thirdFilterList, thirdRandomNumber) = removeNumberFromRange(secondFilterList)
+
+        val (fourFilterList, fourRandomNumber) = removeNumberFromRange(thirdFilterList)
+
+        val (fifthFilterList, fifthRandomNumber) = removeNumberFromRange(fourFilterList)
+
+        val (sixthFilterList, sixthRandomNumber) = removeNumberFromRange(fifthFilterList)
+
 
         var randomNumberList = listOf<Int>(
-            rangeNumber.random(),
-            rangeNumber.random(),
-            rangeNumber.random(),
-            rangeNumber.random(),
-            rangeNumber.random(),
-            rangeNumber.random()
+            firstRandomNumber,
+            secondRandomNumber,
+            thirdRandomNumber,
+            fourRandomNumber,
+            fifthRandomNumber,
+            sixthRandomNumber
         )
 
         val sortList = randomNumberList.sorted()
 
-        val firstNumber = if(fixFirstNumber.value == null) {
+        val fixNumberList = normalFixNumber.value.sorted()
+
+        val firstNumber = if(fixNumberList.count() < 1) {
             sortList[0]
-        } else fixFirstNumber.value
+        } else fixNumberList[0]
 
-        val secondNumber = if(fixSecondNumber.value == null) {
+        val secondNumber = if(fixNumberList.count() < 2) {
             sortList[1]
-        } else fixSecondNumber.value
+        } else fixNumberList[1]
 
-        val thirdNumber = if(fixThirdNumber.value == null) {
+        val thirdNumber = if(fixNumberList.count() < 3) {
             sortList[2]
-        } else fixThirdNumber.value
+        } else fixNumberList[2]
 
-        val fourthNumber = if(fixFourNumber.value == null) {
+        val fourthNumber = if(fixNumberList.count() < 4) {
             sortList[3]
-        } else fixFourNumber.value
+        } else fixNumberList[3]
 
-        val fifthNumber = if(fixFifthNumber.value == null) {
+        val fifthNumber = if(fixNumberList.count() < 5) {
             sortList[4]
-        } else fixFifthNumber.value
+        } else fixNumberList[4]
 
-        val sixthNumber = if(fixSixthNumber.value == null) {
+        val sixthNumber = if(fixNumberList.count() < 6) {
             sortList[5]
-        } else fixSixthNumber.value
-
-        viewModelScope.launch {
-
-            val newData = NormalModeNumber(
-                id = UUID.randomUUID(),
-                firstNumber = firstNumber,
-                secondNumber = secondNumber,
-                thirdNumber = thirdNumber,
-                fourthNumber = fourthNumber,
-                fifthNumber = fifthNumber,
-                sixthNumber = sixthNumber)
-
-           val list = normalLottoNumberList.value + newData
+        } else fixNumberList[5]
 
 
-            Log.d(TAG, "체크 리스트 - ${list}")
+        var sortCgList = listOf<Int>(
+            firstNumber,
+            secondNumber,
+            thirdNumber,
+            fourthNumber,
+            fifthNumber,
+            sixthNumber
+        ).sorted()
 
-            Log.d(TAG, "체크 데이터 - ${newData}")
+        when(modeType) {
+            LotteryType.NORMAL -> {
 
-            Log.d(TAG, "일반 로또번호 추첨 - ${normalLottoNumberList.value}")
+                val newData = NormalModeNumber(
+                    id = UUID.randomUUID(),
+                    firstNumber = sortCgList[0],
+                    secondNumber = sortCgList[1],
+                    thirdNumber = sortCgList[2],
+                    fourthNumber = sortCgList[3],
+                    fifthNumber = sortCgList[4],
+                    sixthNumber = sortCgList[5])
+
+                viewModelScope.launch {
+                    haveNormalNumberData.emit(newData)
+                }
+            }
+            LotteryType.BIGDATA -> {
+
+                val newData = BigDataModeNumber(
+                    id = UUID.randomUUID(),
+                    firstNumber = sortCgList[0],
+                    secondNumber = sortCgList[1],
+                    thirdNumber = sortCgList[2],
+                    fourthNumber = sortCgList[3],
+                    fifthNumber = sortCgList[4],
+                    sixthNumber = sortCgList[5])
 
 
-            normalLottoNumberList.emit(list)
+                viewModelScope.launch {
+                    haveBigDataNumberData.emit(newData)
+                }
+            }
+        }
 
-            localRepository.add(newData)
 
+    }
+
+    fun emitNormalNumber(
+        modeType: LotteryType = LotteryType.NORMAL
+    ) {
+        when(modeType) {
+            LotteryType.NORMAL -> {
+                val newData = haveNormalNumberData.value
+
+                viewModelScope.launch {
+                    val list = normalLottoNumberList.value + newData
+
+                    normalLottoNumberList.emit(list)
+
+                    localRepository.add(newData)
+
+                    Log.d(TAG, "체크 리스트 - ${list}")
+
+                    Log.d(TAG, "체크 데이터 - ${newData}")
+
+                    Log.d(TAG, "일반 로또번호 추첨 - ${normalLottoNumberList.value}")
+                }
+            }
+            LotteryType.BIGDATA -> {
+                val newData = haveBigDataNumberData.value
+
+                viewModelScope.launch {
+                    val list = bigDataLottoNumberList.value + newData
+
+                    bigDataLottoNumberList.emit(list)
+
+//                    localRepository.add(newData)
+
+                    Log.d(TAG, "체크 리스트 - ${list}")
+
+                    Log.d(TAG, "체크 데이터 - ${newData}")
+
+                    Log.d(TAG, "일반 로또번호 추첨 - ${bigDataLottoNumberList.value}")
+                }
+            }
         }
 
 
 
     }
-    fun normalFilterNumber(): MutableList<Int> {
+
+    fun filterNumber(
+        removeNumber: List<Int>
+    ): MutableList<Int> {
 
         // 제외수
         val rangeNumber = 1..45
 
         val listNumber: MutableList<Int> = rangeNumber.toMutableList()
 
-        listNumber.removeAll(removeNumber.value)
+        listNumber.removeAll(removeNumber)
 
         return listNumber
     }
 
-    fun deleteNormalNumber(normalModeNumber: NormalModeNumber) {
-        viewModelScope.launch {
-            localRepository.delete(normalModeNumber)
+    fun deleteNormalNumber(number: Any,
+                           modeType: LotteryType = LotteryType.NORMAL) {
 
-            val list = normalLottoNumberList.value
-            val removeLists = list.toMutableList().apply {
-                remove(normalModeNumber)
-            }.toList()
+        when(modeType) {
+            LotteryType.NORMAL -> {
+                val mapNumber = number as NormalModeNumber
+                viewModelScope.launch {
+                    localRepository.delete(mapNumber)
 
-            normalLottoNumberList.value = removeLists
+                    val list = normalLottoNumberList.value
+                    val removeLists = list.toMutableList().apply {
+                        remove(mapNumber)
+                    }.toList()
+
+                    normalLottoNumberList.value = removeLists
+                }
+            }
+
+            LotteryType.BIGDATA -> {
+                val mapNumber = number as BigDataModeNumber
+                viewModelScope.launch {
+//                    localRepository.delete(mapNumber)
+
+                    val list = bigDataLottoNumberList.value
+                    val removeLists = list.toMutableList().apply {
+                        remove(mapNumber)
+                    }.toList()
+
+                    bigDataLottoNumberList.value = removeLists
+                }
+            }
+
         }
+
+
 
     }
 
+
+    // 빅데이터 추첨 모드
+    //// 날짜 범위 설정
+    val bigDataModeStartDateFlow = MutableStateFlow("${LocalDate.now()}")
+
+    val bigDataModeEndDateFlow = MutableStateFlow("${LocalDate.now()}")
+
+    val startFilterBigDataMode = allLottoNumberDataFlow.combine(bigDataModeStartDateFlow.filterNot { it.isEmpty() }) { recordList, startDate ->
+        recordList.filter { it.drwNoDate!! >= startDate } }
+
+    var endFilterBigDataMode = startFilterBigDataMode.combine(bigDataModeEndDateFlow) { sellRecordList, endDate ->
+        sellRecordList.filter { it.drwNoDate!! <= endDate }
+    }
+
+    val bigDataModeRangeNumberStateFlow = endFilterBigDataMode.stateIn(viewModelScope, SharingStarted.Eagerly, allLottoNumberDataFlow.value)
+
+//fun percentage() {
+//    val numbers = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+//
+//// probabilities 에 숫자의 인덱스와 확률을 매핑합니다.
+//
+//    val probabilities = mutableMapOf<Int, Double>()
+//    for (i in 0..9) {
+//        probabilities[i] = (100 - (i * 10)) / 100.0
+//    }
+//
+//// numbers 에서 확률에 따라 무작위 숫자를 선택합니다.
+//
+//    fun getRandomNumber(numbers: List<Int>, probabilities: Map<Int, Double>): Int {
+//        // 인덱스 범위를 벗어난 값이 선택되었을 경우 예외처리하고 5% 확률로 숫자를 선택합니다.
+//
+//        val randomNumber = if (numbers.size > probabilities.size - 1) {
+//            numbers.random(0.05)
+//        } else {
+//            numbers.random(probabilities)
+//        }
+//
+//        return randomNumber
+//    }
+//
+//// 랜덤 숫자를 출력합니다.
+//
+//    for (i in 1..20) {
+//        val randomNumber = getRandomNumber(numbers, probabilities)
+//        println("랜덤 숫자: $randomNumber")
+//    }
+//}
 
 
 

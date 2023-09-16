@@ -151,7 +151,7 @@ fun StickBar(
                 .weight(1f)
                 .padding(end = 3.dp))
 
-        autoSizeText(
+        AutoSizeText(
             value = "${data.toPer()} %",
             fontSize = 18.sp,
             minFontSize = 13.sp,
@@ -230,7 +230,7 @@ fun MyNumberStickBar(
                     .weight(1f)
                     .padding(end = 3.dp))
 
-            autoSizeText(
+            AutoSizeText(
                 value = "${data.toPer()} %",
                 fontSize = 18.sp,
                 minFontSize = 13.sp,

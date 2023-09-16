@@ -283,11 +283,12 @@ fun LottoRowView(
 @Composable
 fun BallDraw(
     ballOder: String,
-    ballValue: Int
+    ballValue: Int,
+    modifier: Modifier = Modifier
 ) {
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(45.dp),
         contentAlignment = Alignment.Center
     ) {

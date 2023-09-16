@@ -56,6 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
+import com.bobo.data_lotto_app.ui.theme.DialogBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -98,7 +99,7 @@ fun rangeDateDialog(
             modifier = Modifier
                 .wrapContentSize()
                 .background(
-                    color = Color.White,
+                    color = DialogBackgroundColor,
                     shape = RoundedCornerShape(16.dp)
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -113,6 +114,9 @@ fun rangeDateDialog(
             OutlinedButton(
                 border = BorderStroke(1.dp, color = Color.Black),
                 shape = RoundedCornerShape(5.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                ),
                 onClick = {
                 isStartDateOpen.value = true
             }) {
@@ -151,6 +155,9 @@ fun rangeDateDialog(
 
             OutlinedButton(
                 border = BorderStroke(1.dp, color = Color.Black),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                ),
                 shape = RoundedCornerShape(5.dp),
                 onClick = {
                     isEndDateOpen.value = true
