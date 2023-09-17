@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.NotNull
 import java.time.LocalDate
+import java.util.Random
 import java.util.UUID
 import javax.inject.Inject
 
@@ -38,6 +39,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+
+
             allFetched()
 
             localRepository.getAll().distinctUntilChanged()
@@ -190,7 +193,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         type: ModeType = ModeType.SEARCH
     ): Float {
 
-      var result = when(type) {
+     when(type) {
             ModeType.SEARCH -> {
                 val selectData = _selectRangeLottoNumber.value
                 val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(filterNumber) }
@@ -215,8 +218,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 return result
             }
         }
-
-        return result
     }
 
 
@@ -389,7 +390,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val bigDataViewRemoveNumber = MutableStateFlow<List<Int>>(emptyList())
 
-    fun removeNumberFromRange(rangeNumber: List<Int>): Pair<List<Int>, Int> {
+    fun getNumberFromRange(rangeNumber: List<Int>): Pair<List<Int>, Int> {
 
         var tempNumberList = rangeNumber
 
@@ -399,6 +400,43 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
         return Pair(finalNumberList, randomNumber)
     }
+
+    fun bigDataGetNumberFromRange(rangeNumber: List<Int>): List<Int> {
+
+        val list = listOf<Int>(1,2,3,4,5,6,7,8,9,10)
+
+        val listSorted = rangeNumber.sorted()
+
+        val firstCount = rangeNumber.count()/6
+
+        val secondCount = rangeNumber.count()/5
+
+        val thirdCount = rangeNumber.count()/4
+
+        val fourCount = rangeNumber.count()/3
+
+        val fiveCount = rangeNumber.count()/2
+
+        val sixCount = rangeNumber.count()/1
+
+
+        val listFirstTake  = listSorted.take(firstCount)
+
+        val listFirstRandom = listFirstTake.random()
+
+        val listSecondTake =  listSorted.toMutableList().apply {
+            remove(listFirstRandom)
+        }.toList().take(secondCount)
+
+        val listSecondRandom = listSecondTake.random()
+
+        val listThirdTake = listSecondTake.toMutableList().apply {
+            remove(listSecondRandom)
+        }.toList().take(thirdCount)
+
+        return listOf(listFirstRandom, listSecondRandom)
+    }
+
 
 
     enum class LotteryType {
@@ -413,27 +451,55 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
         val sortData = rangeNumber.sorted()
 
-        val (firstFilterList, firstRandomNumber) = removeNumberFromRange(sortData)
+        var randomNumberList: List<Int> = emptyList()
 
-        val (secondFilterList, secondRandomNumber) = removeNumberFromRange(firstFilterList)
+            when(modeType) {
+            LotteryType.NORMAL -> {
+                val (firstFilterList, firstRandomNumber) = getNumberFromRange(sortData)
 
-        val (thirdFilterList, thirdRandomNumber) = removeNumberFromRange(secondFilterList)
+                val (secondFilterList, secondRandomNumber) = getNumberFromRange(firstFilterList)
 
-        val (fourFilterList, fourRandomNumber) = removeNumberFromRange(thirdFilterList)
+                val (thirdFilterList, thirdRandomNumber) = getNumberFromRange(secondFilterList)
 
-        val (fifthFilterList, fifthRandomNumber) = removeNumberFromRange(fourFilterList)
+                val (fourFilterList, fourRandomNumber) = getNumberFromRange(thirdFilterList)
 
-        val (sixthFilterList, sixthRandomNumber) = removeNumberFromRange(fifthFilterList)
+                val (fifthFilterList, fifthRandomNumber) = getNumberFromRange(fourFilterList)
 
+                val (sixthFilterList, sixthRandomNumber) = getNumberFromRange(fifthFilterList)
 
-        var randomNumberList = listOf<Int>(
-            firstRandomNumber,
-            secondRandomNumber,
-            thirdRandomNumber,
-            fourRandomNumber,
-            fifthRandomNumber,
-            sixthRandomNumber
-        )
+                randomNumberList = listOf<Int>(
+                    firstRandomNumber,
+                    secondRandomNumber,
+                    thirdRandomNumber,
+                    fourRandomNumber,
+                    fifthRandomNumber,
+                    sixthRandomNumber
+                )
+            }
+
+            LotteryType.BIGDATA -> {
+                val (firstFilterList, firstRandomNumber) = getNumberFromRange(sortData)
+
+                val (secondFilterList, secondRandomNumber) = getNumberFromRange(firstFilterList)
+
+                val (thirdFilterList, thirdRandomNumber) = getNumberFromRange(secondFilterList)
+
+                val (fourFilterList, fourRandomNumber) = getNumberFromRange(thirdFilterList)
+
+                val (fifthFilterList, fifthRandomNumber) = getNumberFromRange(fourFilterList)
+
+                val (sixthFilterList, sixthRandomNumber) = getNumberFromRange(fifthFilterList)
+
+                randomNumberList = listOf<Int>(
+                    firstRandomNumber,
+                    secondRandomNumber,
+                    thirdRandomNumber,
+                    fourRandomNumber,
+                    fifthRandomNumber,
+                    sixthRandomNumber
+                )
+            }
+        }
 
         val sortList = randomNumberList.sorted()
 
