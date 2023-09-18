@@ -10,7 +10,6 @@ import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.service.User
 import com.bobo.data_lotto_app.service.UserApi
 import com.bobo.data_lotto_app.service.UserRequest
-import com.bobo.data_lotto_app.service.UserResponse
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause

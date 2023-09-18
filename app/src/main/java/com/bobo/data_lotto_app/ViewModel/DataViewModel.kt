@@ -451,7 +451,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
         val sortData = rangeNumber.sorted()
 
-        var randomNumberList: List<Int> = emptyList()
+        var randomNumberList = emptyList<Int>()
 
             when(modeType) {
             LotteryType.NORMAL -> {

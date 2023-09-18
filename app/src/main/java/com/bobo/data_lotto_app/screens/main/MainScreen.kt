@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,6 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -145,7 +149,8 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(5.dp))
 
             NoticeContent(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                mainViewModel
             )
 
 
@@ -345,8 +350,12 @@ fun BallDraw(
 
 @Composable
 fun NoticeContent(
-    modifier: Modifier
+    modifier: Modifier,
+    mainViewModel: MainViewModel
 ) {
+    val posts = mainViewModel.announcementPost.collectAsState()
+    val lazyState = rememberLazyListState()
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -363,73 +372,38 @@ fun NoticeContent(
         ) {
 
             // 리스트 값으로 수정
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .height(40.dp)
-                    .fillMaxWidth(0.9f)
-                    .background(MainMenuBarColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = "리스트 내용물 1"
-                )
+            LazyColumn(
+                state = lazyState,
+                modifier = Modifier.wrapContentSize(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ){
+                items(posts.value, {item -> item.id}) { posts ->
+
+                    NoticeArray(title = posts.title)
+                }
             }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .height(40.dp)
-                    .fillMaxWidth(0.9f)
-                    .background(MainMenuBarColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = "리스트 내용물 2"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .height(40.dp)
-                    .fillMaxWidth(0.9f)
-                    .background(MainMenuBarColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = "리스트 내용물 3"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .height(40.dp)
-                    .fillMaxWidth(0.9f)
-                    .background(MainMenuBarColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = "리스트 내용물 4"
-                )
-            }
-
         }
 
     }
 
 
+}
+
+@Composable
+fun NoticeArray(title: String) {
+    Row(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(10.dp))
+            .height(40.dp)
+            .fillMaxWidth(0.9f)
+            .background(MainMenuBarColor),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier.padding(start = 10.dp),
+            text = title
+        )
+    }
 }
 
 
@@ -565,3 +539,4 @@ fun customShape() = object : Shape {
         )
     }
 }
+
