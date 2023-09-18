@@ -395,7 +395,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
 
             lottoNumber.forEach { number ->
                 StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString(),
-                    type = DataViewModel.ModeType.SEARCH))
+                    type = DataViewModel.ModeType.SEARCH) as Float)
             }
         }
 
@@ -759,7 +759,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
             .weight(1f)
             .background(Color.White, shape = RoundedCornerShape(5.dp))
         ) {
-//            MyNumberSearchResultListView(dataViewModel = dataViewModel)
 
             MyNumberViewPager(dataViewModel = dataViewModel)
         }
@@ -803,8 +802,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
                 FloatingActionButton(
                     onClick = {
-
-//                    dataViewModel.searchLotto()
 
                         if(oneNumber.value == "" &&
                             twoNumber.value == "" &&

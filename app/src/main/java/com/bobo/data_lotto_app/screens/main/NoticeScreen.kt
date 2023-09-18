@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 fun NoticeScreen() {
 
 
+
 }
 
 // 공지사항 리스트 뷰

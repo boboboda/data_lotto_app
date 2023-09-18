@@ -72,7 +72,8 @@ fun rangeDateDialog(
     callStartDate: String,
     callEndDate: String,
     selectedStartDate: (Long) -> Unit,
-    selectedEndDate: (Long) -> Unit
+    selectedEndDate: (Long) -> Unit,
+    onClicked: (() -> Unit)? = null
 ) {
 
     val time = java.util.Calendar.getInstance().time
@@ -224,6 +225,7 @@ fun rangeDateDialog(
                 
                 Button(
                     onClick = {
+                        onClicked!!.invoke()
                         onDismissRequest(false)
                     },
                     colors = ButtonDefaults.buttonColors(WelcomeScreenBackgroundColor)

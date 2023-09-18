@@ -49,6 +49,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
@@ -438,10 +439,6 @@ fun LottoAnimationDialog(
             delayMillis = 1000,
             easing = LinearOutSlowInEasing))
 
-
-
-
-
     Dialog(onDismissRequest = {
         onDismissRequest(false)
     }) {
@@ -548,8 +545,227 @@ fun LottoAnimationDialog(
                     onClicked = {
                         scope.launch {
                             if(newNumberData.value.firstNumber != null){
-                                dataViewModel.emitNormalNumber()
+                                dataViewModel.emitNumber()
                                 dataViewModel.haveNormalNumberData.emit(NormalModeNumber())
+                                closeClicked.invoke(false)
+                            } else {
+                                return@launch
+                            }
+                        }
+                    },
+                    buttonColor = DataSelectFirstColor,
+                    fontColor = Color.Black,
+                    modifier = Modifier,
+                    fontSize = 20
+                )
+
+                Spacer(modifier = Modifier.width(20.dp))
+
+                Buttons(
+                    label = "닫기",
+                    onClicked = {
+
+                        isSlideSpring.value = false
+                        closeClicked.invoke(false)
+
+                        scope.launch {
+                            dataViewModel.haveNormalNumberData.emit(NormalModeNumber())
+                        }
+
+                    },
+                    buttonColor = DataSelectFirstColor,
+                    fontColor = Color.Black,
+                    modifier = Modifier,
+                    fontSize = 20
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+        }
+    }
+
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BigDataLottoAnimationDialog(
+    closeClicked: (Boolean) -> Unit,
+    dataViewModel: DataViewModel,
+    onDismissRequest: (Boolean) -> Unit,
+) {
+
+    val scope = rememberCoroutineScope()
+
+    val animationStop = remember { mutableStateOf(LottieConstants.IterateForever) }
+
+    val newNumberData = dataViewModel.haveBigDataNumberData.collectAsState()
+
+    val removeNumber = dataViewModel.bigDataRemoveNumber.collectAsState()
+
+
+    val lottieComposition by rememberLottieComposition(
+        LottieCompositionSpec.Asset(assetName = "lotto.json")
+    )
+    val lottieAnimatable by animateLottieCompositionAsState(
+        lottieComposition,
+        iterations = animationStop.value,
+        isPlaying = true,
+        restartOnPlay = true)
+
+
+    var isSlideSpring = remember { mutableStateOf(false) }
+
+    val firstSlideAnimation = animateIntAsState(
+        targetValue = if(isSlideSpring.value) 0 else -500,
+        animationSpec = tween(durationMillis = 300,
+            delayMillis = 50,
+            easing = LinearOutSlowInEasing))
+
+    val secondSlideAnimation = animateIntAsState(
+        targetValue = if(isSlideSpring.value) 0 else -500,
+        animationSpec = tween(durationMillis = 300,
+            delayMillis = 200,
+            easing = LinearOutSlowInEasing))
+
+    val thirdSlideAnimation = animateIntAsState(
+        targetValue = if(isSlideSpring.value) 0 else -500,
+        animationSpec = tween(durationMillis = 300,
+            delayMillis = 400,
+            easing = LinearOutSlowInEasing))
+
+    val fourSlideAnimation = animateIntAsState(
+        targetValue = if(isSlideSpring.value) 0 else -500,
+        animationSpec = tween(durationMillis = 300,
+            delayMillis = 600,
+            easing = LinearOutSlowInEasing))
+
+    val fiveSlideAnimation = animateIntAsState(
+        targetValue = if(isSlideSpring.value) 0 else -500,
+        animationSpec = tween(durationMillis = 300,
+            delayMillis = 800,
+            easing = LinearOutSlowInEasing))
+
+    val sixSlideAnimation = animateIntAsState(
+        targetValue = if(isSlideSpring.value) 0 else -500,
+        animationSpec = tween(durationMillis = 300,
+            delayMillis = 1000,
+            easing = LinearOutSlowInEasing))
+
+
+
+
+
+    Dialog(onDismissRequest = {
+        onDismissRequest(false)
+    }) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(350.dp)
+                .background(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.White
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(text = "로또 그림을 클릭해주세요")
+
+            Card(
+                modifier = Modifier.size(200.dp),
+                onClick = {
+                    if(newNumberData.value.firstNumber == null){
+                        animationStop.value = 3
+                        isSlideSpring.value = true
+                        dataViewModel.lottery(
+                            removeNumber = removeNumber.value,
+                            modeType = DataViewModel.LotteryType.BIGDATA
+                        )
+                    } else {
+                        return@Card
+                    }
+                }
+            ) {
+                LottieAnimation(
+                    composition = lottieComposition,
+                    contentScale = ContentScale.Fit,
+                    progress = lottieAnimatable,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .background(color = Color.White),
+                    alignment = Alignment.Center,
+                )
+            }
+
+
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+                horizontalArrangement = Arrangement.Center) {
+
+                if(newNumberData.value.firstNumber != null) {
+                    BallDraw(
+                        modifier = Modifier
+                            .offset(y = firstSlideAnimation.value.dp),
+                        ballOder = "",
+                        ballValue = newNumberData.value.firstNumber!!)
+                }
+
+                if(newNumberData.value.secondNumber != null) {
+                    BallDraw(
+                        modifier = Modifier
+                            .offset(y = secondSlideAnimation.value.dp),
+                        ballOder = "",
+                        ballValue = newNumberData.value.secondNumber!!)
+                }
+
+                if(newNumberData.value.thirdNumber != null) {
+                    BallDraw(
+                        modifier = Modifier
+                            .offset(y = thirdSlideAnimation.value.dp),
+                        ballOder = "",
+                        ballValue = newNumberData.value.thirdNumber!!)
+                }
+
+                if(newNumberData.value.fourthNumber != null) {
+                    BallDraw(
+                        modifier = Modifier
+                            .offset(y = fourSlideAnimation.value.dp),
+                        ballOder = "",
+                        ballValue = newNumberData.value.fourthNumber!!)
+                }
+
+                if(newNumberData.value.fifthNumber != null) {
+                    BallDraw(
+                        modifier = Modifier
+                            .offset(y = fiveSlideAnimation.value.dp),
+                        ballOder = "",
+                        ballValue = newNumberData.value.fifthNumber!!)
+                }
+
+                if(newNumberData.value.sixthNumber != null) {
+                    BallDraw(
+                        modifier = Modifier
+                            .offset(y = sixSlideAnimation.value.dp),
+                        ballOder = "",
+                        ballValue = newNumberData.value.sixthNumber!!)
+                }
+
+            }
+
+            Row(modifier = Modifier
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
+                Buttons(
+                    label = "추가",
+                    onClicked = {
+                        scope.launch {
+                            if(newNumberData.value.firstNumber != null){
+                                dataViewModel.emitNumber(modeType = DataViewModel.LotteryType.BIGDATA)
+                                dataViewModel.haveBigDataNumberData.emit(BigDataModeNumber())
                                 closeClicked.invoke(false)
                             } else {
                                 return@launch

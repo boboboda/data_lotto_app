@@ -61,6 +61,7 @@ import com.bobo.data_lotto_app.components.MainTopBar
 import com.bobo.data_lotto_app.screens.auth.WelcomeScreen
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
+import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
 import com.bobo.data_lotto_app.screens.auth.LoginScreen
 import com.bobo.data_lotto_app.screens.auth.RegisterScreen
 import com.bobo.data_lotto_app.screens.main.DrawScreen
@@ -80,6 +81,7 @@ class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private val dataViewModel: DataViewModel by viewModels()
     private val authViewModel: AuthViewModel by viewModels()
+    private val noticeViewModel: NoticeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,9 +93,10 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppScreen(
-                        mainViewModel = mainViewModel,
-                        dataViewModel = dataViewModel,
-                        authViewModel = authViewModel)
+                        mainViewModel,
+                        dataViewModel,
+                        authViewModel,
+                        noticeViewModel)
 
                 }
             }
@@ -107,6 +110,7 @@ fun AppScreen(
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
     authViewModel: AuthViewModel,
+    noticeViewModel: NoticeViewModel
 ) {
 
     val mainNavController = rememberNavController()
@@ -154,7 +158,8 @@ fun AppScreen(
                     mainRouteAction = mainRouteAction,
                     mainViewModel = mainViewModel,
                     dataViewModel = dataViewModel,
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    noticeViewModel = noticeViewModel
                 )
             }
 
@@ -192,7 +197,8 @@ fun MainNaHost(
     mainRouteAction: MainRouteAction,
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    noticeViewModel: NoticeViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -200,7 +206,7 @@ fun MainNaHost(
         navController = mainNavController,
         startDestination = startRouter.routeName!!) {
         composable(MainRoute.Main.routeName!!) {
-            MainScreen(mainViewModel, dataViewModel, authViewModel)
+            MainScreen(mainViewModel, dataViewModel, authViewModel, noticeViewModel)
         }
         composable(MainRoute.Data.routeName!!) {
             DataScreen(dataViewModel)

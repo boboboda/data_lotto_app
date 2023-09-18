@@ -68,17 +68,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.R
+import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.AutoSizeText
+import com.bobo.data_lotto_app.components.BigDataLottoAnimationDialog
 import com.bobo.data_lotto_app.components.FilterDialog
 import com.bobo.data_lotto_app.components.LottoAnimationDialog
 import com.bobo.data_lotto_app.components.LottoSelectCard
+import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.ui.theme.DeleteColor
 import com.bobo.data_lotto_app.ui.theme.NormalModeLottoNumberBackgroundColor
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -381,6 +387,36 @@ fun LottoNumberArrayView(data: NormalModeNumber) {
 }
 
 
+@Composable
+fun BigdataLottoNumberArrayView(data: BigDataModeNumber) {
+
+    Row(modifier = Modifier
+        .fillMaxSize()
+        .background(color = NormalModeLottoNumberBackgroundColor, shape = RoundedCornerShape(5.dp)),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically) {
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        BallDraw(ballOder = "", ballValue = data.firstNumber!!)
+        Spacer(modifier = Modifier.width(8.dp))
+        BallDraw(ballOder = "", ballValue = data.secondNumber!!)
+        Spacer(modifier = Modifier.width(8.dp))
+        BallDraw(ballOder = "", ballValue = data.thirdNumber!!)
+        Spacer(modifier = Modifier.width(8.dp))
+        BallDraw(ballOder = "", ballValue = data.fourthNumber!!)
+        Spacer(modifier = Modifier.width(8.dp))
+        BallDraw(ballOder = "", ballValue = data.fifthNumber!!)
+        Spacer(modifier = Modifier.width(8.dp))
+        BallDraw(ballOder = "", ballValue = data.sixthNumber!!)
+
+        Spacer(modifier = Modifier.weight(1f))
+
+    }
+
+}
+
+
 
 @Composable
 fun FilterCard(number: String, deleteClicked: () -> Unit) {
@@ -442,7 +478,11 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
 
     val removeNumber = dataViewModel.bigDataViewRemoveNumber.collectAsState()
 
+    val dateFilter = dataViewModel.bigDataDateRangeFlow.collectAsState()
+
     val showOpenDialog = remember { mutableStateOf(false) }
+
+    val showCalendarDialog = remember { mutableStateOf(false) }
 
     val showLottoAnimationDialog = remember{ mutableStateOf( false ) }
 
@@ -499,6 +539,23 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                                     remove(removeNumber)
                                 }
                                 dataViewModel.normalRemoveNumber.emit(removeList)
+
+
+                            }
+                        })
+                }
+
+                items(dateFilter.value, span = {
+                    GridItemSpan(2)
+                }) { date ->
+
+                    FilterCard(number = "${date.startDate}~${date.endDate}",
+                        deleteClicked = {
+                            scope.launch {
+                                val removeList = dataViewModel.bigDataDateRangeFlow.value.toMutableList().apply {
+                                    remove(date)
+                                }
+                                dataViewModel.bigDataDateRangeFlow.emit(removeList)
 
 
                             }
@@ -573,7 +630,7 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                                 .height(Dp(50f))
                                 .padding(0.dp)
                         ) {
-//                            LottoNumberArrayView(data = item)
+                            BigdataLottoNumberArrayView(data = item)
                         }
                     }
                 )
@@ -592,7 +649,7 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                 FloatingActionButton(
                     onClick = {
                         scope.launch {
-
+                            showCalendarDialog.value = true
                         }
 
                     },
@@ -629,6 +686,13 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                 FloatingActionButton(
                     onClick = {
                         scope.launch {
+                            if(dataViewModel.bigDataModeRangeNumberStateFlow.value.isEmpty()) {
+
+                                Log.d(TAG, "날짜 값이 없을 때 전체범위로 실행")
+                                val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.LOTTERY) as List<Pair<Int, Float>>
+
+                                dataViewModel.bigDataNumberAndPercentValue.emit(rangePercentValue)
+                            }
                             showLottoAnimationDialog.value = true
                         }
 
@@ -655,13 +719,54 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
         }
 
         if(showLottoAnimationDialog.value) {
-            LottoAnimationDialog(
+            BigDataLottoAnimationDialog(
                 closeClicked = {
+                    scope.launch {
+                       dataViewModel.bigDataNumberAndPercentValue.emit(emptyList())
+                        dataViewModel.haveBigDataNumberData.emit(BigDataModeNumber())
+                    }
                     showLottoAnimationDialog.value = it
                 },
                 dataViewModel = dataViewModel,
                 onDismissRequest = {
                     showLottoAnimationDialog.value = it
+                }
+            )
+        }
+
+        if(showCalendarDialog.value) {
+            rangeDateDialog(
+                onDismissRequest = {
+                    showCalendarDialog.value = it
+                },
+                callStartDate.value,
+                callEndDate.value,
+                selectedStartDate = {
+                    dataViewModel.bigDataModeStartDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                },
+                selectedEndDate = {
+                    dataViewModel.bigDataModeEndDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                },
+                onClicked = {
+
+                    scope.launch {
+
+                        val dateData = BigDataDate(startDate = dataViewModel.bigDataModeStartDateFlow.value, endDate = dataViewModel.bigDataModeEndDateFlow.value )
+
+
+                        val addList = dataViewModel.bigDataDateRangeFlow.value.toMutableList().apply {
+                            add(dateData)
+                        }
+
+                        dataViewModel.bigDataDateRangeFlow.emit(addList)
+
+                        val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.LOTTERY) as List<Pair<Int, Float>>
+
+
+                        dataViewModel.bigDataNumberAndPercentValue.emit(rangePercentValue)
+                    }
+
+
                 }
             )
         }

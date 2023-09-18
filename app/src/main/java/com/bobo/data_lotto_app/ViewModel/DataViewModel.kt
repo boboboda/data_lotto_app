@@ -55,8 +55,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 }
 
 
-
-
             if(allLottoNumberDataFlow != null) {
                 Log.d(TAG, "${allLottoNumberDataFlow.value}")
             } else {
@@ -93,8 +91,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         viewModelScope.launch {
             var response = LottoApi.retrofitService.fetchLottos()
 
-            Log.d(TAG, "모든 로또번호 - ${response}")
-
             response?.let{
                val mapDataResponse = it.lottos
                 _allLottoNumberDataFlow.emit(mapDataResponse!!)
@@ -113,11 +109,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     fun resentLottoCall() {
         val lottoNumber = allLottoNumberDataFlow.value.map { it.drwNo }
 
-        Log.d(TAG, "resentNumber ${lottoNumber}")
-
         val maxValue = lottoNumber.maxByOrNull { it!! } ?: throw Exception("null max value")
 
-        Log.d(TAG, "resentNumber ${maxValue}")
 
         val filterLotto = allLottoNumberDataFlow.value.filter { it.drwNo == maxValue }.lastOrNull()
 
@@ -189,33 +182,58 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         SEARCH, LOTTERY
     }
     fun calculate(
-        filterNumber: String,
+        filterNumber: String? = null,
         type: ModeType = ModeType.SEARCH
-    ): Float {
+    ): Any {
 
      when(type) {
             ModeType.SEARCH -> {
                 val selectData = _selectRangeLottoNumber.value
-                val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(filterNumber) }
+                val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(filterNumber!!) }
                 val rangeCount = _selectRangeLottoNumber.value.count()
                 val countNumber = numberFilterData.count()
 
-                Log.d(TAG, "number:${filterNumber} rangeCount: ${rangeCount}, filterNumber:${countNumber}")
                 val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
 
                 return result
             }
 
             ModeType.LOTTERY -> {
-                val selectData = _selectRangeLottoNumber.value
-                val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(filterNumber) }
-                val rangeCount = _selectRangeLottoNumber.value.count()
-                val countNumber = numberFilterData.count()
 
-                Log.d(TAG, "number:${filterNumber} rangeCount: ${rangeCount}, filterNumber:${countNumber}")
-                val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+                Log.d(TAG, "범위 퍼센트 계산 실행")
 
-                return result
+                val lottoNumber = (1..45).toList()
+
+                var results : MutableList<Pair<Int, Float>> = mutableListOf()
+
+                Log.d(TAG, "빅데이터 범위 로또번호 ${bigDataModeRangeNumberStateFlow.value}")
+
+                if(!bigDataModeRangeNumberStateFlow.value.isEmpty()) {
+                    lottoNumber.forEach {number ->
+                        val selectData = bigDataModeRangeNumberStateFlow.value
+                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
+                        val rangeCount = bigDataModeRangeNumberStateFlow.value.count()
+                        val countNumber = numberFilterData.count()
+
+                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+                        Log.d(TAG, "범위 퍼센트 값 ${number} , ${result}")
+                        results.add(Pair(number, result))
+                    }
+                } else {
+
+                    lottoNumber.forEach {number ->
+                        val selectData = allLottoNumberDataFlow.value
+                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
+                        val rangeCount = allLottoNumberDataFlow.value.count()
+                        val countNumber = numberFilterData.count()
+
+                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+                        Log.d(TAG, "범위 퍼센트 값 ${number} , ${result}")
+                        results.add(Pair(number, result))
+                    }
+                }
+
+                return results
             }
         }
     }
@@ -390,6 +408,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val bigDataViewRemoveNumber = MutableStateFlow<List<Int>>(emptyList())
 
+    val bigDataNumberAndPercentValue = MutableStateFlow<List<Pair<Int, Float>>>(emptyList())
+
     fun getNumberFromRange(rangeNumber: List<Int>): Pair<List<Int>, Int> {
 
         var tempNumberList = rangeNumber
@@ -401,40 +421,70 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         return Pair(finalNumberList, randomNumber)
     }
 
-    fun bigDataGetNumberFromRange(rangeNumber: List<Int>): List<Int> {
 
-        val list = listOf<Int>(1,2,3,4,5,6,7,8,9,10)
+    object RandomLottoNumberService {
 
-        val listSorted = rangeNumber.sorted()
+        // 1 ~ 45번 뽑는 로직
+        private fun getRandomNumber(rangeNumber: List<Int>) : Int {
 
-        val firstCount = rangeNumber.count()/6
+            return rangeNumber.random()
+        }
 
-        val secondCount = rangeNumber.count()/5
+        // atPercent
+        private fun getCertainNumber(atPercent : Int, desiredNumber: Int, rangeNumber: List<Int>) : Int {
+            val randomValue = (0..100).random()
+            return if (randomValue <= atPercent) {
+                desiredNumber
+            } else {
+                getRandomNumber(rangeNumber)
+            }
+        }
 
-        val thirdCount = rangeNumber.count()/4
+        // (percent, desiredNumber)
+        fun makeRandomLottoNumbers(data : List<Pair<Int, Int>>, rangeNumber: List<Int>) : List<Int> {
+            return data.map { anItem ->
+                val percent = anItem.first
+                val desiredNumber = anItem.second
+                this.getCertainNumber(percent, desiredNumber, rangeNumber)
+            }
+        }
+    }
 
-        val fourCount = rangeNumber.count()/3
+    fun bigDataGetNumberFromRange(rangeNumber: List<Int>): Pair<List<Int>, Int> {
 
-        val fiveCount = rangeNumber.count()/2
+        Log.d(TAG, "bigDataGetNumberFromRange 실행됨")
 
-        val sixCount = rangeNumber.count()/1
+        val percentSet = RandomLottoNumberService.makeRandomLottoNumbers(
+            listOf(
+                Pair(90, rangeNumber[0]),
+                Pair(85, rangeNumber[1]),
+                Pair(80, rangeNumber[2]),
+                Pair(75, rangeNumber[3]),
+                Pair(70, rangeNumber[4]),
+                Pair(65, rangeNumber[5]),
+                Pair(60, rangeNumber[6]),
+                Pair(65, rangeNumber[7]),
+                Pair(60, rangeNumber[8]),
+                Pair(55, rangeNumber[9]),
+                Pair(50, rangeNumber[10]),
+                Pair(45, rangeNumber[11]),
+                Pair(40, rangeNumber[12]),
+                Pair(35, rangeNumber[13]),
+                Pair(30, rangeNumber[14]),
+                Pair(25, rangeNumber[15]),
+                Pair(20, rangeNumber[16]),
+            ), rangeNumber = rangeNumber
+        )
 
+        var tempNumberList = rangeNumber
 
-        val listFirstTake  = listSorted.take(firstCount)
+        val randomNumber = percentSet.first()
 
-        val listFirstRandom = listFirstTake.random()
+        val finalNumberList = tempNumberList.filter { it != randomNumber }
 
-        val listSecondTake =  listSorted.toMutableList().apply {
-            remove(listFirstRandom)
-        }.toList().take(secondCount)
+        Log.d(TAG, "${percentSet}, ${randomNumber}, ${finalNumberList}")
 
-        val listSecondRandom = listSecondTake.random()
-
-        val listThirdTake = listSecondTake.toMutableList().apply {
-            remove(listSecondRandom)
-        }.toList().take(thirdCount)
-
-        return listOf(listFirstRandom, listSecondRandom)
+        return Pair(finalNumberList, randomNumber)
     }
 
 
@@ -447,14 +497,19 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         removeNumber: List<Int>,
         modeType: LotteryType = LotteryType.NORMAL) {
 
-        val rangeNumber = filterNumber(removeNumber)
+        Log.d(TAG, "추첨 실행됨")
 
-        val sortData = rangeNumber.sorted()
 
-        var randomNumberList = emptyList<Int>()
+        var randomNumberList :List<Int> = emptyList()
 
-            when(modeType) {
+        when(modeType) {
             LotteryType.NORMAL -> {
+
+                val rangeNumber = filterNumber(removeNumber)
+
+                val sortData = rangeNumber.sorted()
+
+                Log.d(TAG, "노말모드 추첨 실행됨")
                 val (firstFilterList, firstRandomNumber) = getNumberFromRange(sortData)
 
                 val (secondFilterList, secondRandomNumber) = getNumberFromRange(firstFilterList)
@@ -478,17 +533,23 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
             }
 
             LotteryType.BIGDATA -> {
-                val (firstFilterList, firstRandomNumber) = getNumberFromRange(sortData)
 
-                val (secondFilterList, secondRandomNumber) = getNumberFromRange(firstFilterList)
+                val rangeNumber = filterNumber(removeNumber, type = LotteryType.BIGDATA)
 
-                val (thirdFilterList, thirdRandomNumber) = getNumberFromRange(secondFilterList)
+                Log.d(TAG, "빅데이터 추첨 실행됨")
 
-                val (fourFilterList, fourRandomNumber) = getNumberFromRange(thirdFilterList)
+                Log.d(TAG, "정렬된 값 ${rangeNumber}")
+                val (firstFilterList, firstRandomNumber) = bigDataGetNumberFromRange(rangeNumber)
 
-                val (fifthFilterList, fifthRandomNumber) = getNumberFromRange(fourFilterList)
+                val (secondFilterList, secondRandomNumber) = bigDataGetNumberFromRange(firstFilterList)
 
-                val (sixthFilterList, sixthRandomNumber) = getNumberFromRange(fifthFilterList)
+                val (thirdFilterList, thirdRandomNumber) = bigDataGetNumberFromRange(secondFilterList)
+
+                val (fourFilterList, fourRandomNumber) = bigDataGetNumberFromRange(thirdFilterList)
+
+                val (fifthFilterList, fifthRandomNumber) = bigDataGetNumberFromRange(fourFilterList)
+
+                val (sixthFilterList, sixthRandomNumber) = bigDataGetNumberFromRange(fifthFilterList)
 
                 randomNumberList = listOf<Int>(
                     firstRandomNumber,
@@ -503,7 +564,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
         val sortList = randomNumberList.sorted()
 
-        val fixNumberList = normalFixNumber.value.sorted()
+        val fixNumberList = bigDataFixNumber.value.sorted()
 
         val firstNumber = if(fixNumberList.count() < 1) {
             sortList[0]
@@ -576,7 +637,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     }
 
-    fun emitNormalNumber(
+    fun emitNumber(
         modeType: LotteryType = LotteryType.NORMAL
     ) {
         when(modeType) {
@@ -589,12 +650,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                     normalLottoNumberList.emit(list)
 
                     localRepository.add(newData)
-
-                    Log.d(TAG, "체크 리스트 - ${list}")
-
-                    Log.d(TAG, "체크 데이터 - ${newData}")
-
-                    Log.d(TAG, "일반 로또번호 추첨 - ${normalLottoNumberList.value}")
                 }
             }
             LotteryType.BIGDATA -> {
@@ -606,12 +661,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                     bigDataLottoNumberList.emit(list)
 
 //                    localRepository.add(newData)
-
-                    Log.d(TAG, "체크 리스트 - ${list}")
-
-                    Log.d(TAG, "체크 데이터 - ${newData}")
-
-                    Log.d(TAG, "일반 로또번호 추첨 - ${bigDataLottoNumberList.value}")
                 }
             }
         }
@@ -621,17 +670,39 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     }
 
     fun filterNumber(
-        removeNumber: List<Int>
+        removeNumber: List<Int>,
+        type: LotteryType = LotteryType.NORMAL
     ): MutableList<Int> {
 
+        when(type){
+            LotteryType.NORMAL -> {
+                val rangeNumber = 1..45
+
+                val listNumber: MutableList<Int> = rangeNumber.toMutableList()
+
+                listNumber.removeAll(removeNumber)
+
+                return listNumber
+            }
+            LotteryType.BIGDATA -> {
+
+                Log.d(TAG, "빅데이터 필터넘버 실행")
+                val rangeNumber = bigDataNumberAndPercentValue.value.sortedByDescending { it.second }
+
+                Log.d(TAG, "넘버퍼센트 정렬 ${rangeNumber}")
+
+                val mapRangeNumber = rangeNumber.map { it.first }
+
+                val listNumber: MutableList<Int> = mapRangeNumber.toMutableList()
+
+                listNumber.removeAll(removeNumber)
+
+                return listNumber
+            }
+        }
         // 제외수
-        val rangeNumber = 1..45
 
-        val listNumber: MutableList<Int> = rangeNumber.toMutableList()
 
-        listNumber.removeAll(removeNumber)
-
-        return listNumber
     }
 
     fun deleteNormalNumber(number: Any,
@@ -679,6 +750,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val bigDataModeEndDateFlow = MutableStateFlow("${LocalDate.now()}")
 
+    val bigDataDateRangeFlow =  MutableStateFlow<List<BigDataDate>>(emptyList())
+
     val startFilterBigDataMode = allLottoNumberDataFlow.combine(bigDataModeStartDateFlow.filterNot { it.isEmpty() }) { recordList, startDate ->
         recordList.filter { it.drwNoDate!! >= startDate } }
 
@@ -687,39 +760,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     }
 
     val bigDataModeRangeNumberStateFlow = endFilterBigDataMode.stateIn(viewModelScope, SharingStarted.Eagerly, allLottoNumberDataFlow.value)
-
-//fun percentage() {
-//    val numbers = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
-//
-//// probabilities 에 숫자의 인덱스와 확률을 매핑합니다.
-//
-//    val probabilities = mutableMapOf<Int, Double>()
-//    for (i in 0..9) {
-//        probabilities[i] = (100 - (i * 10)) / 100.0
-//    }
-//
-//// numbers 에서 확률에 따라 무작위 숫자를 선택합니다.
-//
-//    fun getRandomNumber(numbers: List<Int>, probabilities: Map<Int, Double>): Int {
-//        // 인덱스 범위를 벗어난 값이 선택되었을 경우 예외처리하고 5% 확률로 숫자를 선택합니다.
-//
-//        val randomNumber = if (numbers.size > probabilities.size - 1) {
-//            numbers.random(0.05)
-//        } else {
-//            numbers.random(probabilities)
-//        }
-//
-//        return randomNumber
-//    }
-//
-//// 랜덤 숫자를 출력합니다.
-//
-//    for (i in 1..20) {
-//        val randomNumber = getRandomNumber(numbers, probabilities)
-//        println("랜덤 숫자: $randomNumber")
-//    }
-//}
-
 
 
 }
@@ -731,6 +771,11 @@ data class ChunkNumber (
     val fifthNumber: List<List<Int>>,
     val sixthNumber: List<Int>)
 
+
+data class BigDataDate(
+    val startDate: String? = null,
+    val endDate: String? = null
+)
 
 
 

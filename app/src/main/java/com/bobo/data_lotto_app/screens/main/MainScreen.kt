@@ -55,6 +55,7 @@ import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
+import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
 import com.bobo.data_lotto_app.components.BaseButton
 import com.bobo.data_lotto_app.components.CustomButton
 import com.bobo.data_lotto_app.components.fontFamily
@@ -69,7 +70,8 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
-    authViewModel: AuthViewModel) {
+    authViewModel: AuthViewModel,
+    noticeViewModel: NoticeViewModel) {
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
@@ -150,7 +152,7 @@ fun MainScreen(
 
             NoticeContent(
                 modifier = Modifier.weight(1f),
-                mainViewModel
+                noticeViewModel
             )
 
 
@@ -351,9 +353,9 @@ fun BallDraw(
 @Composable
 fun NoticeContent(
     modifier: Modifier,
-    mainViewModel: MainViewModel
+    noticeViewModel: NoticeViewModel
 ) {
-    val posts = mainViewModel.announcementPost.collectAsState()
+    val posts = noticeViewModel.announcementPost.collectAsState()
     val lazyState = rememberLazyListState()
 
     Column(
