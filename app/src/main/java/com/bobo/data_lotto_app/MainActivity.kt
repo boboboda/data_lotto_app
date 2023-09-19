@@ -65,6 +65,7 @@ import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
 import com.bobo.data_lotto_app.screens.auth.LoginScreen
 import com.bobo.data_lotto_app.screens.auth.RegisterScreen
 import com.bobo.data_lotto_app.screens.main.DrawScreen
+import com.bobo.data_lotto_app.screens.main.NoticeScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -180,7 +181,6 @@ fun AppScreen(
                     authNavController = authNavController,
                     routeAction = authRouteAction,
                     authViewModel = authViewModel,
-
                     mainRouteAction = mainRouteAction)
 
             }
@@ -206,13 +206,16 @@ fun MainNaHost(
         navController = mainNavController,
         startDestination = startRouter.routeName!!) {
         composable(MainRoute.Main.routeName!!) {
-            MainScreen(mainViewModel, dataViewModel, authViewModel, noticeViewModel)
+            MainScreen(mainViewModel, dataViewModel, authViewModel, noticeViewModel, mainRouteAction)
         }
         composable(MainRoute.Data.routeName!!) {
             DataScreen(dataViewModel)
         }
         composable(MainRoute.Draw.routeName!!) {
             DrawScreen(dataViewModel)
+        }
+        composable(MainRoute.Notice.routeName!!) {
+            NoticeScreen(authViewModel = authViewModel, noticeViewModel = noticeViewModel, mainRouteAction)
         }
     }
 }

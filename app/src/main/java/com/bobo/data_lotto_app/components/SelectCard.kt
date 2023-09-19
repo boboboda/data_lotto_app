@@ -29,19 +29,20 @@ import com.bobo.data_lotto_app.ui.theme.MainSelectButtonColor
 import com.bobo.data_lotto_app.ui.theme.MainUnSelectButtonColor
 import androidx.compose.ui.graphics.Color
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
+import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
 import com.bobo.data_lotto_app.ui.theme.DataSelectFirstColor
 import com.bobo.data_lotto_app.ui.theme.DataSelectSecondColor
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoticeBar(mainViewModel: MainViewModel, modifier: Modifier) {
+fun NoticeBar(modifier: Modifier, noticeViewModel: NoticeViewModel) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
 
-        val currentId = mainViewModel.mainNoticeCardValue.collectAsState()
+        val currentId = noticeViewModel.mainNoticeCardValue.collectAsState()
 
 
         CardButtonCustom(
@@ -50,7 +51,7 @@ fun NoticeBar(mainViewModel: MainViewModel, modifier: Modifier) {
             selectedValue = currentId.value,
             modifier = Modifier.width(130.dp),
             clickedAction = {
-                mainViewModel.mainNoticeCardValue.value = it
+                noticeViewModel.mainNoticeCardValue.value = it
             },
             textModifier = Modifier.padding(vertical = 3.dp),
             firstButtonColor = MainSelectButtonColor,
@@ -66,7 +67,7 @@ fun NoticeBar(mainViewModel: MainViewModel, modifier: Modifier) {
             selectedValue = currentId.value,
             modifier = Modifier.width(130.dp),
             clickedAction = {
-                mainViewModel.mainNoticeCardValue.value = it
+                noticeViewModel.mainNoticeCardValue.value = it
             },
             textModifier = Modifier.padding(vertical = 3.dp),
             firstButtonColor = MainSelectButtonColor,

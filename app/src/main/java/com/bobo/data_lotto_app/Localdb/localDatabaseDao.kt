@@ -32,10 +32,29 @@ interface NormalModeNumberDatabaseDao {
 
     @Delete
     suspend fun deleteNote(normalModeNumber: NormalModeNumber)
-
 }
 
+@Dao
+interface BigdataModeNumberDatabaseDao {
 
+    @Query("SELECT * from BigDataModeNumber_table")
+    fun getRecords(): Flow<List<BigDataModeNumber>>
+
+    @Query("SELECT * from BigDataModeNumber_table where id=:id")
+    suspend fun getById(id: String): BigDataModeNumber
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(bigDataModeNumber: BigDataModeNumber)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(bigDataModeNumber: BigDataModeNumber)
+
+    @Query("DELETE from BigDataModeNumber_table")
+    suspend fun deleteAll()
+
+    @Delete
+    suspend fun deleteNote(bigDataModeNumber: BigDataModeNumber)
+}
 
 
 

@@ -38,22 +38,16 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(private val localRepository: LocalRepository): ViewModel() {
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
 
 
+            //api 요청
             allFetched()
 
-            localRepository.getAll().distinctUntilChanged()
-                .collect{ listNumber ->
 
-                    if(listNumber.isNullOrEmpty()) {
-                        Log.d(TAG, "Empty number list")
-                    } else {
-                        normalLottoNumberList.value = listNumber
-                    }
 
-                }
-
+        viewModelScope.launch {
+            // 노말모드, 빅데이터모드 추첨번호 불러오기
+            allFetchedLotteryNumber()
 
             if(allLottoNumberDataFlow != null) {
                 Log.d(TAG, "${allLottoNumberDataFlow.value}")
@@ -61,6 +55,9 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 return@launch
             }
         }
+
+
+
     }
 
     val dataCardId = MutableStateFlow(1)
@@ -85,6 +82,38 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     var selectRangeMyLottoNumber = _selectRangeMyLottoNumber.asStateFlow()
 
+
+    suspend fun allFetchedLotteryNumber() {
+        //로컬 db 불러오기
+
+        viewModelScope.launch(Dispatchers.IO) {
+
+            localRepository.getAll().distinctUntilChanged()
+                .collect { listNumber ->
+
+                    if (listNumber.isNullOrEmpty()) {
+                        Log.d(TAG, "Empty number list")
+                    } else {
+                        normalLottoNumberList.emit(listNumber)
+                    }
+                }
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            // 빅데이터 db 불러오기
+            localRepository.bigdataGetAll().distinctUntilChanged()
+                .collect { bigDataListNumber ->
+                    if (bigDataListNumber.isNullOrEmpty()) {
+                        Log.d(TAG, "Empty bigdatanumber list")
+                    } else {
+                        bigDataLottoNumberList.emit(bigDataListNumber)
+                        Log.d(TAG, "빅데이터 블러오기 성공${bigDataLottoNumberList.value}")
+                    }
+                }
+
+        }
+
+    }
 
     // 업로드 로또 모든 로또 번호
     fun allFetched() {
@@ -181,6 +210,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     enum class ModeType {
         SEARCH, LOTTERY
     }
+
+    // 숫자 별 퍼센트 계산
     fun calculate(
         filterNumber: String? = null,
         type: ModeType = ModeType.SEARCH
@@ -206,7 +237,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                 var results : MutableList<Pair<Int, Float>> = mutableListOf()
 
-                Log.d(TAG, "빅데이터 범위 로또번호 ${bigDataModeRangeNumberStateFlow.value}")
 
                 if(!bigDataModeRangeNumberStateFlow.value.isEmpty()) {
                     lottoNumber.forEach {number ->
@@ -216,7 +246,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                         val countNumber = numberFilterData.count()
 
                         val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
-                        Log.d(TAG, "범위 퍼센트 값 ${number} , ${result}")
+
                         results.add(Pair(number, result))
                     }
                 } else {
@@ -228,7 +258,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                         val countNumber = numberFilterData.count()
 
                         val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
-                        Log.d(TAG, "범위 퍼센트 값 ${number} , ${result}")
+
                         results.add(Pair(number, result))
                     }
                 }
@@ -456,23 +486,23 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
         val percentSet = RandomLottoNumberService.makeRandomLottoNumbers(
             listOf(
-                Pair(90, rangeNumber[0]),
-                Pair(85, rangeNumber[1]),
-                Pair(80, rangeNumber[2]),
-                Pair(75, rangeNumber[3]),
-                Pair(70, rangeNumber[4]),
-                Pair(65, rangeNumber[5]),
-                Pair(60, rangeNumber[6]),
-                Pair(65, rangeNumber[7]),
-                Pair(60, rangeNumber[8]),
-                Pair(55, rangeNumber[9]),
-                Pair(50, rangeNumber[10]),
-                Pair(45, rangeNumber[11]),
-                Pair(40, rangeNumber[12]),
-                Pair(35, rangeNumber[13]),
-                Pair(30, rangeNumber[14]),
-                Pair(25, rangeNumber[15]),
-                Pair(20, rangeNumber[16]),
+                Pair(70, rangeNumber[0]),
+                Pair(60, rangeNumber[1]),
+                Pair(50, rangeNumber[2]),
+                Pair(40, rangeNumber[3]),
+                Pair(30, rangeNumber[4]),
+                Pair(20, rangeNumber[5]),
+                Pair(10, rangeNumber[6]),
+                Pair(10, rangeNumber[7]),
+                Pair(10, rangeNumber[8]),
+                Pair(10, rangeNumber[9]),
+                Pair(10, rangeNumber[10]),
+                Pair(10, rangeNumber[11]),
+                Pair(10, rangeNumber[12]),
+                Pair(10, rangeNumber[13]),
+                Pair(10, rangeNumber[14]),
+                Pair(10, rangeNumber[15]),
+                Pair(10, rangeNumber[16]),
             ), rangeNumber = rangeNumber
         )
 
@@ -653,6 +683,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 }
             }
             LotteryType.BIGDATA -> {
+                Log.d(TAG, "빅데이터 추가 실행")
                 val newData = haveBigDataNumberData.value
 
                 viewModelScope.launch {
@@ -660,7 +691,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                     bigDataLottoNumberList.emit(list)
 
-//                    localRepository.add(newData)
+                    localRepository.bigDataAdd(newData)
                 }
             }
         }
@@ -726,7 +757,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
             LotteryType.BIGDATA -> {
                 val mapNumber = number as BigDataModeNumber
                 viewModelScope.launch {
-//                    localRepository.delete(mapNumber)
+                    localRepository.bigDataDelete(mapNumber)
 
                     val list = bigDataLottoNumberList.value
                     val removeLists = list.toMutableList().apply {

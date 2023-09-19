@@ -17,10 +17,6 @@ class MainViewModel: ViewModel() {
 
     val nowBottomCardValue = MutableStateFlow(1)
 
-    val mainNoticeCardValue = MutableStateFlow(1)
-
-
-
 
 
 }

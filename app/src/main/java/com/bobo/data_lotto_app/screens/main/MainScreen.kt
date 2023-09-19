@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.MainRoute
+import com.bobo.data_lotto_app.MainRouteAction
 import com.bobo.data_lotto_app.components.NoticeBar
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
@@ -60,6 +62,7 @@ import com.bobo.data_lotto_app.components.BaseButton
 import com.bobo.data_lotto_app.components.CustomButton
 import com.bobo.data_lotto_app.components.fontFamily
 import com.bobo.data_lotto_app.extentions.toWon
+import com.bobo.data_lotto_app.service.Post
 import com.bobo.data_lotto_app.ui.theme.MainFirstBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.MainMenuBarColor
 import kotlinx.coroutines.launch
@@ -71,7 +74,8 @@ fun MainScreen(
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
     authViewModel: AuthViewModel,
-    noticeViewModel: NoticeViewModel) {
+    noticeViewModel: NoticeViewModel,
+    mainRouteAction: MainRouteAction) {
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
@@ -79,11 +83,17 @@ fun MainScreen(
 
     val resentLottoNumber = dataViewModel.resentLottoNumber.collectAsState()
 
+    val noticeCardState = noticeViewModel.mainNoticeCardValue.collectAsState()
+
+    val announcementPost = noticeViewModel.announcementPost.collectAsState()
+
+    val bragPost = noticeViewModel.bragPost.collectAsState()
+
     ModalDrawer(
         drawerState = drawerState,
         drawerShape = customShape(),
         drawerContent = {
-            DrawerCustom(authViewModel)
+            DrawerCustom(authViewModel, mainRouteAction)
                         },
 
         ) {
@@ -110,7 +120,7 @@ fun MainScreen(
                                 drawerState.open()
                             }
                         },
-                    painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = ""
+                    painter = painterResource(id = R.drawable.list_icon), contentDescription = ""
                 )
             }
 
@@ -146,14 +156,32 @@ fun MainScreen(
             )
 
             // 게시판 뷰
-            NoticeBar(mainViewModel = mainViewModel, modifier = Modifier.weight(0.2f))
+            NoticeBar(modifier = Modifier.weight(0.2f), noticeViewModel)
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            NoticeContent(
-                modifier = Modifier.weight(1f),
-                noticeViewModel
-            )
+            when(noticeCardState.value) {
+                1 -> {
+                    NoticeContent(
+                        modifier = Modifier.weight(1f),
+                        announcementPost.value,
+                        clicked = {
+
+                        }
+                    )
+                }
+                2 -> {
+                    NoticeContent(
+                        modifier = Modifier.weight(1f),
+                        bragPost.value,
+                        clicked = {
+
+                        }
+                    )
+                }
+            }
+
+
 
 
         }
@@ -353,9 +381,9 @@ fun BallDraw(
 @Composable
 fun NoticeContent(
     modifier: Modifier,
-    noticeViewModel: NoticeViewModel
+    posts: List<Post>,
+    clicked: () -> Unit
 ) {
-    val posts = noticeViewModel.announcementPost.collectAsState()
     val lazyState = rememberLazyListState()
 
     Column(
@@ -379,9 +407,10 @@ fun NoticeContent(
                 modifier = Modifier.wrapContentSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ){
-                items(posts.value, {item -> item.id}) { posts ->
+                items(posts, {item -> item.id}) { posts ->
 
-                    NoticeArray(title = posts.title)
+                    NoticeArray(title = posts.title,
+                        clicked = {clicked.invoke()})
                 }
             }
         }
@@ -392,9 +421,11 @@ fun NoticeContent(
 }
 
 @Composable
-fun NoticeArray(title: String) {
+fun NoticeArray(title: String,
+                clicked: () -> Unit) {
     Row(
         modifier = Modifier
+            .clickable { clicked.invoke() }
             .clip(shape = RoundedCornerShape(10.dp))
             .height(40.dp)
             .fillMaxWidth(0.9f)
@@ -410,9 +441,7 @@ fun NoticeArray(title: String) {
 
 
 @Composable
-fun DrawerCustom(authViewModel: AuthViewModel) {
-
-    val needAuth = authViewModel.needAuthContext.collectAsState()
+fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction) {
 
     val isSignIn = authViewModel.isLoggedIn.collectAsState()
 
@@ -513,6 +542,34 @@ fun DrawerCustom(authViewModel: AuthViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
             )
+
+            Text(modifier = Modifier.padding(start = 10.dp),fontSize = 20.sp,text = "게시판")
+
+            Button(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(start = 10.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+                elevation = ButtonDefaults.elevation(0.dp),
+                onClick = {
+                    mainRouteAction.navTo(MainRoute.Notice)
+                }) {
+                androidx.compose.material.Text(text = "공지사항")
+            }
+
+            Button(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(start = 10.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+                elevation = ButtonDefaults.elevation(0.dp),
+                onClick = {
+
+                }) {
+                androidx.compose.material.Text(text = "자랑글")
+            }
+
+
 
             Spacer(modifier = Modifier.weight(1f))
 

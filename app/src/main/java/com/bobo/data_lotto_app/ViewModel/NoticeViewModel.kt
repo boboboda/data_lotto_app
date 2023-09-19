@@ -16,6 +16,8 @@ class NoticeViewModel:  ViewModel()  {
 
     val bragPost = MutableStateFlow<List<Post>>(emptyList())
 
+    val mainNoticeCardValue = MutableStateFlow(1)
+
     init {
         getPosts()
 
@@ -28,6 +30,7 @@ class NoticeViewModel:  ViewModel()  {
                 id = UUID.randomUUID(),
                 title = "앱 사용 설명서",
                 content = "",
+                userEmail = "",
                 userNickname = "관리자",
                 image = emptyList(),
                 comments = emptyList(),
@@ -38,6 +41,7 @@ class NoticeViewModel:  ViewModel()  {
                 id = UUID.randomUUID(),
                 title = "이벤트 실시",
                 content = "",
+                userEmail = "",
                 userNickname = "관리자",
                 image = emptyList(),
                 comments = emptyList(),
@@ -48,6 +52,7 @@ class NoticeViewModel:  ViewModel()  {
                 id = UUID.randomUUID(),
                 title = "추가 업데이트 일정",
                 content = "",
+                userEmail = "",
                 userNickname = "관리자",
                 image = emptyList(),
                 comments = emptyList(),
@@ -58,6 +63,7 @@ class NoticeViewModel:  ViewModel()  {
                 id = UUID.randomUUID(),
                 title = "버그 수정",
                 content = "",
+                userEmail = "",
                 userNickname = "관리자",
                 image = emptyList(),
                 comments = emptyList(),

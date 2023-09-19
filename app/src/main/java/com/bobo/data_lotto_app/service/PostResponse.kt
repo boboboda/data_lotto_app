@@ -17,6 +17,7 @@ data class Post(
     val id: UUID,
     val title: String,
     val content: String,
+    val userEmail: String,
     val userNickname: String,
     val image: List<ImageVector> = emptyList(),
     val comments: List<Comment> = emptyList(),
@@ -25,6 +26,7 @@ data class Post(
 ) {
     constructor() : this(
         UUID.randomUUID(),
+        "",
         "",
         "",
         "",
@@ -37,6 +39,7 @@ data class Post(
 data class Comment(
     val id: UUID,
     val nickname: String,
+    val userEmail: String,
     val content: String,
     val parentCommentId: Int?,
     val parentUserNickname: String,
@@ -46,6 +49,7 @@ data class Comment(
 ) {
     constructor() : this(
         UUID.randomUUID(),
+        "",
         "",
         "",
         0,

@@ -15,6 +15,11 @@ sealed class MainRoute(
     object Main: MainRoute("Main", "홈", 1 , R.drawable.home_icon)
     object Data: MainRoute("Data","데이터",2, R.drawable.data_icon)
     object Draw: MainRoute("Draw","뽑기", 3, R.drawable.draw_lotto_icon)
+    object Notice: MainRoute("Notice", "게시판")
+    object Write: MainRoute("Write", "글쓰기")
+    object Post: MainRoute("Post", "게시글")
+
+
 }
 
 

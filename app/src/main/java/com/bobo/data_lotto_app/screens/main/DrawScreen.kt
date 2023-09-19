@@ -581,7 +581,7 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                 val dismissState = rememberDismissState()
 
                 if (dismissState.isDismissed(DismissDirection.EndToStart)) {
-                    dataViewModel.deleteNormalNumber(item)
+                    dataViewModel.deleteNormalNumber(item, modeType = DataViewModel.LotteryType.BIGDATA)
 
                 }
                 SwipeToDismiss(
