@@ -651,7 +651,6 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                         scope.launch {
                             showCalendarDialog.value = true
                         }
-
                     },
                     modifier = Modifier
                         .size(80.dp)
