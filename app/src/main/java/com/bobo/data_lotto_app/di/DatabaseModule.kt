@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.bobo.data_lotto_app.Localdb.BigdataModeNumberDatabaseDao
 import com.bobo.data_lotto_app.Localdb.LocalDatabase
+import com.bobo.data_lotto_app.Localdb.LocalUserDatabaseDao
 import com.bobo.data_lotto_app.Localdb.NormalModeNumberDatabaseDao
 import dagger.Module
 import dagger.Provides
@@ -25,6 +26,11 @@ private object DatabaseModule {
     @Provides
     fun provideBigModeNumberDao(localDatabase: LocalDatabase) : BigdataModeNumberDatabaseDao {
         return localDatabase.bigDataModeNumberDao()
+    }
+
+    @Provides
+    fun provideLocalUserDao(localDatabase: LocalDatabase): LocalUserDatabaseDao {
+        return localDatabase.localUserDao()
     }
 
     @Provides

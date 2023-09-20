@@ -62,16 +62,22 @@ data class BigDataModeNumber(
 )
 
 
-//@Entity(tableName = "LocalUserData_table")
-//data class LocalUserData(
-//
-//    @PrimaryKey
-//    @ColumnInfo(name = "id")
-//    var id: UUID = UUID.randomUUID(),
-//
-//    @ColumnInfo(name = "")
-//    val : Int? = null,
-//)
+@Entity(tableName = "LocalUserData_table")
+data class LocalUserData(
+
+    @PrimaryKey
+    @ColumnInfo(name = "id")
+    var id: UUID = UUID.randomUUID(),
+
+    @ColumnInfo(name = "allNumber_Search_Count")
+    val allNumberSearchCount: Int? = null,
+
+    @ColumnInfo(name = "myNumber_search_Count")
+    val myNumberSearchCount: Int? = null,
+
+    @ColumnInfo(name = "number_Lottery_Count")
+    val numberLotteryCount: Int? = null,
+)
 
 
 

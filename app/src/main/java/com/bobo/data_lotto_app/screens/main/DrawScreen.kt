@@ -79,6 +79,7 @@ import com.bobo.data_lotto_app.components.BigDataLottoAnimationDialog
 import com.bobo.data_lotto_app.components.FilterDialog
 import com.bobo.data_lotto_app.components.LottoAnimationDialog
 import com.bobo.data_lotto_app.components.LottoSelectCard
+import com.bobo.data_lotto_app.components.ProportionSelectDialog
 import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.ui.theme.DeleteColor
 import com.bobo.data_lotto_app.ui.theme.NormalModeLottoNumberBackgroundColor
@@ -480,6 +481,8 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
 
     val dateFilter = dataViewModel.bigDataDateRangeFlow.collectAsState()
 
+    val proportionState = dataViewModel.proportionStateFlow.collectAsState()
+
     val showOpenDialog = remember { mutableStateOf(false) }
 
     val showCalendarDialog = remember { mutableStateOf(false) }
@@ -718,19 +721,18 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
         }
 
         if(showLottoAnimationDialog.value) {
-            BigDataLottoAnimationDialog(
-                closeClicked = {
-                    scope.launch {
-                       dataViewModel.bigDataNumberAndPercentValue.emit(emptyList())
-                        dataViewModel.haveBigDataNumberData.emit(BigDataModeNumber())
-                    }
-                    showLottoAnimationDialog.value = it
-                },
+
+            ProportionSelectDialog(closeClicked = {
+                scope.launch {
+                    dataViewModel.bigDataNumberAndPercentValue.emit(emptyList())
+                    dataViewModel.haveBigDataNumberData.emit(BigDataModeNumber())
+                }
+                showLottoAnimationDialog.value = it
+            },
                 dataViewModel = dataViewModel,
                 onDismissRequest = {
                     showLottoAnimationDialog.value = it
-                }
-            )
+                })
         }
 
         if(showCalendarDialog.value) {

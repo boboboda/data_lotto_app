@@ -8,7 +8,8 @@ import javax.inject.Inject
 
 class LocalRepository @Inject constructor(
     private val normalModeNumberDatabaseDao: NormalModeNumberDatabaseDao,
-    private  val bigdataModeNumberDatabaseDao: BigdataModeNumberDatabaseDao
+    private  val bigdataModeNumberDatabaseDao: BigdataModeNumberDatabaseDao,
+    private val localUserDatabaseDao: LocalUserDatabaseDao
     ) {
 
 
@@ -26,5 +27,13 @@ class LocalRepository @Inject constructor(
     suspend fun bigDataDelete(bigDataModeNumber: BigDataModeNumber) = bigdataModeNumberDatabaseDao.deleteNote(bigDataModeNumber)
     suspend fun bigDataDeleteAll() = bigdataModeNumberDatabaseDao.deleteAll()
     fun bigdataGetAll(): Flow<List<BigDataModeNumber>> = bigdataModeNumberDatabaseDao.getRecords().flowOn(Dispatchers.IO).conflate()
+
+    // 로컬 유저 생성
+
+    suspend fun localUserAdd(localUserData: LocalUserData) = localUserDatabaseDao.insert(localUserData)
+    suspend fun localUserUpdate(localUserData: LocalUserData) = localUserDatabaseDao.update(localUserData)
+    suspend fun localUserDataDelete() = localUserDatabaseDao.deleteAll()
+    fun localUserDataGet(): Flow<LocalUserData> = localUserDatabaseDao.getUserData().flowOn(Dispatchers.IO).conflate()
+
 
 }

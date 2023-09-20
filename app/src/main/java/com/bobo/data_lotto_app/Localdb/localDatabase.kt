@@ -6,11 +6,14 @@ import androidx.room.RoomDatabase
 
 @Database(entities = [
     NormalModeNumber::class,
-    BigDataModeNumber::class
-], version = 3, exportSchema = false)
+    BigDataModeNumber::class,
+    LocalUserData::class
+], version = 5, exportSchema = false)
 abstract class LocalDatabase: RoomDatabase() {
 
     abstract fun normalModeNumberDao() : NormalModeNumberDatabaseDao
 
     abstract fun bigDataModeNumberDao() : BigdataModeNumberDatabaseDao
+
+    abstract fun localUserDao(): LocalUserDatabaseDao
 }

@@ -202,29 +202,6 @@ fun rangeDateDialog(
 
                 Button(
                     onClick = {
-                        onDismissRequest(false)
-                },
-                    colors = ButtonDefaults.buttonColors(WelcomeScreenBackgroundColor))
-                {
-                    Box(
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .padding(horizontal = 5.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "닫기",
-                            color = Color.Black,
-                            fontSize = 13.sp,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(15.dp))
-                
-                Button(
-                    onClick = {
                         onClicked!!.invoke()
                         onDismissRequest(false)
                     },
@@ -244,7 +221,30 @@ fun rangeDateDialog(
                             textAlign = TextAlign.Center,
                         )
                     }
-                    
+
+                }
+
+                Spacer(modifier = Modifier.width(15.dp))
+
+                Button(
+                    onClick = {
+                        onDismissRequest(false)
+                    },
+                    colors = ButtonDefaults.buttonColors(WelcomeScreenBackgroundColor))
+                {
+                    Box(
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .padding(horizontal = 5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "닫기",
+                            color = Color.Black,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
 
             }

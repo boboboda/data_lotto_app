@@ -2,6 +2,7 @@ package com.bobo.data_lotto_app.di
 
 import com.bobo.data_lotto_app.Localdb.BigdataModeNumberDatabaseDao
 import com.bobo.data_lotto_app.Localdb.LocalRepository
+import com.bobo.data_lotto_app.Localdb.LocalUserDatabaseDao
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.Localdb.NormalModeNumberDatabaseDao
 import dagger.Module
@@ -18,9 +19,11 @@ object AppModule {
     @Provides
     fun provideLocalRepository(
         normalModeNumberDatabaseDao: NormalModeNumberDatabaseDao,
-        bigdataModeNumberDatabaseDao: BigdataModeNumberDatabaseDao): LocalRepository {
+        bigdataModeNumberDatabaseDao: BigdataModeNumberDatabaseDao,
+        userDatabaseDao: LocalUserDatabaseDao): LocalRepository {
         return LocalRepository(
             normalModeNumberDatabaseDao,
-            bigdataModeNumberDatabaseDao)
+            bigdataModeNumberDatabaseDao,
+            userDatabaseDao)
     }
 }

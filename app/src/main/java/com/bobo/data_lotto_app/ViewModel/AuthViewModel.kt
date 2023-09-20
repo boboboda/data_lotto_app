@@ -2,9 +2,12 @@ package com.bobo.data_lotto_app.ViewModel
 
 import android.app.Application
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bobo.data_lotto_app.Localdb.LocalRepository
+import com.bobo.data_lotto_app.Localdb.LocalUserData
 import com.bobo.data_lotto_app.MainActivity
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.service.User
@@ -14,20 +17,44 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.time.DayOfWeek
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Timer
 import java.util.UUID
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import kotlin.concurrent.timerTask
 import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.DeclaredMemberIndex.Empty
 
-class AuthViewModel(application: Application): AndroidViewModel(application) {
+@HiltViewModel
+class AuthViewModel @Inject
+    constructor(application: Application,
+                private val localRepository: LocalRepository
+            ): AndroidViewModel(application) {
 
     companion object {
         const val KAKAO = "카카오"
+        const val USER = "유저"
     }
+
+    //로컬에서 받아온 유저 데이터
+    val localUser = MutableStateFlow<LocalUserData>(LocalUserData())
+
+    // 로그인 후 받아온 유저 데이터
+    val receiveUserDataFlow = MutableStateFlow<User>(User())
 
     private val context = application.applicationContext
 
@@ -37,13 +64,92 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
 
     val needAuthContext = MutableStateFlow(false)
 
+    val allNumberSearchCount = MutableStateFlow(0)
+
+    val myNumberSearchCount = MutableStateFlow(0)
+
+    val numberLotteryCount = MutableStateFlow(0)
+
+    init {
+        //로그인 상태에 따라 유저 데이터 변경
+        viewModelScope.launch {
+            isLoggedIn.collectLatest {
+                if(isLoggedIn.value) {
+                    Log.d(USER, "로그인 후 유저 데이터 변경 실행")
+                    if(receiveUserDataFlow.value != null) {
+                        allNumberSearchCount.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
+                        myNumberSearchCount.emit(receiveUserDataFlow.value.myNumberSearchCount!!)
+                        numberLotteryCount.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
+                    } else { return@collectLatest }
+                } else {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        localRepository.localUserDataGet().distinctUntilChanged()
+                            .collect{userData ->
+                                if(userData == null) {
+                                    localUserAdd()
+                                    Log.d(USER, "로컬 유저 아이디 없음") }
+                                else {
+
+                                    Log.d(USER, "로컬 유저 불러옴 실행 ${userData}")
+
+                                    localUser.emit(userData)
+
+                                    allNumberSearchCount.emit(userData.allNumberSearchCount!!)
+                                    myNumberSearchCount.emit(userData.myNumberSearchCount!!)
+                                    numberLotteryCount.emit(userData.allNumberSearchCount!!)
+                                }
+                            }
+                    }
+                }
+            }
+        }
+
+    }
+    fun localUserAdd() {
+
+        Log.d(USER, "로컬 유저 아이디 없음, 로컬 유저 생성 로직 실행")
+        viewModelScope.launch(Dispatchers.IO) {
+
+            val createGuestUser = LocalUserData(
+                id = UUID.randomUUID(),
+                allNumberSearchCount = 3,
+                myNumberSearchCount = 3,
+                numberLotteryCount = 3
+                )
+                Log.d(USER, "로컬 유저 아이디 없음, 로컬 유저 생성 로직 실행 2")
+
+                localRepository.localUserAdd(createGuestUser)
+
+                localRepository.localUserDataGet().distinctUntilChanged()
+                    .collect{userData ->
+
+                        Log.d(USER, "생성 후 로컬 유저 불러옴 실행 ${userData}")
+
+                        localUser.emit(userData)
+
+                        allNumberSearchCount.emit(userData.allNumberSearchCount!!)
+                        myNumberSearchCount.emit(userData.myNumberSearchCount!!)
+                        numberLotteryCount.emit(userData.allNumberSearchCount!!)
+                    }
+
+        }
+    }
+
+
+    fun deleteUserId() {
+        viewModelScope.launch {
+            localRepository.localUserDataDelete()
+        }
+    }
+
+
+
+
     // 로그인
 
     val logInEmailInputFlow = MutableStateFlow("")
 
     val logInPasswordInputFlow = MutableStateFlow("")
-
-    val receiveUserDataFlow = MutableStateFlow<User>(User())
 
     val failedLogIn = MutableStateFlow(false)
 
@@ -131,14 +237,10 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
     }
 
 
-
-
-
     fun handleKakaoLogin(type: String) {
         // 로그인 조합 예제
-
-// 카카오계정으로 로그인 공통 callback 구성
-// 카카오톡으로 로그인 할 수 없어 카카오계정으로 로그인할 경우 사용됨
+        // 카카오계정으로 로그인 공통 callback 구성
+        // 카카오톡으로 로그인 할 수 없어 카카오계정으로 로그인할 경우 사용됨
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
             if (error != null) {
                 Log.e(TAG, "카카오계정으로 로그인 실패", error)
@@ -174,10 +276,6 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
         } else {
             UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
         }
-
-
-
-
     }
 
 
@@ -210,6 +308,8 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
                        if(response == null) {
                            failedLogIn.value = true
                        } else {
+                           val receiveUserData = response.users
+                           receiveUserDataFlow.emit(receiveUserData!!)
                            needAuthContext.emit(true)
                        }
                    }
@@ -219,6 +319,33 @@ class AuthViewModel(application: Application): AndroidViewModel(application) {
            }
        }
    }
+
+    val todayDate = MutableStateFlow(LocalDateTime.now())
+
+
+    // 유저 데이터 정보 초기화
+    fun userDataReset() {
+        if(todayDate.value.dayOfWeek == DayOfWeek.SATURDAY &&
+            todayDate.value.hour >= 22)
+        {
+
+            val nowLocalUserId = localUser.value.id
+
+            val updateUserData = LocalUserData(
+                id = nowLocalUserId,
+                allNumberSearchCount = 3,
+                myNumberSearchCount = 3,
+                numberLotteryCount = 3
+            )
+            viewModelScope.launch(Dispatchers.IO) {
+                localRepository.localUserUpdate(updateUserData)
+            }
+
+        } else {
+            return
+        }
+    }
+
 
 
 }

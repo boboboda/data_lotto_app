@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,8 +40,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -54,11 +57,13 @@ import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.screens.main.BallDraw
+import com.bobo.data_lotto_app.screens.main.dataRangeView
 import com.bobo.data_lotto_app.ui.theme.DataSelectFirstColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
 import com.bobo.data_lotto_app.ui.theme.DisableButtonColor
 import com.bobo.data_lotto_app.ui.theme.EnableButtonColor
 import com.bobo.data_lotto_app.ui.theme.LottoButtonColor
+import com.bobo.data_lotto_app.ui.theme.ProportionButtonColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenLoginButtonColor
 import kotlinx.coroutines.launch
@@ -445,7 +450,7 @@ fun LottoAnimationDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(350.dp)
+                .wrapContentHeight()
                 .background(
                     shape = RoundedCornerShape(8.dp),
                     color = Color.White
@@ -454,7 +459,8 @@ fun LottoAnimationDialog(
             
             Spacer(modifier = Modifier.height(10.dp))
 
-            Text(text = "로또 그림을 클릭해주세요")
+            Text(fontWeight = FontWeight.Bold,
+                text = "로또 그림을 클릭해주세요")
 
             Card(
                 modifier = Modifier.size(200.dp),
@@ -536,6 +542,29 @@ fun LottoAnimationDialog(
                 }
 
             }
+            Row(modifier = Modifier
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
+
+                Buttons(
+                    label = "다시 뽑기",
+                    onClicked = {
+                        scope.launch {
+                            isSlideSpring.value = false
+                            animationStop.value = LottieConstants.IterateForever
+                            dataViewModel.haveNormalNumberData.emit(NormalModeNumber())
+                        }
+                    },
+                    buttonColor = DisableButtonColor,
+                    fontColor = Color.Black,
+                    modifier = Modifier,
+                    fontSize = 20
+                )
+
+            }
+
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(modifier = Modifier
                 .fillMaxWidth(),
@@ -663,7 +692,7 @@ fun BigDataLottoAnimationDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(350.dp)
+                .wrapContentHeight()
                 .background(
                     shape = RoundedCornerShape(8.dp),
                     color = Color.White
@@ -673,6 +702,11 @@ fun BigDataLottoAnimationDialog(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(text = "로또 그림을 클릭해주세요")
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                fontSize = 20.sp
+                ,text = "기회: 3")
+
 
             Card(
                 modifier = Modifier.size(200.dp),
@@ -759,6 +793,31 @@ fun BigDataLottoAnimationDialog(
             Row(modifier = Modifier
                 .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
+
+                Buttons(
+                    label = "다시 뽑기",
+                    onClicked = {
+                        scope.launch {
+                            isSlideSpring.value = false
+                            animationStop.value = LottieConstants.IterateForever
+                            dataViewModel.haveBigDataNumberData.emit(BigDataModeNumber())
+                        }
+                    },
+                    buttonColor = DisableButtonColor,
+                    fontColor = Color.Black,
+                    modifier = Modifier,
+                    fontSize = 20
+                )
+
+            }
+
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(modifier = Modifier
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
+
                 Buttons(
                     label = "추가",
                     onClicked = {
@@ -804,4 +863,88 @@ fun BigDataLottoAnimationDialog(
         }
     }
 
+}
+
+@Composable
+fun ProportionSelectDialog(
+    closeClicked: (Boolean) -> Unit,
+    dataViewModel: DataViewModel,
+    onDismissRequest: (Boolean) -> Unit,
+) {
+
+    val showLottoAnimationDialog = remember{ mutableStateOf( false ) }
+
+    Dialog(onDismissRequest = { onDismissRequest(false)}
+    ) {
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize()
+                .background(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.White
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(modifier = Modifier
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = fontFamily,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 23.sp,
+                    text = "날짜 범위를 선택하면 범위 내 \n" +
+                        "고비율과 저비율을 계산할 수 있습니다.\n" +
+                            "(날짜 범위를 선택하지 않으면 전체 범위에서 선택됩니다.)")
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Buttons(
+                label = "고비율",
+                onClicked = {
+
+                    dataViewModel.proportionStateFlow.value = "1"
+                    showLottoAnimationDialog.value = true
+                },
+                buttonColor = ProportionButtonColor,
+                fontColor = Color.Black,
+                modifier = Modifier.fillMaxWidth(0.7f),
+                fontSize = 15
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Buttons(
+                label = "저비율",
+                onClicked = {
+                    dataViewModel.proportionStateFlow.value = "2"
+                    showLottoAnimationDialog.value = true
+                },
+                buttonColor = ProportionButtonColor,
+                fontColor = Color.Black,
+                modifier = Modifier.fillMaxWidth(0.7f),
+                fontSize = 15
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+    }
+
+    if(showLottoAnimationDialog.value) {
+        BigDataLottoAnimationDialog(
+            closeClicked = {
+                closeClicked(it)
+            },
+            dataViewModel = dataViewModel,
+            onDismissRequest = {
+                showLottoAnimationDialog.value = it
+            }
+        )
+    }
 }

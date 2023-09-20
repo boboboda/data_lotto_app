@@ -700,6 +700,10 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     }
 
+    // 고비율 저비율 선택
+
+    val proportionStateFlow = MutableStateFlow("")
+
     fun filterNumber(
         removeNumber: List<Int>,
         type: LotteryType = LotteryType.NORMAL
@@ -718,8 +722,12 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
             LotteryType.BIGDATA -> {
 
                 Log.d(TAG, "빅데이터 필터넘버 실행")
-                val rangeNumber = bigDataNumberAndPercentValue.value.sortedByDescending { it.second }
-
+                val rangeNumber =
+                    when(proportionStateFlow.value) {
+                        "1" -> { bigDataNumberAndPercentValue.value.sortedByDescending { it.second } }
+                        "2" -> { bigDataNumberAndPercentValue.value.sortedBy { it.second }}
+                        else -> { bigDataNumberAndPercentValue.value.sortedByDescending { it.second } }
+                    }
                 Log.d(TAG, "넘버퍼센트 정렬 ${rangeNumber}")
 
                 val mapRangeNumber = rangeNumber.map { it.first }
