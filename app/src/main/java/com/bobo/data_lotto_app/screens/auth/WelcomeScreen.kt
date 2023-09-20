@@ -115,7 +115,6 @@ fun WelcomeScreen(routeAction: AuthRouteAction, authViewModel: AuthViewModel) {
             BaseButton(
                 title = "로그인",
                 onClick = {
-                    authViewModel.deleteUserId()
                           routeAction.navTo(AuthRoute.LOGIN)
                 },
                 modifier = Modifier.padding(horizontal = 20.dp))

@@ -1,6 +1,8 @@
 package com.bobo.data_lotto_app.screens.auth
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SnackbarDuration
@@ -25,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +43,7 @@ import com.bobo.data_lotto_app.Routes.AuthRoute
 import com.bobo.data_lotto_app.Routes.AuthRouteAction
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.components.BaseButton
+import com.bobo.data_lotto_app.components.Buttons
 import com.bobo.data_lotto_app.components.EmailTextField
 import com.bobo.data_lotto_app.components.LogInBackButton
 import com.bobo.data_lotto_app.components.PasswordTextField
@@ -136,23 +145,19 @@ fun LoginScreen(authViewModel: AuthViewModel,
                 focusManager.clearFocus()
                 coroutineScope.launch {
 
-                    authViewModel.isLoggedIn.collectLatest {
-                        authViewModel.needAuthContext.emit(true)
-                    }
-
+                    authViewModel.loginUser(type = AuthViewModel.LoginType.DEFAULT)
 
                     authViewModel.failedLogIn.collectLatest {
                         if (failedLogin.value == true) {
+
                             snackBarHostState.showSnackbar(
                                 "로그인에 실패하였습니다. 다시 확인해주세요",
                                 actionLabel = "닫기", SnackbarDuration.Short
                             )
                         }
                     }
+
                 }
-                Log.d("웰컴스크린", "로그인 버튼 클릭")
-
-
             },
             modifier = Modifier.imePadding())
 
@@ -225,7 +230,49 @@ fun LoginScreen(authViewModel: AuthViewModel,
             }
 
         }
-        SnackbarHost(hostState = snackBarHostState, modifier = Modifier.fillMaxSize())
+
+        Spacer(modifier = Modifier.weight(1f))
+            SnackbarHost(hostState = snackBarHostState, modifier = Modifier,
+                snackbar = { snackbarData ->
+
+
+                        Card(
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(2.dp, Color.Black),
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(text = snackbarData.message)
+
+                                Spacer(modifier = Modifier.width(10.dp))
+
+                                Card(
+                                    modifier = Modifier.wrapContentSize(),
+                                    onClick = {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                }) {
+                                    Text(
+                                        modifier = Modifier.padding(8.dp),
+                                        text = "닫기")
+                                }
+                            }
+                        }
+
+
+
+                }
+
+            )
+
+        Spacer(modifier = Modifier.weight(0.5f))
+
+
 
 
 

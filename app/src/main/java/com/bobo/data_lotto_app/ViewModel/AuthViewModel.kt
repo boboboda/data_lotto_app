@@ -104,6 +104,9 @@ class AuthViewModel @Inject
             }
         }
 
+        //토요일 10시 이후 횟수 초기화
+        userDataReset()
+
     }
     fun localUserAdd() {
 
@@ -111,7 +114,6 @@ class AuthViewModel @Inject
         viewModelScope.launch(Dispatchers.IO) {
 
             val createGuestUser = LocalUserData(
-                id = UUID.randomUUID(),
                 allNumberSearchCount = 3,
                 myNumberSearchCount = 3,
                 numberLotteryCount = 3
@@ -192,9 +194,9 @@ class AuthViewModel @Inject
         }
     }
 
-    enum class LoginType(val type: String) {
-        DEFAULT("default"),
-        KAKAO("kakao")
+    enum class LoginType(name: String) {
+        DEFAULT(name = "default"),
+        KAKAO(name = "kakao")
     }
     fun loginUser(type: LoginType) {
 
@@ -205,7 +207,7 @@ class AuthViewModel @Inject
                     try {
                         val response = UserApi.retrofitService.UserLogin(
                             request = UserRequest(
-                                type = "${type.type}",
+                                type = "default",
                                 email = logInEmailInputFlow.value,
                                 password = logInPasswordInputFlow.value
                             )
@@ -215,20 +217,27 @@ class AuthViewModel @Inject
 
                         Log.d(TAG, "유저 정보 - ${receiveUserDataFlow.value}")
 
+                        logInEmailInputFlow.emit("")
+                        logInPasswordInputFlow.emit("")
+
                         if (response == null) {
-                            failedLogIn.value = true
+                            Log.d(USER, "로그인 실패")
                         } else {
                             isLoggedIn.emit(true)
+                            needAuthContext.emit(true)
                         }
 
 
                     } catch (e: HttpException) {
-                        Log.d(TAG, "로그인 실패 $e")
+                        logInEmailInputFlow.emit("")
+                        logInPasswordInputFlow.emit("")
+                        failedLogIn.value = true
+                        Log.d(TAG, "로그인 실패 $e ")
                     }
                 }
             }
             LoginType.KAKAO -> {
-                handleKakaoLogin(type = type.type)
+                handleKakaoLogin(type = "kakao")
             }
         }
 
@@ -324,11 +333,11 @@ class AuthViewModel @Inject
 
 
     // 유저 데이터 정보 초기화
+    // 회원가입 된 유저는 db에서 초기화 실행
     fun userDataReset() {
         if(todayDate.value.dayOfWeek == DayOfWeek.SATURDAY &&
             todayDate.value.hour >= 22)
         {
-
             val nowLocalUserId = localUser.value.id
 
             val updateUserData = LocalUserData(
@@ -344,6 +353,12 @@ class AuthViewModel @Inject
         } else {
             return
         }
+    }
+
+    fun useItem(
+
+    ) {
+
     }
 
 

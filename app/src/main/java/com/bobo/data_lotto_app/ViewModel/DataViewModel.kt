@@ -38,12 +38,8 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(private val localRepository: LocalRepository): ViewModel() {
 
     init {
-
-
             //api 요청
             allFetched()
-
-
 
         viewModelScope.launch {
             // 노말모드, 빅데이터모드 추첨번호 불러오기

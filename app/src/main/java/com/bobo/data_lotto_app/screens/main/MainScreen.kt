@@ -23,17 +23,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Divider
 import androidx.compose.material.DrawerValue
 import androidx.compose.material.ModalDrawer
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.TextButton
 import androidx.compose.material.rememberDrawerState
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +69,8 @@ import com.bobo.data_lotto_app.extentions.toWon
 import com.bobo.data_lotto_app.service.Post
 import com.bobo.data_lotto_app.ui.theme.MainFirstBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.MainMenuBarColor
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
@@ -89,6 +95,10 @@ fun MainScreen(
 
     val bragPost = noticeViewModel.bragPost.collectAsState()
 
+    val failLogin = authViewModel.failedLogIn.collectAsState()
+
+    val snackBarHostState = remember { SnackbarHostState() }
+
     ModalDrawer(
         drawerState = drawerState,
         drawerShape = customShape(),
@@ -97,6 +107,7 @@ fun MainScreen(
                         },
 
         ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -445,6 +456,12 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 
     val isSignIn = authViewModel.isLoggedIn.collectAsState()
 
+    val userdata = authViewModel.receiveUserDataFlow.collectAsState()
+
+    val needAuth = authViewModel.needAuthContext.collectAsState()
+
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -466,11 +483,15 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 
             if(isSignIn.value) {
 
-                Text(text = "email: kju9038@Naver.com")
+                Text(text = "${userdata.value.email}")
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 TextButton(onClick = {
+                    scope.launch {
+                        authViewModel.isLoggedIn.emit(false)
+                        authViewModel.needAuthContext.emit(false)
+                    }
 
 
                 }) {
@@ -506,6 +527,24 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
             }
         }
 
+        if(isSignIn.value) {
+            Column(modifier = Modifier
+                .wrapContentSize()
+                .padding(start = 10.dp)) {
+
+                Text(text = "범위 검색 횟수: ${userdata.value.allNumberSearchCount}")
+
+                Text(text = "나의 번호 조회 횟수: ${userdata.value.myNumberSearchCount}")
+
+                Text(text = "빅데이터 로또번호 추첨 횟수: ${userdata.value.numberLotteryCount}")
+
+            }
+        } else {
+            Column(modifier = Modifier.wrapContentSize()) {
+
+            }
+        }
+
 
         Divider(
             modifier = Modifier
@@ -516,58 +555,48 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
         Column(horizontalAlignment = Alignment.Start) {
 
 
-            Button(
-                modifier = Modifier
-                    .wrapContentSize(),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
-                elevation = ButtonDefaults.elevation(0.dp),
-                onClick = {
+            Text(modifier = Modifier
+                .padding(start = 8.dp, bottom = 5.dp)
+                .clickable {
 
-                }) {
-                androidx.compose.material.Text(text = "내 글 보기")
-            }
+                }, text = "내 글 보기")
 
-            Button(
-                modifier = Modifier
-                    .wrapContentSize(),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
-                elevation = ButtonDefaults.elevation(0.dp),
-                onClick = {
+            Spacer(modifier = Modifier.height(5.dp))
 
-                }) {
-                androidx.compose.material.Text(text = "광고 삭제하기")
-            }
+            Text(modifier = Modifier
+                .padding(start = 8.dp, bottom = 5.dp)
+                .clickable {
+
+                }, text = "광고 삭제하기")
 
             Divider(
                 modifier = Modifier
                     .fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(2.dp))
+
             Text(modifier = Modifier.padding(start = 10.dp),fontSize = 20.sp,text = "게시판")
 
-            Button(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .padding(start = 10.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
-                elevation = ButtonDefaults.elevation(0.dp),
-                onClick = {
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Text(modifier = Modifier
+                .padding(start = 20.dp, bottom = 5.dp)
+                .clickable {
                     mainRouteAction.navTo(MainRoute.Notice)
-                }) {
-                androidx.compose.material.Text(text = "공지사항")
-            }
+                }, text = "공지사항")
 
-            Button(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .padding(start = 10.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
-                elevation = ButtonDefaults.elevation(0.dp),
-                onClick = {
+            Spacer(modifier = Modifier.height(2.dp))
 
-                }) {
-                androidx.compose.material.Text(text = "자랑글")
-            }
+            Text(modifier = Modifier
+                .padding(start = 20.dp, bottom = 5.dp)
+                .clickable {
+
+                }, text = "자랑글")
+
+
+
+
 
 
 
