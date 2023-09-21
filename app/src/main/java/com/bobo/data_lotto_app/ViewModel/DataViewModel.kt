@@ -163,11 +163,11 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val cgValue = cgStateValue.replayCache
 
-    val endFilerStateFlow = endFilterRecordFlow.stateIn(viewModelScope, SharingStarted.Eagerly, cgValue)
+    val endFilterStateFlow = endFilterRecordFlow.stateIn(viewModelScope, SharingStarted.Eagerly, cgValue)
 
     fun filterRange() {
         viewModelScope.launch {
-            _selectRangeLottoNumber.emit(endFilerStateFlow.value)
+            _selectRangeLottoNumber.emit(endFilterStateFlow.value)
         }
     }
 

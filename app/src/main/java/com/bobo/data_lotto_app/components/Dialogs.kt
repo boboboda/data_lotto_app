@@ -55,6 +55,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
+import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.screens.main.dataRangeView
@@ -64,6 +65,7 @@ import com.bobo.data_lotto_app.ui.theme.DisableButtonColor
 import com.bobo.data_lotto_app.ui.theme.EnableButtonColor
 import com.bobo.data_lotto_app.ui.theme.LottoButtonColor
 import com.bobo.data_lotto_app.ui.theme.ProportionButtonColor
+import com.bobo.data_lotto_app.ui.theme.UseCountButtonColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenLoginButtonColor
 import kotlinx.coroutines.launch
@@ -947,4 +949,65 @@ fun ProportionSelectDialog(
             }
         )
     }
+}
+
+enum class UseType(name: String){
+    ALLNUMBER("allNumber"),
+    MYNUMBER("myNumber"),
+    LOTTERY("lottery")
+}
+@Composable
+fun UseCountDialog(
+    onClicked: () -> Unit,
+    itemCount: Int,
+    authViewModel: AuthViewModel,
+    dataViewModel: DataViewModel,
+    onDismissRequest: (Boolean) -> Unit,
+    useType: UseType,
+) {
+    val isSelectDateValue = dataViewModel.endFilterStateFlow.collectAsState()
+
+
+
+    Dialog(onDismissRequest = {
+        onDismissRequest.invoke(false)
+    }) {
+
+        val count = itemCount
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .background(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.White
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center) {
+
+            Buttons(
+                label = " 시작 (무료횟수:${count})",
+                onClicked = {
+                    authViewModel.filterItem(
+                        itemCount = itemCount,
+                        searchDataCount = isSelectDateValue.value.toList(),
+                        useType = useType
+                        )
+                    onClicked.invoke()
+                },
+                buttonColor = UseCountButtonColor,
+                fontColor = Color.Black,
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .fillMaxWidth(0.8f)
+                    .height(50.dp),
+                fontSize = 20
+            )
+
+        }
+
+    }
+
+
 }

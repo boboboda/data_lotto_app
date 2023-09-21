@@ -10,6 +10,8 @@ import com.bobo.data_lotto_app.Localdb.LocalRepository
 import com.bobo.data_lotto_app.Localdb.LocalUserData
 import com.bobo.data_lotto_app.MainActivity
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
+import com.bobo.data_lotto_app.components.UseType
+import com.bobo.data_lotto_app.service.Lotto
 import com.bobo.data_lotto_app.service.User
 import com.bobo.data_lotto_app.service.UserApi
 import com.bobo.data_lotto_app.service.UserRequest
@@ -64,22 +66,23 @@ class AuthViewModel @Inject
 
     val needAuthContext = MutableStateFlow(false)
 
-    val allNumberSearchCount = MutableStateFlow(0)
+    val allNumberSearchCountFlow = MutableStateFlow(0)
 
-    val myNumberSearchCount = MutableStateFlow(0)
+    val myNumberSearchCountFlow = MutableStateFlow(0)
 
-    val numberLotteryCount = MutableStateFlow(0)
+    val numberLotteryCountFlow = MutableStateFlow(0)
 
     init {
+
         //로그인 상태에 따라 유저 데이터 변경
         viewModelScope.launch {
             isLoggedIn.collectLatest {
                 if(isLoggedIn.value) {
                     Log.d(USER, "로그인 후 유저 데이터 변경 실행")
                     if(receiveUserDataFlow.value != null) {
-                        allNumberSearchCount.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
-                        myNumberSearchCount.emit(receiveUserDataFlow.value.myNumberSearchCount!!)
-                        numberLotteryCount.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
+                        allNumberSearchCountFlow.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
+                        myNumberSearchCountFlow.emit(receiveUserDataFlow.value.myNumberSearchCount!!)
+                        numberLotteryCountFlow.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
                     } else { return@collectLatest }
                 } else {
                     viewModelScope.launch(Dispatchers.IO) {
@@ -94,31 +97,33 @@ class AuthViewModel @Inject
 
                                     localUser.emit(userData)
 
-                                    allNumberSearchCount.emit(userData.allNumberSearchCount!!)
-                                    myNumberSearchCount.emit(userData.myNumberSearchCount!!)
-                                    numberLotteryCount.emit(userData.allNumberSearchCount!!)
+                                    allNumberSearchCountFlow.emit(userData.allNumberSearchCount!!)
+                                    myNumberSearchCountFlow.emit(userData.myNumberSearchCount!!)
+                                    numberLotteryCountFlow.emit(userData.allNumberSearchCount!!)
+
+                                    //토요일 10시 이후 횟수 초기화
+                                    userDataReSet()
+
+                                    // 관리자 권한으로 횟수 리셋함 출시 때 삭제
+                                    adminReSetLocalUserCount()
                                 }
                             }
                     }
                 }
             }
         }
-
-        //토요일 10시 이후 횟수 초기화
-        userDataReset()
-
     }
     fun localUserAdd() {
 
         Log.d(USER, "로컬 유저 아이디 없음, 로컬 유저 생성 로직 실행")
         viewModelScope.launch(Dispatchers.IO) {
 
-            val createGuestUser = LocalUserData(
+            val createGuestUser: LocalUserData = LocalUserData(
+                id = UUID.randomUUID(),
                 allNumberSearchCount = 3,
                 myNumberSearchCount = 3,
                 numberLotteryCount = 3
                 )
-                Log.d(USER, "로컬 유저 아이디 없음, 로컬 유저 생성 로직 실행 2")
 
                 localRepository.localUserAdd(createGuestUser)
 
@@ -129,9 +134,9 @@ class AuthViewModel @Inject
 
                         localUser.emit(userData)
 
-                        allNumberSearchCount.emit(userData.allNumberSearchCount!!)
-                        myNumberSearchCount.emit(userData.myNumberSearchCount!!)
-                        numberLotteryCount.emit(userData.allNumberSearchCount!!)
+                        allNumberSearchCountFlow.emit(userData.allNumberSearchCount!!)
+                        myNumberSearchCountFlow.emit(userData.myNumberSearchCount!!)
+                        numberLotteryCountFlow.emit(userData.allNumberSearchCount!!)
                     }
 
         }
@@ -329,40 +334,136 @@ class AuthViewModel @Inject
        }
    }
 
-    val todayDate = MutableStateFlow(LocalDateTime.now())
+
 
 
     // 유저 데이터 정보 초기화
     // 회원가입 된 유저는 db에서 초기화 실행
-    fun userDataReset() {
-        if(todayDate.value.dayOfWeek == DayOfWeek.SATURDAY &&
-            todayDate.value.hour >= 22)
+    fun userDataReSet() {
+
+        Log.d(USER, "유저데이터 리셋 체크, 현재 날짜: ${LocalDateTime.now()}, 요일: ${LocalDateTime.now().dayOfWeek} 현재시간: ${LocalDateTime.now().hour}")
+
+        if(LocalDateTime.now().dayOfWeek == DayOfWeek.SATURDAY &&
+            LocalDateTime.now().hour >= 22)
         {
+
             val nowLocalUserId = localUser.value.id
 
-            val updateUserData = LocalUserData(
-                id = nowLocalUserId,
-                allNumberSearchCount = 3,
-                myNumberSearchCount = 3,
-                numberLotteryCount = 3
-            )
-            viewModelScope.launch(Dispatchers.IO) {
-                localRepository.localUserUpdate(updateUserData)
-            }
+            if(localUser.value.allNumberSearchCount != null) {
 
+                val updateUserData = LocalUserData(
+                    id = nowLocalUserId,
+                    allNumberSearchCount = 3,
+                    myNumberSearchCount = 3,
+                    numberLotteryCount = 3
+                )
+                viewModelScope.launch(Dispatchers.IO) {
+                    localRepository.localUserUpdate(updateUserData)
+                }
+
+            } else {
+                return
+            }
         } else {
             return
         }
     }
 
     fun useItem(
-
+        allNumberSearchCount: Int? = null,
+        myNumberSearchCount: Int? = null,
+        numberLotteryCount: Int? = null
     ) {
 
+        if(allNumberSearchCount != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                val userId = localUser.value.id
+                localRepository.localUserUpdate(
+                    LocalUserData(
+                    id = userId,
+                    allNumberSearchCount = allNumberSearchCount,
+                    myNumberSearchCount = myNumberSearchCountFlow.value,
+                    numberLotteryCount = numberLotteryCountFlow.value)
+                )
+            }
+        }
+
+        if(myNumberSearchCount != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                val userId = localUser.value.id
+                localRepository.localUserUpdate(LocalUserData(
+                    id = userId,
+                    allNumberSearchCount = allNumberSearchCountFlow.value,
+                    myNumberSearchCount = myNumberSearchCount,
+                    numberLotteryCount = numberLotteryCountFlow.value))
+            }
+        }
+
+        if(numberLotteryCount != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                val userId = localUser.value.id
+                localRepository.localUserUpdate(LocalUserData(
+                    id = userId,
+                    allNumberSearchCount = allNumberSearchCountFlow.value,
+                    myNumberSearchCount = myNumberSearchCountFlow.value,
+                    numberLotteryCount = numberLotteryCount))
+            }
+        }
     }
 
+    fun filterItem(itemCount: Int,
+                   searchDataCount: List<Lotto>,
+                   useType: UseType) {
+        if(itemCount == 0) {
+            // 광고 나온 후
+        } else {
+            viewModelScope.launch {
 
+                if(searchDataCount.count() <= 0) {
+                    Log.d(TAG, "UseCountDialog 예외처리됨")
+                    return@launch
+                } else {
 
+                    Log.d(TAG, "UseCountDialog 예외처리 안됨")
+
+                    when(useType) {
+
+                        UseType.ALLNUMBER -> {
+
+                            val changeValue = allNumberSearchCountFlow.value - 1
+
+                            useItem(allNumberSearchCount = changeValue)
+                            allNumberSearchCountFlow.emit(changeValue) }
+                        UseType.MYNUMBER -> {
+
+                            val changeValue = myNumberSearchCountFlow.value - 1
+
+                            useItem(myNumberSearchCount = changeValue)
+                            myNumberSearchCountFlow.emit(changeValue) }
+                        UseType.LOTTERY -> {
+
+                            val changeValue = numberLotteryCountFlow.value - 1
+
+                            useItem(numberLotteryCount = changeValue)
+                            numberLotteryCountFlow.emit(changeValue) }
+                    }
+
+                }
+            }
+        }
+    }
+
+    fun adminReSetLocalUserCount() {
+        viewModelScope.launch(Dispatchers.IO) {
+            Log.d(USER, "관리자 권한 카운트 리셋 실행됨")
+            val userId = localUser.value.id
+            localRepository.localUserUpdate(LocalUserData(
+                id = userId,
+                allNumberSearchCount = 3,
+                myNumberSearchCount = 3,
+                numberLotteryCount = 3))
+        }
+    }
 }
 
 

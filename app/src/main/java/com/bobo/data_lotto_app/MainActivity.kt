@@ -211,10 +211,10 @@ fun MainNaHost(
             MainScreen(mainViewModel, dataViewModel, authViewModel, noticeViewModel, mainRouteAction)
         }
         composable(MainRoute.Data.routeName!!) {
-            DataScreen(dataViewModel)
+            DataScreen(dataViewModel, authViewModel)
         }
         composable(MainRoute.Draw.routeName!!) {
-            DrawScreen(dataViewModel)
+            DrawScreen(dataViewModel, authViewModel)
         }
         composable(MainRoute.Notice.routeName!!) {
             NoticeScreen(authViewModel = authViewModel, noticeViewModel = noticeViewModel, mainRouteAction)

@@ -202,7 +202,7 @@ fun rangeDateDialog(
 
                 Button(
                     onClick = {
-                        onClicked!!.invoke()
+                        onClicked?.invoke()
                         onDismissRequest(false)
                     },
                     colors = ButtonDefaults.buttonColors(WelcomeScreenBackgroundColor)

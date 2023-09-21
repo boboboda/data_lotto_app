@@ -144,7 +144,6 @@ fun LoginScreen(authViewModel: AuthViewModel,
                 authViewModel.loginUser(AuthViewModel.LoginType.DEFAULT)
                 focusManager.clearFocus()
                 coroutineScope.launch {
-
                     authViewModel.loginUser(type = AuthViewModel.LoginType.DEFAULT)
 
                     authViewModel.failedLogIn.collectLatest {

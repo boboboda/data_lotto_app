@@ -72,6 +72,7 @@ import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.R
+import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.AutoSizeText
@@ -89,7 +90,7 @@ import java.time.ZoneId
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DrawScreen(dataViewModel: DataViewModel) {
+fun DrawScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
 
     val currentId = dataViewModel.lottoCardId.collectAsState()
 

@@ -78,13 +78,16 @@ import java.time.ZoneId
 import java.util.Calendar
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.ThresholdConfig
+import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.components.AutoSizeText
+import com.bobo.data_lotto_app.components.UseCountDialog
+import com.bobo.data_lotto_app.components.UseType
 import com.bobo.data_lotto_app.screens.main.views.MyNumberViewPager
 
 
 // 데이터 리셋 추가, 데이터 리스트 조회하기 팝업
 @Composable
-fun DataScreen(dataViewModel: DataViewModel) {
+fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
 
     val currentId = dataViewModel.dataCardId.collectAsState()
 
@@ -112,7 +115,7 @@ fun DataScreen(dataViewModel: DataViewModel) {
             when (currentId.value) {
                 1 -> {
                     
-                    BigDataSearchView(dataViewModel = dataViewModel)
+                    BigDataSearchView(dataViewModel = dataViewModel, authViewModel)
                 }
 
                 2 -> {
@@ -270,7 +273,8 @@ fun dataRangeRowTypeView(
 }
 
 @Composable
-fun BigDataSearchView(dataViewModel: DataViewModel) {
+fun BigDataSearchView(dataViewModel: DataViewModel,
+                      authViewModel: AuthViewModel) {
 
     val scrollState = rememberScrollState()
 
@@ -282,11 +286,19 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
 
     val selectedRangeLotto = dataViewModel.selectRangeLottoNumber.collectAsState()
 
+    val isSelectDateValue = dataViewModel.endFilterStateFlow.collectAsState()
 
+    val showOpenCountDialog = remember { mutableStateOf(false) }
 
     val callStartDate = dataViewModel.startDateFlow.collectAsState()
 
     var callEndDate = dataViewModel.endDateFlow.collectAsState()
+
+    val scope = rememberCoroutineScope()
+
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    val allNumberSearchCount = authViewModel.allNumberSearchCountFlow.collectAsState()
 
     Column(modifier = Modifier
         .fillMaxSize(),
@@ -400,49 +412,131 @@ fun BigDataSearchView(dataViewModel: DataViewModel) {
         }
 
         Spacer(modifier = Modifier.height(5.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            FloatingActionButton(
-                onClick = {
-                    showOpenDialog.value = true
-                },
-                modifier = Modifier.padding(8.dp)) {
-                Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
-            }
-
-            if(showOpenDialog.value) {
-                rangeDateDialog(
-                    onDismissRequest = {
-                        showOpenDialog.value = it
-                    },
-                    callStartDate.value,
-                    callEndDate.value,
-                    selectedStartDate = {
-                        dataViewModel.startDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                    },
-                    selectedEndDate = {
-                        dataViewModel.endDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.width(5.dp))
-
-            FloatingActionButton(
-                onClick = {
-                    dataViewModel.filterRange()
-                },
-                modifier = Modifier.padding(8.dp)
+        Box(modifier = Modifier
+            .fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, bottom = 10.dp, end = 20.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
+
+                FloatingActionButton(
+                    onClick = {
+                        showOpenDialog.value = true
+                    },
+                    modifier = Modifier.padding(8.dp)) {
+                    Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
+                }
+
+                if(showOpenDialog.value) {
+                    rangeDateDialog(
+                        onDismissRequest = {
+                            showOpenDialog.value = it
+                        },
+                        callStartDate.value,
+                        callEndDate.value,
+                        selectedStartDate = {
+                            dataViewModel.startDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                        },
+                        selectedEndDate = {
+                            dataViewModel.endDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(5.dp))
+
+                FloatingActionButton(
+                    onClick = {
+                        showOpenCountDialog.value = true
+                    },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
+                }
+
+
+                if(showOpenCountDialog.value) {
+
+                    UseCountDialog(
+                        onClicked = {
+                            if(isSelectDateValue.value.count() <= 0) {
+
+                                Log.d(TAG, "UseCountDialog 예외처리됨")
+
+                                scope.launch {
+                                    snackBarHostState.showSnackbar(
+                                        "날짜 범위가 지정되어 있지 않습니다.\n" +
+                                                "지정 후 사용해주세요"
+                                    )
+                                }
+                                showOpenCountDialog.value = false
+
+                            } else {
+                                Log.d(TAG, "UseCountDialog 예외처리 안됨")
+                                dataViewModel.filterRange()
+                                showOpenCountDialog.value = false
+                            }
+
+                        },
+                        authViewModel = authViewModel,
+                        onDismissRequest = {
+                            showOpenCountDialog.value = it
+                        },
+                        useType = UseType.ALLNUMBER,
+                        dataViewModel = dataViewModel,
+                        itemCount = allNumberSearchCount.value
+                    )
+
+                }
             }
+            SnackbarHost(hostState = snackBarHostState, modifier = Modifier,
+                snackbar = { snackbarData ->
+
+                    androidx.compose.material.Card(
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(2.dp, Color.Black),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .padding(start = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+
+                            androidx.compose.material.Text(
+                                text = snackbarData.message,
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.Bold)
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            androidx.compose.material.Card(
+                                modifier = Modifier.wrapContentSize(),
+                                onClick = {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                }) {
+                                androidx.compose.material.Text(
+                                    modifier = Modifier.padding(8.dp),
+                                    text = "닫기"
+                                )
+                            }
+                        }
+                    }
+                }
+            )
         }
+
+
     }
 }
 
@@ -473,6 +567,8 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
     val snackBarHostState = remember { SnackbarHostState() }
 
     val keyboardController = LocalSoftwareKeyboardController.current
+
+
 
     Column(
         modifier = Modifier.fillMaxSize(),

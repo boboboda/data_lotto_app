@@ -64,3 +64,5 @@ val LottoButtonColor = Color(0xFFDFCD2D)
 val DialogBackgroundColor = Color(0xFFF5F5DC)
 
 val ProportionButtonColor = Color(0xFFFF6969)
+
+val UseCountButtonColor = Color(0xFfFEFFAC)
