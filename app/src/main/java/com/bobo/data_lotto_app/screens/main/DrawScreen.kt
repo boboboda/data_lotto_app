@@ -768,7 +768,6 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                         dataViewModel.bigDataNumberAndPercentValue.emit(rangePercentValue)
                     }
 
-
                 }
             )
         }

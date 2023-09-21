@@ -24,6 +24,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -79,10 +86,15 @@ import java.util.Calendar
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.ThresholdConfig
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
+import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.components.AutoSizeText
 import com.bobo.data_lotto_app.components.UseCountDialog
 import com.bobo.data_lotto_app.components.UseType
+import com.bobo.data_lotto_app.extentions.toWon
 import com.bobo.data_lotto_app.screens.main.views.MyNumberViewPager
+import com.bobo.data_lotto_app.ui.theme.MainFirstBackgroundColor
+import com.bobo.data_lotto_app.ui.theme.MainMenuBarColor
+import java.time.LocalDate
 
 
 // 데이터 리셋 추가, 데이터 리스트 조회하기 팝업
@@ -272,6 +284,7 @@ fun dataRangeRowTypeView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BigDataSearchView(dataViewModel: DataViewModel,
                       authViewModel: AuthViewModel) {
@@ -300,6 +313,14 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
     val allNumberSearchCount = authViewModel.allNumberSearchCountFlow.collectAsState()
 
+    val rangeDateState = dataViewModel.allNumberDateRangeFlow.collectAsState()
+
+    val lazyListState = rememberLazyListState()
+
+    val allNumberAndPercentValue = dataViewModel.allNumberAndPercentValue.collectAsState()
+    
+    val sortState = dataViewModel.allNumberSortState.collectAsState()
+
     Column(modifier = Modifier
         .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -307,107 +328,140 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
         Spacer(modifier = Modifier
             .height(20.dp))
 
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.33f)
-            .padding(horizontal = 15.dp)
-            .clip(shape = RoundedCornerShape(10.dp))
-
+        Column(
+            Modifier
+                .clip(shape = RoundedCornerShape(10.dp))
+                .background(MainFirstBackgroundColor)
+                .fillMaxWidth(0.9f)
+                .weight(0.4f)
+                .padding(top = 20.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .weight(1f)
-                .background(Color.LightGray),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+
+            Row(
+                modifier = Modifier
+                    .clip(shape = RoundedCornerShape(10.dp))
+                    .fillMaxWidth(0.9f)
+                    .weight(1f)
+                    .background(MainMenuBarColor),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
-                dataRangeView(
-                    startDate = callStartDate.value,
-                    endDate = callEndDate.value)
-
+                Text(
+                    modifier = Modifier.padding(start = 10.dp),
+                    text = "조회 로또 번호: ${selectedRangeLotto.value.count()}개"
+                )
             }
 
-            Column(modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .background(Color.LightGray),
-                verticalArrangement = Arrangement.Center) {
+            Spacer(modifier = Modifier.height(15.dp))
 
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(horizontal = 10.dp)
-                        .clip(shape = RoundedCornerShape(5.dp))
-                        .background(color = DbContentColor),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    AutoSizeText(
-                        value = "조회 로또 번호: ${selectedRangeLotto.value.count()}개",
-                        fontSize = 15.sp,
-                        minFontSize = 13.sp,
-                        modifier = Modifier
-                            .padding(5.dp),
-                        color = Color.Black,
-                        maxLines = 1,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(horizontal = 5.dp)
-                        .clip(shape = RoundedCornerShape(5.dp))
-                        .background(color = DbContentColor),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-
-                    AutoSizeText(
-                        value = "최근 로또 회차: ${resentLottoNumber.value.drwNo}회",
-                        fontSize = 15.sp,
-                        minFontSize = 13.sp,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .padding(5.dp),
-                        maxLines = 1
-                    )
-                }
-
-
+            Row(
+                modifier = Modifier
+                    .clip(shape = RoundedCornerShape(10.dp))
+                    .fillMaxWidth(0.9f)
+                    .weight(1f)
+                    .background(MainMenuBarColor),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.padding(start = 10.dp),
+                    text = "최근 로또 회차: ${resentLottoNumber.value.drwNo}회"
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
 
+        LazyVerticalGrid(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize()
+                .padding(horizontal = 13.dp),
+            columns = GridCells.Fixed(4), content = {
+                items(rangeDateState.value, span = {
+                    GridItemSpan(2)
+                }) { date ->
+
+                    FilterCard(number = "${date.startDate}~${date.endDate}",
+                        deleteClicked = {
+                            scope.launch {
+                                val removeList = dataViewModel.allNumberDateRangeFlow.value.toMutableList().apply {
+                                    remove(date)
+                                }
+                                dataViewModel.allNumberDateRangeFlow.emit(removeList)
+
+                                dataViewModel.startDateFlow.emit("${LocalDate.now()}")
+
+                                dataViewModel.endDateFlow.emit("${LocalDate.now()}")
+
+
+                            }
+                        })
+                }
+            }
+        )
+
         Row(modifier = Modifier
-            .fillMaxWidth()) {
+            .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically) {
             Text(
-                modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
+                modifier = Modifier.padding(start = 10.dp),
                 text = "데이터 리스트",
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold
             )
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            Card(modifier = Modifier
+                .padding(end = 20.dp)
+                .wrapContentSize(),
+                shape = RoundedCornerShape(5.dp),
+                onClick = {
+                scope.launch {
+                    if(sortState.value) {
+                        dataViewModel.allNumberSortState.emit(false)
+                        dataViewModel.allNumberSort()
+                    } else {
+                        dataViewModel.allNumberSortState.emit(true)
+                        dataViewModel.allNumberSort()
+                    }
+                }
+
+
+            }) {
+
+                Row(modifier = Modifier
+                    .padding(5.dp)
+                    .wrapContentSize()) {
+                    if(sortState.value) {
+                        Text(text = "내림차순")
+
+                        Image(painter = painterResource(id = R.drawable.arrow_down_icon), contentDescription = "")
+
+                    } else {
+                        Text(text = "오름차순")
+
+                        Image(painter = painterResource(id = R.drawable.arrow_up_icon), contentDescription = "")
+
+                    }
+                }
+
+            }
         }
-        Column(modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .weight(1f)
-            .background(Color.White, shape = RoundedCornerShape(5.dp))
-            .verticalScroll(scrollState),
+
+        LazyColumn(
+            modifier = Modifier
+                .clip(shape = RoundedCornerShape(10.dp))
+                .fillMaxWidth(0.9f)
+                .background(color = Color.White)
+                .weight(1f)
+            ,
+            state = lazyListState
         ) {
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            lottoNumber.forEach { number ->
-                StickBar(ballNumber = number, data = dataViewModel.calculate(number.toString(),
-                    type = DataViewModel.ModeType.SEARCH) as Float)
+            items(allNumberAndPercentValue.value) { numberAndPercents ->
+                StickBar(ballNumber = numberAndPercents.first, data = numberAndPercents.second)
             }
         }
 
@@ -443,6 +497,19 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                         },
                         selectedEndDate = {
                             dataViewModel.endDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                        },
+                        onClicked = {
+                            scope.launch {
+
+                                val dateData = BigDataDate(startDate = dataViewModel.startDateFlow.value, endDate = dataViewModel.endDateFlow.value )
+
+
+                                val addList = dataViewModel.allNumberDateRangeFlow.value.toMutableList().apply {
+                                    add(dateData)
+                                }
+
+                                dataViewModel.allNumberDateRangeFlow.emit(addList)
+                            }
                         }
                     )
                 }
@@ -476,8 +543,17 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                                 showOpenCountDialog.value = false
 
                             } else {
+                                scope.launch {
+                                    dataViewModel.filterRange()
+
+                                    val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+
+
+                                    dataViewModel.allNumberAndPercentValue.emit(rangePercentValue)
+                                }
                                 Log.d(TAG, "UseCountDialog 예외처리 안됨")
-                                dataViewModel.filterRange()
+
+
                                 showOpenCountDialog.value = false
                             }
 
