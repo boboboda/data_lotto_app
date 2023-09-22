@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
@@ -59,6 +60,7 @@ fun MyNumberViewPager(dataViewModel: DataViewModel) {
     val sixChunkNumber = dataViewModel.sixChunkNumberFlow.collectAsState()
 
 
+
     val pagerState = rememberPagerState(pageCount = {5})
 
     HorizontalPager(state = pagerState) { page ->
@@ -94,14 +96,17 @@ fun MyNumberDataList(
         0 -> {
             Column(modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Color.White, shape = RoundedCornerShape(8.dp))
                 .verticalScroll(scrollState)) {
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 15.dp),
                     horizontalArrangement = Arrangement.Center) {
-                    Text(text = "2쌍 중복수",
+
+                    val textValue = if(twoChunkNumber.value.isEmpty()) {""} else {"2쌍 중복수"}
+
+                    Text(text = textValue,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = fontFamily
@@ -114,7 +119,11 @@ fun MyNumberDataList(
 
                     Row(modifier = Modifier.fillMaxWidth()) {
 
+                        // 정렬 지정
+
                         val testValue = dataViewModel.searchLotto(it)
+
+
 
                         MyNumberStickBar(
                             firstBall = it[0],

@@ -134,7 +134,9 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                     val allNumberAndPercentData = calculate(type = ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
 
-                    allNumberAndPercentValue.emit(allNumberAndPercentData)
+                    val sortedData = allNumberAndPercentData.sortedBy { it.second }
+
+                    allNumberAndPercentValue.emit(sortedData)
                 }
 
                 resentLottoCall()
@@ -215,6 +217,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val myNumberEndDateFlow = MutableStateFlow("${LocalDate.now()}")
 
+    val myNumberDateRangeFlow =  MutableStateFlow<List<BigDataDate>>(emptyList())
+
     val startFilterMyNumber = allLottoNumberDataFlow.combine(myNumberStartDateFlow.filterNot { it.isEmpty() }) { recordList, startDate ->
         recordList.filter { it.drwNoDate!! >= startDate } }
 
@@ -222,7 +226,9 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         sellRecordList.filter { it.drwNoDate!! <= endDate }
     }
 
-    val myNumberStateFlow = endFilterMyNumber.stateIn(viewModelScope, SharingStarted.Eagerly, allLottoNumberDataFlow.value)
+    val myNumberStateFlow = endFilterMyNumber.stateIn(viewModelScope, SharingStarted.Eagerly, cgValue)
+
+    val myNumberSortState = MutableStateFlow(true)
 
 
     // 입력한 나의 로또 번호
@@ -238,6 +244,12 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     val myNumberFiveFlow = MutableStateFlow("")
 
     val myNumberSixFlow = MutableStateFlow("")
+
+
+    fun myNumberChunkEmit() {
+
+    }
+
 
     //데이터 리스트 조회
     enum class ModeType {
@@ -358,6 +370,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     val fiveChunkNumberFlow = MutableStateFlow<List<List<Int>>>(emptyList())
 
     val sixChunkNumberFlow = MutableStateFlow<List<Int>>(emptyList())
+
 
 
     fun chunkMake(): ChunkNumber {
@@ -817,9 +830,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 return listNumber
             }
         }
-        // 제외수
-
-
     }
 
     fun deleteNormalNumber(number: Any,

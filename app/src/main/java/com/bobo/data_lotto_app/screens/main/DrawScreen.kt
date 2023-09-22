@@ -78,8 +78,8 @@ import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.AutoSizeText
 import com.bobo.data_lotto_app.components.BigDataLottoAnimationDialog
 import com.bobo.data_lotto_app.components.FilterDialog
+import com.bobo.data_lotto_app.components.LotteryTopTitleButton
 import com.bobo.data_lotto_app.components.LottoAnimationDialog
-import com.bobo.data_lotto_app.components.LottoSelectCard
 import com.bobo.data_lotto_app.components.ProportionSelectDialog
 import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.ui.theme.DeleteColor
@@ -108,7 +108,7 @@ fun DrawScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
             modifier = Modifier
                 .weight(0.1f)
         ) {
-            LottoSelectCard(dataViewModel = dataViewModel)
+            LotteryTopTitleButton(dataViewModel = dataViewModel)
         }
 
         Column(

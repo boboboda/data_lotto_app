@@ -66,7 +66,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
-import com.bobo.data_lotto_app.components.SelectCard
 import com.bobo.data_lotto_app.components.StickGageBar
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
@@ -88,6 +87,7 @@ import androidx.compose.material.ThresholdConfig
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.components.AutoSizeText
+import com.bobo.data_lotto_app.components.TopTitleButton
 import com.bobo.data_lotto_app.components.UseCountDialog
 import com.bobo.data_lotto_app.components.UseType
 import com.bobo.data_lotto_app.extentions.toWon
@@ -117,7 +117,7 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
             modifier = Modifier
                 .weight(0.1f)
         ) {
-            SelectCard(dataViewModel = dataViewModel)
+            TopTitleButton(dataViewModel = dataViewModel)
         }
 
         Column(
@@ -131,7 +131,7 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
                 }
 
                 2 -> {
-                    MyNumberSearchView(dataViewModel = dataViewModel)
+                    MyNumberSearchView(dataViewModel = dataViewModel, authViewModel)
                 }
             }
         }
@@ -548,11 +548,10 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
                                     val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
 
-
                                     dataViewModel.allNumberAndPercentValue.emit(rangePercentValue)
                                 }
-                                Log.d(TAG, "UseCountDialog 예외처리 안됨")
 
+                                Log.d(TAG, "UseCountDialog 예외처리 안됨")
 
                                 showOpenCountDialog.value = false
                             }
@@ -618,7 +617,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun MyNumberSearchView(dataViewModel: DataViewModel) {
+fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
 
     val callStartDate = dataViewModel.myNumberStartDateFlow.collectAsState()
 
@@ -644,6 +643,13 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val rangeDateState = dataViewModel.myNumberDateRangeFlow.collectAsState()
+
+    val showOpenCountDialog = remember { mutableStateOf(false) }
+
+    val isSelectDateValue = dataViewModel.myNumberStateFlow.collectAsState()
+
+    val myNumberCount = authViewModel.myNumberSearchCountFlow.collectAsState()
 
 
     Column(
@@ -655,30 +661,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
             modifier = Modifier
                 .height(20.dp)
         )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.12f)
-                .padding(horizontal = 15.dp)
-                .clip(shape = RoundedCornerShape(10.dp))
-
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                dataRangeRowTypeView(
-                    startDate = callStartDate.value,
-                    endDate = callEndDate.value
-                )
-
-            }
-        }
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -917,6 +899,35 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
 
 
+        // 필터 태그
+        LazyVerticalGrid(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize()
+                .padding(horizontal = 13.dp),
+            columns = GridCells.Fixed(4), content = {
+                items(rangeDateState.value, span = {
+                    GridItemSpan(2)
+                }) { date ->
+
+                    FilterCard(number = "${date.startDate}~${date.endDate}",
+                        deleteClicked = {
+                            coroutineScope.launch {
+                                val removeList = dataViewModel.myNumberDateRangeFlow.value.toMutableList().apply {
+                                    remove(date)
+                                }
+                                dataViewModel.myNumberDateRangeFlow.emit(removeList)
+
+                                dataViewModel.myNumberStartDateFlow.emit("${LocalDate.now()}")
+
+                                dataViewModel.myNumberEndDateFlow.emit("${LocalDate.now()}")
+                            }
+                        })
+                }
+            }
+        )
+
+
         Row(modifier = Modifier
             .fillMaxWidth()) {
             Text(
@@ -937,7 +948,7 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        Box(modifier = Modifier.fillMaxWidth()){
+        Box(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -950,11 +961,15 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                     onClick = {
                         showOpenDialog.value = true
                     },
-                    modifier = Modifier.padding(8.dp)) {
-                    Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.outline_calendar_icon),
+                        contentDescription = ""
+                    )
                 }
 
-                if(showOpenDialog.value) {
+                if (showOpenDialog.value) {
                     rangeDateDialog(
                         onDismissRequest = {
                             showOpenDialog.value = it
@@ -962,60 +977,169 @@ fun MyNumberSearchView(dataViewModel: DataViewModel) {
                         callStartDate = callStartDate.value,
                         callEndDate = callEndDate.value,
                         selectedStartDate = {
-                            dataViewModel.myNumberStartDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                            dataViewModel.myNumberStartDateFlow.value =
+                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
+                                    .toLocalDate().toString()
                         },
                         selectedEndDate = {
-                            dataViewModel.myNumberEndDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                            dataViewModel.myNumberEndDateFlow.value =
+                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
+                                    .toLocalDate().toString()
+                        },
+                        onClicked = {
+
+                            coroutineScope.launch {
+                                val dateData = BigDataDate(
+                                    startDate = dataViewModel.myNumberStartDateFlow.value,
+                                    endDate = dataViewModel.myNumberEndDateFlow.value
+                                )
+
+
+                                val addList =
+                                    dataViewModel.myNumberDateRangeFlow.value.toMutableList()
+                                        .apply {
+                                            add(dateData)
+                                        }
+
+                                dataViewModel.myNumberDateRangeFlow.emit(addList)
+                            }
                         }
                     )
                 }
 
                 Spacer(modifier = Modifier.width(5.dp))
 
+                // 조회 버튼
                 FloatingActionButton(
                     onClick = {
-
-                        if(oneNumber.value == "" &&
-                            twoNumber.value == "" &&
-                            threeNumber.value == "" &&
-                            fourNumber.value == "" &&
-                            fiveNumber.value == "" &&
-                            sixNumber.value == "") {
-                            return@FloatingActionButton
-                        } else {
-
-                            val chunkValue = dataViewModel.chunkMake()
-
-                            coroutineScope.launch {
-                                dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
-
-                                dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
-
-                                dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
-
-                                dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
-
-                                dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
-                            }
-
-                            Log.d(TAG,"2개 묶음 값 -> $chunkValue")
-
-                        }
+                        showOpenCountDialog.value = true
                     },
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
+                    Image(
+                        painter = painterResource(id = R.drawable.search_icon),
+                        contentDescription = ""
+                    )
                 }
             }
 
+            // 토스트
+
+            if (showOpenCountDialog.value) {
+
+                UseCountDialog(
+                    onClicked = {
+                        if (isSelectDateValue.value.count() <= 0) {
+
+                            Log.d(TAG, "UseCountDialog 예외처리됨")
+
+                            coroutineScope.launch {
+                                snackBarHostState.showSnackbar(
+                                    "날짜 범위가 지정되어 있지 않습니다.\n" +
+                                            "지정 후 사용해주세요"
+                                )
+                            }
+                            showOpenCountDialog.value = false
+
+                        } else {
+                            coroutineScope.launch {
+
+                                if (oneNumber.value == "" &&
+                                    twoNumber.value == "" &&
+                                    threeNumber.value == "" &&
+                                    fourNumber.value == "" &&
+                                    fiveNumber.value == "" &&
+                                    sixNumber.value == ""
+                                ) {
+                                    return@launch
+                                } else {
+
+                                    val chunkValue = dataViewModel.chunkMake()
+
+                                    coroutineScope.launch {
+                                        dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
+
+                                        dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
+
+                                        dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
+
+                                        dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
+
+                                        dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
+                                    }
+
+                                    Log.d(TAG, "2개 묶음 값 -> $chunkValue")
+
+                                }
+
+
+                            }
+
+                            Log.d(TAG, "UseCountDialog 예외처리 안됨")
+                            showOpenCountDialog.value = false
+                        }
+
+                    },
+                    authViewModel = authViewModel,
+                    onDismissRequest = {
+                        showOpenCountDialog.value = it
+                    },
+                    useType = UseType.MYNUMBER,
+                    dataViewModel = dataViewModel,
+                    itemCount = myNumberCount.value
+                )
+
+            }
+        }
+
             Row(modifier = Modifier.fillMaxWidth()) {
-                SnackbarHost(hostState = snackBarHostState, modifier = Modifier)
+                SnackbarHost(hostState = snackBarHostState, modifier = Modifier,
+                    snackbar = { snackbarData ->
+
+                        androidx.compose.material.Card(
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(2.dp, Color.Black),
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .padding(start = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+
+                                androidx.compose.material.Text(
+                                    text = snackbarData.message,
+                                    fontSize = 15.sp,
+                                    lineHeight = 20.sp,
+                                    fontWeight = FontWeight.Bold)
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                androidx.compose.material.Card(
+                                    modifier = Modifier.wrapContentSize(),
+                                    onClick = {
+                                        snackBarHostState.currentSnackbarData?.dismiss()
+                                    }) {
+                                    androidx.compose.material.Text(
+                                        modifier = Modifier.padding(8.dp),
+                                        text = "닫기"
+                                    )
+                                }
+                            }
+                        }
+                    }
+                )
             }
         }
 
 }
 
 
-}
+
 
 

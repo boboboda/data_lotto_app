@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.MainRoute
 import com.bobo.data_lotto_app.MainRouteAction
-import com.bobo.data_lotto_app.components.NoticeBar
 import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
@@ -64,6 +63,7 @@ import com.bobo.data_lotto_app.ViewModel.MainViewModel
 import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
 import com.bobo.data_lotto_app.components.BaseButton
 import com.bobo.data_lotto_app.components.CustomButton
+import com.bobo.data_lotto_app.components.MainNoticeTopTitleButton
 import com.bobo.data_lotto_app.components.fontFamily
 import com.bobo.data_lotto_app.extentions.toWon
 import com.bobo.data_lotto_app.service.Post
@@ -167,9 +167,9 @@ fun MainScreen(
             )
 
             // 게시판 뷰
-            NoticeBar(modifier = Modifier.weight(0.2f), noticeViewModel)
+            MainNoticeTopTitleButton(noticeViewModel = noticeViewModel)
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(15.dp))
 
             when(noticeCardState.value) {
                 1 -> {
@@ -593,11 +593,6 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
                 .clickable {
 
                 }, text = "자랑글")
-
-
-
-
-
 
 
             Spacer(modifier = Modifier.weight(1f))

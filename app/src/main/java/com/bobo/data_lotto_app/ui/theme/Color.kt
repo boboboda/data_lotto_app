@@ -66,3 +66,7 @@ val DialogBackgroundColor = Color(0xFFF5F5DC)
 val ProportionButtonColor = Color(0xFFFF6969)
 
 val UseCountButtonColor = Color(0xFfFEFFAC)
+
+val TopButtonColor = Color(0xFFECF9FF)
+
+val TopButtonInColor = Color(0xFF6096B4)

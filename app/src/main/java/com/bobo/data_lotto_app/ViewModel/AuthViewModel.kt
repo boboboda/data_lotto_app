@@ -115,17 +115,20 @@ class AuthViewModel @Inject
     }
     fun localUserAdd() {
 
-        Log.d(USER, "로컬 유저 아이디 없음, 로컬 유저 생성 로직 실행")
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
+            Log.d(USER, "로컬 유저 아이디 없음, 로컬 유저 생성 로직 실행")
 
-            val createGuestUser: LocalUserData = LocalUserData(
+            val createGuestUser = LocalUserData(
                 id = UUID.randomUUID(),
                 allNumberSearchCount = 3,
                 myNumberSearchCount = 3,
                 numberLotteryCount = 3
-                )
+            )
 
-                localRepository.localUserAdd(createGuestUser)
+            localRepository.localUserAdd(createGuestUser)
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
 
                 localRepository.localUserDataGet().distinctUntilChanged()
                     .collect{userData ->
