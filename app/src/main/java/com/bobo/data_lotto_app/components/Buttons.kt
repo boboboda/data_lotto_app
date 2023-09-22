@@ -48,8 +48,8 @@ fun Buttons(
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(0.dp),
             color = fontColor,
-            maxLines = 2,
-            minFontSize = 15.sp,
+            maxLines = 1,
+            minFontSize = 12.sp,
             fontWeight = FontWeight.Bold)
     }
 }

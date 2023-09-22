@@ -1,5 +1,6 @@
 package com.bobo.data_lotto_app.components
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,6 +27,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,6 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Gray
@@ -48,6 +52,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.R
 import okhttp3.internal.wait
 import kotlin.math.sin
@@ -144,19 +149,32 @@ fun LottoNumberTextField(
     modifier: Modifier,
     value: String,
     onValueChanged: (String) -> Unit,
-    keyboardActions: KeyboardActions = KeyboardActions()
+    keyboardActions: KeyboardActions = KeyboardActions(),
+    textFiledClicked: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
+    val focusRequester by remember { mutableStateOf(FocusRequester()) }
+
+
+
     BasicTextField(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .onFocusChanged {
+                            if (it.isFocused){
+                                textFiledClicked.invoke()
+                            } else {
+                                return@onFocusChanged
+                            }
+            },
         value = value,
         textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
         onValueChange = onValueChanged,
         interactionSource = interactionSource,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
         singleLine = true,
-        keyboardActions = keyboardActions
+        keyboardActions = keyboardActions,
     ) {
         TextFieldDefaults.TextFieldDecorationBox(
             value = value,

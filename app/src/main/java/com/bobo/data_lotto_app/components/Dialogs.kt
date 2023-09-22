@@ -31,6 +31,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +59,7 @@ import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.screens.main.BallDraw
-import com.bobo.data_lotto_app.screens.main.dataRangeView
+import com.bobo.data_lotto_app.service.Lotto
 import com.bobo.data_lotto_app.ui.theme.DataSelectFirstColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
 import com.bobo.data_lotto_app.ui.theme.DisableButtonColor
@@ -69,6 +70,7 @@ import com.bobo.data_lotto_app.ui.theme.UseCountButtonColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenLoginButtonColor
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 fun FilterDialog(
@@ -964,10 +966,9 @@ fun UseCountDialog(
     dataViewModel: DataViewModel,
     onDismissRequest: (Boolean) -> Unit,
     useType: UseType,
+    rangeDateData: State<List<Lotto>>,
+    allDate: (() -> Unit)? = null
 ) {
-    val isSelectDateValue = dataViewModel.endFilterStateFlow.collectAsState()
-
-
 
     Dialog(onDismissRequest = {
         onDismissRequest.invoke(false)
@@ -978,7 +979,7 @@ fun UseCountDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(200.dp)
                 .background(
                     shape = RoundedCornerShape(8.dp),
                     color = Color.White
@@ -987,11 +988,11 @@ fun UseCountDialog(
             verticalArrangement = Arrangement.Center) {
 
             Buttons(
-                label = " 시작 (무료횟수:${count})",
+                label = "날짜 범위 내 조회 (무료횟수:${count})",
                 onClicked = {
                     authViewModel.filterItem(
                         itemCount = itemCount,
-                        searchDataCount = isSelectDateValue.value.toList(),
+                        searchDataCount = rangeDateData.value.toList(),
                         useType = useType
                         )
                     onClicked.invoke()
@@ -1004,7 +1005,22 @@ fun UseCountDialog(
                     .height(50.dp),
                 fontSize = 20
             )
+            
+            Spacer(modifier = Modifier.height(20.dp))
 
+            Buttons(
+                label = "모든 데이터 조회 (무료횟수:${count})",
+                onClicked = {
+                     allDate?.invoke()
+                },
+                buttonColor = UseCountButtonColor,
+                fontColor = Color.Black,
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .fillMaxWidth(0.8f)
+                    .height(50.dp),
+                fontSize = 20
+            )
         }
 
     }

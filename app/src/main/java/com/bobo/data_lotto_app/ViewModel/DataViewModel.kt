@@ -226,7 +226,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         sellRecordList.filter { it.drwNoDate!! <= endDate }
     }
 
-    val myNumberStateFlow = endFilterMyNumber.stateIn(viewModelScope, SharingStarted.Eagerly, cgValue)
+    val myNumberStateFlow = endFilterMyNumber.stateIn(viewModelScope, SharingStarted.Eagerly, allLottoNumberDataFlow.value)
 
     val myNumberSortState = MutableStateFlow(true)
 
@@ -245,8 +245,170 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val myNumberSixFlow = MutableStateFlow("")
 
+    // 서치 완료된 데이터
+
+    val twoChunkNumberAndPercentFlow = MutableStateFlow<List<List<Int>>>(emptyList())
+
+    val threeChunkNumberPercentFlow = MutableStateFlow<List<List<Int>>>(emptyList())
+
+    val fourChunkNumberPercentFlow = MutableStateFlow<List<List<Int>>>(emptyList())
+
+    val fiveChunkNumberPercentFlow = MutableStateFlow<List<List<Int>>>(emptyList())
+
+    val sixChunkNumberPercentFlow = MutableStateFlow<List<Int>>(emptyList())
+
+    fun myNumberSort() {
+
+        val twoChunk = twoChunkNumberAndPercentFlow.value
+
+        val threeChunk = threeChunkNumberPercentFlow.value
+
+        val fourChunk = fourChunkNumberPercentFlow.value
+
+        val fiveChunk = fiveChunkNumberPercentFlow.value
+
+        if(myNumberSortState.value) {
+            val twoNumberSortDescendList = twoChunk.sortedByDescending { it[3] }
+
+            val threeNumberSortDescendList = threeChunk.sortedByDescending { it[4] }
+
+            val fourNumberSortDescendList = fourChunk.sortedByDescending { it[5] }
+
+            val fiveNumberSortDescendList = fiveChunk.sortedByDescending { it[6] }
+
+            viewModelScope.launch {
+                myNumberSortState.emit(false)
+
+                twoChunkNumberAndPercentFlow.emit(twoNumberSortDescendList)
+
+                threeChunkNumberPercentFlow.emit(threeNumberSortDescendList)
+
+                fourChunkNumberPercentFlow.emit(fourNumberSortDescendList)
+
+                fiveChunkNumberPercentFlow.emit(fiveNumberSortDescendList)
+            }
+
+        } else {
+            val twoNumberSortList = twoChunk.sortedBy { it[3] }
+
+            val threeNumberSortList = threeChunk.sortedBy { it[4] }
+
+            val fourNumberSortList = fourChunk.sortedBy { it[5] }
+
+            val fiveNumberSortList = fiveChunk.sortedBy { it[6] }
+
+            viewModelScope.launch {
+                myNumberSortState.emit(true)
+
+                twoChunkNumberAndPercentFlow.emit(twoNumberSortList)
+
+                threeChunkNumberPercentFlow.emit(threeNumberSortList)
+
+                fourChunkNumberPercentFlow.emit(fourNumberSortList)
+
+                fiveChunkNumberPercentFlow.emit(fiveNumberSortList)
+            }
+        }
+
+    }
+
 
     fun myNumberChunkEmit() {
+
+        val twoChunkNumber = twoChunkNumberFlow.value
+
+        val threeChunkNumber = threeChunkNumberFlow.value
+
+        val fourChunkNumber = fourChunkNumberFlow.value
+
+        val fiveChunkNumber = fiveChunkNumberFlow.value
+
+        val sixChunkNumber = sixChunkNumberFlow.value
+
+        val twoChunkFinalLists = mutableListOf<List<Int>>()
+
+        val threeChunkFinalLists = mutableListOf<List<Int>>()
+
+        val fourChunkFinalLists = mutableListOf<List<Int>>()
+
+        val fiveChunkFinalLists = mutableListOf<List<Int>>()
+
+        // 6개 번호로 이루어진 값은 하나뿐이라서 리스트값이 필요없음
+
+       twoChunkNumber.forEach {twoChunkNumber ->
+
+           val processData = searchLotto(twoChunkNumber)
+
+            val finalProcessData = listOf(twoChunkNumber[0], twoChunkNumber[1], processData.second, processData.first)
+
+           twoChunkFinalLists.add(finalProcessData)
+
+           if (twoChunkNumber == twoChunkNumberFlow.value.last()) {
+
+               val sortList = twoChunkFinalLists.sortedBy { it[3] }
+
+               twoChunkNumberAndPercentFlow.value = sortList
+
+           }
+        }
+
+        threeChunkNumber.forEach { threeChunkNumber ->
+
+            val processData = searchLotto(threeChunkNumber)
+
+            val finalProcessData = listOf(threeChunkNumber[0], threeChunkNumber[1],threeChunkNumber[2] , processData.second, processData.first)
+
+            threeChunkFinalLists.add(finalProcessData)
+
+            if (threeChunkNumber == threeChunkNumberFlow.value.last()) {
+
+                val sortList = threeChunkFinalLists.sortedBy { it[4] }
+
+                threeChunkNumberPercentFlow.value = sortList
+            }
+        }
+
+        fourChunkNumber.forEach { fourChunkNumber ->
+
+            val processData = searchLotto(fourChunkNumber)
+
+            val finalProcessData = listOf(fourChunkNumber[0], fourChunkNumber[1], fourChunkNumber[2],fourChunkNumber[3] ,processData.second, processData.first)
+
+            fourChunkFinalLists.add(finalProcessData)
+
+            if (fourChunkNumber == fourChunkNumberFlow.value.last()) {
+
+                val sortList = fourChunkFinalLists.sortedBy { it[5] }
+
+                fourChunkNumberPercentFlow.value = sortList
+            }
+        }
+
+        fiveChunkNumber.forEach { fiveChunkNumber ->
+
+            val processData = searchLotto(fiveChunkNumber)
+
+            val finalProcessData = listOf(fiveChunkNumber[0], fiveChunkNumber[1], fiveChunkNumber[2],fiveChunkNumber[3],fiveChunkNumber[4], processData.second, processData.first)
+
+            fiveChunkFinalLists.add(finalProcessData)
+
+            if (fiveChunkNumber == fiveChunkNumberFlow.value.last()) {
+
+                val sortList = fiveChunkFinalLists.sortedBy { it[6] }
+
+                fiveChunkNumberPercentFlow.value = sortList
+            }
+        }
+
+            val processData = searchLotto(sixChunkNumber)
+
+            val finalProcessData = listOf(sixChunkNumber[0], sixChunkNumber[1], sixChunkNumber[2], sixChunkNumber[3],sixChunkNumber[4],sixChunkNumber[5], processData.second, processData.first)
+
+            if (sixChunkNumber == sixChunkNumberFlow.value) {
+
+                sixChunkNumberPercentFlow.value = finalProcessData
+            }
+
 
     }
 

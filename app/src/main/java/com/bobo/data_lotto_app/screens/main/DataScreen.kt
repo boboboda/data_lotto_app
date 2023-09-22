@@ -140,150 +140,6 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
         
 }
 
-
-@Composable
-fun dataRangeView(
-    startDate: String,
-    endDate: String
-) {
-    val time = Calendar.getInstance().time
-
-    val formatter = SimpleDateFormat("yyyy-MM-dd")
-
-    val today = formatter.format(time)
-
-    var firstDate = if(today == "") "$today" else {startDate}
-
-    var secondDate = if(today == "") "$today" else {endDate}
-
-
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 5.dp)
-                .clip(shape = RoundedCornerShape(5.dp))
-                .background(color = DateBackgroundColor),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-
-            AutoSizeText(
-                value = "시작: ${firstDate}",
-                fontSize = 15.sp,
-                minFontSize = 13.sp,
-                color = Color.Black,
-                modifier = Modifier
-                    .padding(5.dp),
-                maxLines = 1
-            )
-        }
-
-        
-        Spacer(modifier = Modifier.height(15.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 5.dp)
-                .clip(shape = RoundedCornerShape(5.dp))
-                .background(color = DateBackgroundColor),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-
-            AutoSizeText(
-                value = "종료: ${secondDate}",
-                fontSize = 15.sp,
-                minFontSize = 13.sp,
-                color = Color.Black,
-                modifier = Modifier
-                    .padding(5.dp),
-                maxLines = 1
-            )
-        }
-    }
- }
-
-@Composable
-fun dataRangeRowTypeView(
-    startDate: String,
-    endDate: String
-) {
-    val time = Calendar.getInstance().time
-
-    val formatter = SimpleDateFormat("yyyy-MM-dd")
-
-    val today = formatter.format(time)
-
-    var firstDate = if(today == "") "$today" else {startDate}
-
-    var secondDate = if(today == "") "$today" else {endDate}
-
-
-
-    Row(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .padding(horizontal = 5.dp)
-                .clip(shape = RoundedCornerShape(5.dp))
-                .background(color = DateBackgroundColor),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-
-            AutoSizeText(
-                value = "시작: ${firstDate}",
-                fontSize = 15.sp,
-                minFontSize = 13.sp,
-                color = Color.Black,
-                modifier = Modifier
-                    .padding(5.dp),
-                maxLines = 1
-            )
-        }
-
-        Spacer(modifier = Modifier.width(15.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .padding(horizontal = 5.dp)
-                .clip(shape = RoundedCornerShape(5.dp))
-                .background(color = DateBackgroundColor),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-
-            AutoSizeText(
-                value = "종료: ${secondDate}",
-                fontSize = 15.sp,
-                minFontSize = 13.sp,
-                color = Color.Black,
-                modifier = Modifier
-                    .padding(5.dp),
-                maxLines = 1
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BigDataSearchView(dataViewModel: DataViewModel,
@@ -320,6 +176,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
     val allNumberAndPercentValue = dataViewModel.allNumberAndPercentValue.collectAsState()
     
     val sortState = dataViewModel.allNumberSortState.collectAsState()
+
 
     Column(modifier = Modifier
         .fillMaxSize(),
@@ -563,7 +420,8 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                         },
                         useType = UseType.ALLNUMBER,
                         dataViewModel = dataViewModel,
-                        itemCount = allNumberSearchCount.value
+                        itemCount = allNumberSearchCount.value,
+                        rangeDateData = isSelectDateValue
                     )
 
                 }
@@ -615,7 +473,9 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
 
@@ -651,6 +511,7 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
     val myNumberCount = authViewModel.myNumberSearchCountFlow.collectAsState()
 
+    val myNumberSortState = dataViewModel.myNumberSortState.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -689,6 +550,9 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 LottoNumberTextField(
                     modifier = Modifier,
                     value = oneNumber.value,
+                    textFiledClicked = {
+                        dataViewModel.myNumberOneFlow.value = ""
+                    },
                     onValueChanged = {
 
                         // 스트링을 숫자로 변환합니다.
@@ -724,6 +588,9 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 LottoNumberTextField(
                     modifier = Modifier,
                     value = twoNumber.value,
+                    textFiledClicked = {
+                        dataViewModel.myNumberTwoFlow.value = ""
+                    },
                     onValueChanged = {
 
                         // 스트링을 숫자로 변환합니다.
@@ -760,6 +627,9 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 LottoNumberTextField(
                     modifier = Modifier,
                     value = threeNumber.value,
+                    textFiledClicked = {
+                        dataViewModel.myNumberThreeFlow.value = ""
+                    },
                     onValueChanged = {
 
                         // 스트링을 숫자로 변환합니다.
@@ -796,6 +666,9 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 LottoNumberTextField(
                     modifier = Modifier,
                     value = fourNumber.value,
+                    textFiledClicked = {
+                        dataViewModel.myNumberFourFlow.value = ""
+                    },
                     onValueChanged = {
 
                         // 스트링을 숫자로 변환합니다.
@@ -832,6 +705,9 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 LottoNumberTextField(
                     modifier = Modifier,
                     value = fiveNumber.value,
+                    textFiledClicked = {
+                        dataViewModel.myNumberFiveFlow.value = ""
+                    },
                     onValueChanged = {
 
                         // 스트링을 숫자로 변환합니다.
@@ -868,6 +744,9 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 LottoNumberTextField(
                     modifier = Modifier,
                     value = sixNumber.value,
+                    textFiledClicked = {
+                        dataViewModel.myNumberSixFlow.value = ""
+                    },
                     onValueChanged = {
 
                         // 스트링을 숫자로 변환합니다.
@@ -936,6 +815,36 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Card(modifier = Modifier
+                .padding(end = 20.dp)
+                .wrapContentSize(),
+                shape = RoundedCornerShape(5.dp),
+                onClick = {
+                    dataViewModel.myNumberSort()
+                }) {
+
+                Row(modifier = Modifier
+                    .padding(5.dp)
+                    .wrapContentSize()) {
+                    if(myNumberSortState.value) {
+                        Text(text = "내림차순")
+
+                        Image(painter = painterResource(id = R.drawable.arrow_down_icon), contentDescription = "")
+
+                    } else {
+                        Text(text = "오름차순")
+
+                        Image(painter = painterResource(id = R.drawable.arrow_up_icon), contentDescription = "")
+
+                    }
+                }
+
+            }
+
+
         }
         Column(modifier = Modifier
             .fillMaxWidth(0.9f)
@@ -1066,9 +975,20 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                                         dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
 
                                         dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
-                                    }
 
-                                    Log.d(TAG, "2개 묶음 값 -> $chunkValue")
+
+                                        if(chunkValue.secondNumber != null &&
+                                            chunkValue.thirdNumber != null &&
+                                            chunkValue.fourthNumber != null &&
+                                            chunkValue.fifthNumber != null &&
+                                            chunkValue.sixthNumber != null) {
+
+                                            Log.d(TAG, "myNumberChunkEmit() 실행됨")
+                                            dataViewModel.myNumberChunkEmit()
+                                        } else {
+                                            Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
+                                        }
+                                    }
 
                                 }
 
@@ -1086,7 +1006,53 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                     },
                     useType = UseType.MYNUMBER,
                     dataViewModel = dataViewModel,
-                    itemCount = myNumberCount.value
+                    itemCount = myNumberCount.value,
+                    rangeDateData = isSelectDateValue,
+                    allDate = {
+
+                        coroutineScope.launch {
+
+                            if (oneNumber.value == "" &&
+                                twoNumber.value == "" &&
+                                threeNumber.value == "" &&
+                                fourNumber.value == "" &&
+                                fiveNumber.value == "" &&
+                                sixNumber.value == ""
+                            ) {
+                                return@launch
+                            } else {
+
+                                val chunkValue = dataViewModel.chunkMake()
+
+                                coroutineScope.launch {
+                                    dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
+
+                                    dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
+
+                                    dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
+
+                                    dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
+
+                                    dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
+
+                                    if(chunkValue.secondNumber != null &&
+                                        chunkValue.thirdNumber != null &&
+                                        chunkValue.fourthNumber != null &&
+                                        chunkValue.fifthNumber != null &&
+                                        chunkValue.sixthNumber != null) {
+
+                                        Log.d(TAG, "myNumberChunkEmit() 실행됨")
+                                        dataViewModel.myNumberChunkEmit()
+                                    } else {
+                                        Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
+                                    }
+                                }
+
+                            }
+
+                            showOpenCountDialog.value = false
+                        }
+                    }
                 )
 
             }

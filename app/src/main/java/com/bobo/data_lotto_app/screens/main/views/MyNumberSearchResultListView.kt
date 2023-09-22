@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -89,15 +92,24 @@ fun MyNumberDataList(
     dataViewModel: DataViewModel
 
 ) {
-    val scrollState = rememberScrollState()
+    val twoChunkNumberAndPercent = dataViewModel.twoChunkNumberAndPercentFlow.collectAsState()
+
+    val threeChunkNumberAndPercent = dataViewModel.threeChunkNumberPercentFlow.collectAsState()
+
+    val fourChunkNumberAndPercent = dataViewModel.fourChunkNumberPercentFlow.collectAsState()
+
+    val fiveChunkNumberAndPercent = dataViewModel.fiveChunkNumberPercentFlow.collectAsState()
+
+    val sixNumberAndPercent = dataViewModel.sixChunkNumberPercentFlow.collectAsState()
 
     when(viewStateValue) {
 
         0 -> {
             Column(modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White, shape = RoundedCornerShape(8.dp))
-                .verticalScroll(scrollState)) {
+                .background(
+                    Color.White, shape = RoundedCornerShape(8.dp)
+                )) {
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
@@ -115,22 +127,17 @@ fun MyNumberDataList(
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                twoChunkNumber.value.forEach {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    // 정렬 지정
 
-                        // 정렬 지정
-
-                        val testValue = dataViewModel.searchLotto(it)
-
-
+                    items(twoChunkNumberAndPercent.value) { twoChunkNumberAndPercent->
 
                         MyNumberStickBar(
-                            firstBall = it[0],
-                            secondBall = it[1],
-                            allDataCount = testValue.second, partDataCount = testValue.first)
+                            firstBall = twoChunkNumberAndPercent[0],
+                            secondBall = twoChunkNumberAndPercent[1],
+                            allDataCount = twoChunkNumberAndPercent[2], partDataCount = twoChunkNumberAndPercent[3])
                     }
-
                 }
             }
 
@@ -139,14 +146,18 @@ fun MyNumberDataList(
         1 -> {
             Column(modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
-                .verticalScroll(scrollState)) {
+                .background(
+                    Color.White, shape = RoundedCornerShape(8.dp)
+                )) {
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 15.dp),
                     horizontalArrangement = Arrangement.Center) {
-                    Text(text = "3쌍 중복수",
+
+                    val textValue = if(threeChunkNumber.value.isEmpty()) {""} else {"3쌍 중복수"}
+
+                    Text(text = textValue,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = fontFamily
@@ -155,19 +166,18 @@ fun MyNumberDataList(
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                threeChunkNumber.value.forEach {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    // 정렬 지정
 
-                        val testValue = dataViewModel.searchLotto(it)
+                    items(threeChunkNumberAndPercent.value) { threeChunkNumberAndPercent->
 
                         MyNumberStickBar(
-                            firstBall = it[0],
-                            secondBall = it[1],
-                            thirdBall = it[2],
-                            allDataCount = testValue.second, partDataCount = testValue.first)
+                            firstBall = threeChunkNumberAndPercent[0],
+                            secondBall = threeChunkNumberAndPercent[1],
+                            thirdBall = threeChunkNumberAndPercent[2],
+                            allDataCount = threeChunkNumberAndPercent[3], partDataCount = threeChunkNumberAndPercent[4])
                     }
-
                 }
             }
 
@@ -176,14 +186,18 @@ fun MyNumberDataList(
         2 -> {
             Column(modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
-                .verticalScroll(scrollState)) {
+                .background(
+                    Color.White, shape = RoundedCornerShape(8.dp)
+                )) {
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 15.dp),
                     horizontalArrangement = Arrangement.Center) {
-                    Text(text = "4쌍 중복수",
+
+                    val textValue = if(fourChunkNumber.value.isEmpty()) {""} else {"4쌍 중복수"}
+
+                    Text(text = textValue,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = fontFamily
@@ -192,20 +206,19 @@ fun MyNumberDataList(
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                fourChunkNumber.value.forEach {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    // 정렬 지정
 
-                        val testValue = dataViewModel.searchLotto(it)
+                    items(fourChunkNumberAndPercent.value) { fourChunkNumberAndPercent->
 
                         MyNumberStickBar(
-                            firstBall = it[0],
-                            secondBall = it[1],
-                            thirdBall = it[2],
-                            fourthBall = it[3],
-                            allDataCount = testValue.second, partDataCount = testValue.first)
+                            firstBall = fourChunkNumberAndPercent[0],
+                            secondBall = fourChunkNumberAndPercent[1],
+                            thirdBall = fourChunkNumberAndPercent[2],
+                            fourthBall = fourChunkNumberAndPercent[3],
+                            allDataCount = fourChunkNumberAndPercent[4], partDataCount = fourChunkNumberAndPercent[5])
                     }
-
                 }
             }
 
@@ -214,14 +227,18 @@ fun MyNumberDataList(
         3 -> {
             Column(modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
-                .verticalScroll(scrollState)) {
+                .background(
+                    Color.White, shape = RoundedCornerShape(8.dp)
+                )) {
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 15.dp),
                     horizontalArrangement = Arrangement.Center) {
-                    Text(text = "5쌍 중복수",
+
+                    val textValue = if(fiveChunkNumber.value.isEmpty()) {""} else {"5쌍 중복수"}
+
+                    Text(text = textValue,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = fontFamily
@@ -230,21 +247,20 @@ fun MyNumberDataList(
 
                 Spacer(modifier = Modifier.height(5.dp))
 
-                fiveChunkNumber.value.forEach {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    // 정렬 지정
 
-                        val testValue = dataViewModel.searchLotto(it)
+                    items(fiveChunkNumberAndPercent.value) { fiveChunkNumberAndPercent->
 
                         MyNumberStickBar(
-                            firstBall = it[0],
-                            secondBall = it[1],
-                            thirdBall = it[2],
-                            fourthBall = it[3],
-                            fifthBall = it[4],
-                            allDataCount = testValue.second, partDataCount = testValue.first)
+                            firstBall = fiveChunkNumberAndPercent[0],
+                            secondBall = fiveChunkNumberAndPercent[1],
+                            thirdBall = fiveChunkNumberAndPercent[2],
+                            fourthBall = fiveChunkNumberAndPercent[3],
+                            fifthBall = fiveChunkNumberAndPercent[4],
+                            allDataCount = fiveChunkNumberAndPercent[5], partDataCount = fiveChunkNumberAndPercent[6])
                     }
-
                 }
             }
 
@@ -253,14 +269,18 @@ fun MyNumberDataList(
         4 -> {
             Column(modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
-                .verticalScroll(scrollState)) {
+                .background(
+                    Color.White, shape = RoundedCornerShape(8.dp)
+                )) {
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 15.dp),
                     horizontalArrangement = Arrangement.Center) {
-                    Text(text = "1등 당첨",
+
+                    val textValue = if(sixChunkNumber.value.isEmpty()) {""} else {"1등 당첨"}
+
+                    Text(text = textValue,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = fontFamily
@@ -269,22 +289,22 @@ fun MyNumberDataList(
 
                 Spacer(modifier = Modifier.height(5.dp))
 
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    // 정렬 지정
 
-                        val testValue = dataViewModel.searchLotto(sixChunkNumber.value)
+                    item() { sixNumberAndPercent.value
 
                         MyNumberStickBar(
-                            firstBall = sixChunkNumber.value[0],
-                            secondBall = sixChunkNumber.value[1],
-                            thirdBall = sixChunkNumber.value[2],
-                            fourthBall = sixChunkNumber.value[3],
-                            fifthBall = sixChunkNumber.value[4],
-                            sixthBall = sixChunkNumber.value[5],
-                            allDataCount = testValue.second, partDataCount = testValue.first)
+                            firstBall = sixNumberAndPercent.value[0],
+                            secondBall = sixNumberAndPercent.value[1],
+                            thirdBall = sixNumberAndPercent.value[2],
+                            fourthBall = sixNumberAndPercent.value[3],
+                            fifthBall = sixNumberAndPercent.value[4],
+                            sixthBall = sixNumberAndPercent.value[5],
+                            allDataCount = sixNumberAndPercent.value[6], partDataCount = sixNumberAndPercent.value[7])
                     }
-
-
+                }
             }
 
         }

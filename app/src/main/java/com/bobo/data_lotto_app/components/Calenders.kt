@@ -73,7 +73,7 @@ fun rangeDateDialog(
     callEndDate: String,
     selectedStartDate: (Long) -> Unit,
     selectedEndDate: (Long) -> Unit,
-    onClicked: (() -> Unit)? = null
+    onClicked: (() -> Unit)? = null,
 ) {
 
     val time = java.util.Calendar.getInstance().time
