@@ -788,7 +788,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         when(modeType) {
             LotteryType.NORMAL -> {
 
-                val rangeNumber = filterNumber(removeNumber)
+                val rangeNumber = filterNumber(removeNumber, type = LotteryType.NORMAL)
 
                 val sortData = rangeNumber.sorted()
 
@@ -813,6 +813,57 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                     fifthRandomNumber,
                     sixthRandomNumber
                 )
+
+                val sortList = randomNumberList.sorted()
+
+                val fixNumberList = normalFixNumber.value.sorted()
+
+                val firstNumber = if(fixNumberList.count() < 1) {
+                    sortList[0]
+                } else fixNumberList[0]
+
+                val secondNumber = if(fixNumberList.count() < 2) {
+                    sortList[1]
+                } else fixNumberList[1]
+
+                val thirdNumber = if(fixNumberList.count() < 3) {
+                    sortList[2]
+                } else fixNumberList[2]
+
+                val fourthNumber = if(fixNumberList.count() < 4) {
+                    sortList[3]
+                } else fixNumberList[3]
+
+                val fifthNumber = if(fixNumberList.count() < 5) {
+                    sortList[4]
+                } else fixNumberList[4]
+
+                val sixthNumber = if(fixNumberList.count() < 6) {
+                    sortList[5]
+                } else fixNumberList[5]
+
+
+                var sortCgList = listOf<Int>(
+                    firstNumber,
+                    secondNumber,
+                    thirdNumber,
+                    fourthNumber,
+                    fifthNumber,
+                    sixthNumber
+                ).sorted()
+
+                val newData = NormalModeNumber(
+                    id = UUID.randomUUID(),
+                    firstNumber = sortCgList[0],
+                    secondNumber = sortCgList[1],
+                    thirdNumber = sortCgList[2],
+                    fourthNumber = sortCgList[3],
+                    fifthNumber = sortCgList[4],
+                    sixthNumber = sortCgList[5])
+
+                viewModelScope.launch {
+                    haveNormalNumberData.emit(newData)
+                }
             }
 
             LotteryType.BIGDATA -> {
@@ -822,6 +873,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 Log.d(TAG, "빅데이터 추첨 실행됨")
 
                 Log.d(TAG, "정렬된 값 ${rangeNumber}")
+
                 val (firstFilterList, firstRandomNumber) = bigDataGetNumberFromRange(rangeNumber)
 
                 val (secondFilterList, secondRandomNumber) = bigDataGetNumberFromRange(firstFilterList)
@@ -842,64 +894,44 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                     fifthRandomNumber,
                     sixthRandomNumber
                 )
-            }
-        }
 
-        val sortList = randomNumberList.sorted()
+                val sortList = randomNumberList.sorted()
 
-        val fixNumberList = bigDataFixNumber.value.sorted()
+                val fixNumberList = bigDataFixNumber.value.sorted()
 
-        val firstNumber = if(fixNumberList.count() < 1) {
-            sortList[0]
-        } else fixNumberList[0]
+                val firstNumber = if(fixNumberList.count() < 1) {
+                    sortList[0]
+                } else fixNumberList[0]
 
-        val secondNumber = if(fixNumberList.count() < 2) {
-            sortList[1]
-        } else fixNumberList[1]
+                val secondNumber = if(fixNumberList.count() < 2) {
+                    sortList[1]
+                } else fixNumberList[1]
 
-        val thirdNumber = if(fixNumberList.count() < 3) {
-            sortList[2]
-        } else fixNumberList[2]
+                val thirdNumber = if(fixNumberList.count() < 3) {
+                    sortList[2]
+                } else fixNumberList[2]
 
-        val fourthNumber = if(fixNumberList.count() < 4) {
-            sortList[3]
-        } else fixNumberList[3]
+                val fourthNumber = if(fixNumberList.count() < 4) {
+                    sortList[3]
+                } else fixNumberList[3]
 
-        val fifthNumber = if(fixNumberList.count() < 5) {
-            sortList[4]
-        } else fixNumberList[4]
+                val fifthNumber = if(fixNumberList.count() < 5) {
+                    sortList[4]
+                } else fixNumberList[4]
 
-        val sixthNumber = if(fixNumberList.count() < 6) {
-            sortList[5]
-        } else fixNumberList[5]
+                val sixthNumber = if(fixNumberList.count() < 6) {
+                    sortList[5]
+                } else fixNumberList[5]
 
 
-        var sortCgList = listOf<Int>(
-            firstNumber,
-            secondNumber,
-            thirdNumber,
-            fourthNumber,
-            fifthNumber,
-            sixthNumber
-        ).sorted()
-
-        when(modeType) {
-            LotteryType.NORMAL -> {
-
-                val newData = NormalModeNumber(
-                    id = UUID.randomUUID(),
-                    firstNumber = sortCgList[0],
-                    secondNumber = sortCgList[1],
-                    thirdNumber = sortCgList[2],
-                    fourthNumber = sortCgList[3],
-                    fifthNumber = sortCgList[4],
-                    sixthNumber = sortCgList[5])
-
-                viewModelScope.launch {
-                    haveNormalNumberData.emit(newData)
-                }
-            }
-            LotteryType.BIGDATA -> {
+                var sortCgList = listOf<Int>(
+                    firstNumber,
+                    secondNumber,
+                    thirdNumber,
+                    fourthNumber,
+                    fifthNumber,
+                    sixthNumber
+                ).sorted()
 
                 val newData = BigDataModeNumber(
                     id = UUID.randomUUID(),
@@ -914,10 +946,9 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 viewModelScope.launch {
                     haveBigDataNumberData.emit(newData)
                 }
+
             }
         }
-
-
     }
 
     fun emitNumber(

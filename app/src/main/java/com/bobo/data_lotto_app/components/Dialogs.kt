@@ -75,6 +75,9 @@ import java.time.LocalDate
 @Composable
 fun FilterDialog(
     dataViewModel: DataViewModel,
+    initRemoveNumber: State<List<Int>>,
+    fixNumber: State<List<Int>>,
+    removeNumber: State<List<Int>>,
     onDismissRequest: (Boolean) -> Unit,
 ) {
 
@@ -84,13 +87,13 @@ fun FilterDialog(
 
     val removeValue = remember { mutableStateOf("") }
 
-    val initRemoveNumber = dataViewModel.normalRemoveNumber.collectAsState()
+//    val initRemoveNumber = dataViewModel.normalRemoveNumber.collectAsState()
 
     val scope = rememberCoroutineScope()
 
-    val fixNumber = dataViewModel.normalFixNumber.collectAsState()
-
-    val removeNumber = dataViewModel.viewRemoveNumber.collectAsState()
+//    val fixNumber = dataViewModel.normalFixNumber.collectAsState()
+//
+//    val removeNumber = dataViewModel.viewRemoveNumber.collectAsState()
 
     Dialog(onDismissRequest = {
         onDismissRequest(false)
