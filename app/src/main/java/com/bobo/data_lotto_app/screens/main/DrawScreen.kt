@@ -150,6 +150,8 @@ fun NormalModeView(dataViewModel: DataViewModel) {
 
     val showLottoAnimationDialog = remember{ mutableStateOf( false ) }
 
+    val initRemoveNumber = dataViewModel.normalRemoveNumber.collectAsState()
+
 
     Column(
         modifier = Modifier
@@ -339,6 +341,7 @@ fun NormalModeView(dataViewModel: DataViewModel) {
 
             if(showOpenDialog.value) {
                 FilterDialog(
+                    fixNumber = addNumber.value,
                     dataViewModel = dataViewModel,
                     onDismissRequest = {
                     showOpenDialog.value = it
@@ -521,15 +524,15 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                     FilterCard(number = " 고정수 $addNumber",
                         deleteClicked = {
                             scope.launch {
-                                val addList = dataViewModel.normalFixNumber.value.toMutableList().apply {
+                                val addList = dataViewModel.bigDataFixNumber.value.toMutableList().apply {
                                     remove(addNumber)
                                 }
-                                dataViewModel.normalFixNumber.emit(addList)
+                                dataViewModel.bigDataFixNumber.emit(addList)
 
-                                val removeList = dataViewModel.normalRemoveNumber.value.toMutableList().apply {
+                                val removeList = dataViewModel.bigDataRemoveNumber.value.toMutableList().apply {
                                     remove(addNumber)
                                 }
-                                dataViewModel.normalRemoveNumber.emit(removeList)
+                                dataViewModel.bigDataRemoveNumber.emit(removeList)
                             }
                         })
                 }
@@ -539,12 +542,16 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                     FilterCard(number = " 제외수 $removeNumber",
                         deleteClicked = {
                             scope.launch {
-                                val removeList = dataViewModel.normalRemoveNumber.value.toMutableList().apply {
+                                val removeList = dataViewModel.bigDataRemoveNumber.value.toMutableList().apply {
                                     remove(removeNumber)
                                 }
-                                dataViewModel.normalRemoveNumber.emit(removeList)
+                                dataViewModel.bigDataRemoveNumber.emit(removeList)
 
+                                val viewRemoveNumber = dataViewModel.bigDataViewRemoveNumber.value.toMutableList().apply {
+                                    remove(removeNumber)
+                                }
 
+                                dataViewModel.bigDataViewRemoveNumber.emit(viewRemoveNumber)
                             }
                         })
                 }
@@ -715,10 +722,12 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
 
         if(showOpenDialog.value) {
             FilterDialog(
+                fixNumber = addNumber.value,
                 dataViewModel = dataViewModel,
                 onDismissRequest = {
                     showOpenDialog.value = it
-                })
+                },
+                type = DataViewModel.LotteryType.BIGDATA)
         }
 
         if(showLottoAnimationDialog.value) {

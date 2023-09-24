@@ -75,10 +75,9 @@ import java.time.LocalDate
 @Composable
 fun FilterDialog(
     dataViewModel: DataViewModel,
-    initRemoveNumber: State<List<Int>>,
-    fixNumber: State<List<Int>>,
-    removeNumber: State<List<Int>>,
+    fixNumber: List<Int>,
     onDismissRequest: (Boolean) -> Unit,
+    type: DataViewModel.LotteryType = DataViewModel.LotteryType.NORMAL
 ) {
 
     val viewStateId = remember { mutableStateOf(1) }
@@ -87,13 +86,7 @@ fun FilterDialog(
 
     val removeValue = remember { mutableStateOf("") }
 
-//    val initRemoveNumber = dataViewModel.normalRemoveNumber.collectAsState()
-
     val scope = rememberCoroutineScope()
-
-//    val fixNumber = dataViewModel.normalFixNumber.collectAsState()
-//
-//    val removeNumber = dataViewModel.viewRemoveNumber.collectAsState()
 
     Dialog(onDismissRequest = {
         onDismissRequest(false)
@@ -144,94 +137,178 @@ fun FilterDialog(
                             addValue.value = it.trim()
                         },
                         onClicked = {
-                            scope.launch {
-                                val addNumber = dataViewModel.normalFixNumber.value.toMutableList()
 
-                                if(addValue.value.isNullOrEmpty() && addValue.value.isBlank()) {
-                                    return@launch
-                                } else {
-                                    when(fixNumber.value.count()) {
-                                        0 -> {
+                            when(type) {
+                                DataViewModel.LotteryType.NORMAL ->  {
+                                    scope.launch {
+                                        val addNumber = dataViewModel.normalFixNumber.value.toMutableList()
 
-                                            if(fixNumber.value.contains(addValue.value.toInt())) {
-                                                Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
-                                            } else {
-                                                addNumber.add(addValue.value.toInt())
-                                                dataViewModel.normalFixNumber.emit(addNumber)
-                                                dataViewModel.normalRemoveNumber.emit(addNumber)
-                                                onDismissRequest(false)
-                                            }
-                                        }
-
-                                        1 ->  {
-                                            if(fixNumber.value.contains(addValue.value.toInt())) {
-                                                Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
-                                            } else {
-                                                addNumber.add(addValue.value.toInt())
-                                                dataViewModel.normalFixNumber.emit(addNumber)
-                                                dataViewModel.normalRemoveNumber.emit(addNumber)
-                                                onDismissRequest(false)
-                                            }
-                                        }
-
-                                        2 ->  {
-                                            if(fixNumber.value.contains(addValue.value.toInt())) {
-                                                Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
-                                            } else {
-                                                addNumber.add(addValue.value.toInt())
-                                                dataViewModel.normalFixNumber.emit(addNumber)
-                                                dataViewModel.normalRemoveNumber.emit(addNumber)
-                                                onDismissRequest(false)
-                                            }
-                                        }
-
-                                        3 ->  {
-                                            if(fixNumber.value.contains(addValue.value.toInt())) {
-                                                Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
-                                            } else {
-                                                addNumber.add(addValue.value.toInt())
-                                                dataViewModel.normalFixNumber.emit(addNumber)
-                                                dataViewModel.normalRemoveNumber.emit(addNumber)
-                                                onDismissRequest(false)
-                                            }
-                                        }
-
-                                        4 ->  {
-                                            if(fixNumber.value.contains(addValue.value.toInt())) {
-                                                Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
-                                            } else {
-                                                addNumber.add(addValue.value.toInt())
-                                                dataViewModel.normalFixNumber.emit(addNumber)
-                                                dataViewModel.normalRemoveNumber.emit(addNumber)
-                                                onDismissRequest(false)
-                                            }
-                                        }
-
-                                        5 ->  {
-                                            if(fixNumber.value.contains(addValue.value.toInt())) {
-                                                Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
-                                            } else {
-                                                addNumber.add(addValue.value.toInt())
-                                                dataViewModel.normalFixNumber.emit(addNumber)
-                                                dataViewModel.normalRemoveNumber.emit(addNumber)
-                                                onDismissRequest(false)
-                                            }
-                                        }
-
-                                        6 -> {
-                                            onDismissRequest(false)
+                                        if(addValue.value.isNullOrEmpty() && addValue.value.isBlank()) {
                                             return@launch
+                                        } else {
+                                            when(fixNumber.count()) {
+                                                0 -> {
+
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.normalFixNumber.emit(addNumber)
+                                                        dataViewModel.normalRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                1 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.normalFixNumber.emit(addNumber)
+                                                        dataViewModel.normalRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                2 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.normalFixNumber.emit(addNumber)
+                                                        dataViewModel.normalRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                3 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.normalFixNumber.emit(addNumber)
+                                                        dataViewModel.normalRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                4 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.normalFixNumber.emit(addNumber)
+                                                        dataViewModel.normalRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                5 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.normalFixNumber.emit(addNumber)
+                                                        dataViewModel.normalRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                6 -> {
+                                                    onDismissRequest(false)
+                                                    return@launch
+                                                }
+                                            }
                                         }
+
                                     }
                                 }
 
+                                DataViewModel.LotteryType.BIGDATA -> {
+                                    scope.launch {
+                                        val addNumber = dataViewModel.bigDataFixNumber.value.toMutableList()
+
+                                        if(addValue.value.isNullOrEmpty() && addValue.value.isBlank()) {
+                                            return@launch
+                                        } else {
+                                            when(fixNumber.count()) {
+                                                0 -> {
+
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.bigDataFixNumber.emit(addNumber)
+                                                        dataViewModel.bigDataRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                1 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.bigDataFixNumber.emit(addNumber)
+                                                        dataViewModel.bigDataRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                2 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.bigDataFixNumber.emit(addNumber)
+                                                        dataViewModel.bigDataRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                3 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.bigDataFixNumber.emit(addNumber)
+                                                        dataViewModel.bigDataRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                4 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.bigDataFixNumber.emit(addNumber)
+                                                        dataViewModel.bigDataRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                5 ->  {
+                                                    if(fixNumber.contains(addValue.value.toInt())) {
+                                                        Log.d(TAG, "이미 고정수로 지정되어 있습니다.")
+                                                    } else {
+                                                        addNumber.add(addValue.value.toInt())
+                                                        dataViewModel.bigDataFixNumber.emit(addNumber)
+                                                        dataViewModel.bigDataRemoveNumber.emit(addNumber)
+                                                        onDismissRequest(false)
+                                                    }
+                                                }
+
+                                                6 -> {
+                                                    onDismissRequest(false)
+                                                    return@launch
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
                             }
-
-                            Log.d(TAG, "고정값 ${fixNumber}")
-
-                            Log.d(TAG, "초기 제외값 ${initRemoveNumber.value}")
-
-                            Log.d(TAG, "제외값 ${removeNumber.value}")
 
                         },
                         closeClicked = {
@@ -244,36 +321,64 @@ fun FilterDialog(
                             removeValue.value = it.trim()
                         },
                         onClicked = {
-                            scope.launch {
-                                val removeNumber = dataViewModel.normalRemoveNumber.value.toMutableList()
 
-                                val viewRemoveNumber = dataViewModel.viewRemoveNumber.value.toMutableList()
+                            when(type) {
+                                DataViewModel.LotteryType.NORMAL ->  {
+                                    scope.launch {
+                                        val removeNumber = dataViewModel.normalRemoveNumber.value.toMutableList()
 
+                                        val viewRemoveNumber = dataViewModel.viewRemoveNumber.value.toMutableList()
 
-                                if(removeValue.value.isNullOrEmpty() && removeValue.value.isBlank()) {
-                                    return@launch
-                                } else {
-                                        if(removeNumber.contains(removeValue.value.toInt())) {
-                                            Log.d(TAG, "이미 제외수로 지정되어 있습니다.")
+                                        if(removeValue.value.isNullOrEmpty() && removeValue.value.isBlank()) {
+                                            return@launch
                                         } else {
-                                            removeNumber.add(removeValue.value.toInt())
+                                            if(removeNumber.contains(removeValue.value.toInt())) {
+                                                Log.d(TAG, "이미 제외수로 지정되어 있습니다.")
+                                            } else {
+                                                removeNumber.add(removeValue.value.toInt())
 
-                                            dataViewModel.normalRemoveNumber.emit(removeNumber)
+                                                dataViewModel.normalRemoveNumber.emit(removeNumber)
 
-                                            viewRemoveNumber.add(removeValue.value.toInt())
+                                                viewRemoveNumber.add(removeValue.value.toInt())
 
-                                            dataViewModel.viewRemoveNumber.emit(viewRemoveNumber)
+                                                dataViewModel.viewRemoveNumber.emit(viewRemoveNumber)
 
-                                            Log.d(TAG, "고정값 ${fixNumber.value}")
-
-                                            Log.d(TAG, "초기 제외값 ${initRemoveNumber.value}")
-
-                                            Log.d(TAG, "제외값 ${removeNumber}")
-
-                                            onDismissRequest(false)
+                                                onDismissRequest(false)
+                                            }
                                         }
                                     }
+                                }
+
+                                DataViewModel.LotteryType.BIGDATA -> {
+                                    scope.launch {
+                                        val removeNumber = dataViewModel.bigDataRemoveNumber.value.toMutableList()
+
+                                        val viewRemoveNumber = dataViewModel.bigDataViewRemoveNumber.value.toMutableList()
+
+
+                                        if(removeValue.value.isNullOrEmpty() && removeValue.value.isBlank()) {
+                                            return@launch
+                                        } else {
+                                            if(removeNumber.contains(removeValue.value.toInt())) {
+                                                Log.d(TAG, "이미 제외수로 지정되어 있습니다.")
+                                            } else {
+                                                removeNumber.add(removeValue.value.toInt())
+
+                                                dataViewModel.bigDataRemoveNumber.emit(removeNumber)
+
+                                                viewRemoveNumber.add(removeValue.value.toInt())
+
+                                                dataViewModel.bigDataViewRemoveNumber.emit(viewRemoveNumber)
+
+                                                onDismissRequest(false)
+                                            }
+                                        }
+                                    }
+                                }
                             }
+
+
+
 
                         },
                         closeClicked = {
@@ -282,9 +387,6 @@ fun FilterDialog(
 
                     ) }
                 }
-
-
-
             }
 
         }
@@ -418,37 +520,37 @@ fun LottoAnimationDialog(
     val firstSlideAnimation = animateIntAsState(
         targetValue = if(isSlideSpring.value) 0 else -500,
         animationSpec = tween(durationMillis = 300,
-            delayMillis = 50,
+            delayMillis = if(isSlideSpring.value) 50 else 0,
             easing = LinearOutSlowInEasing))
 
     val secondSlideAnimation = animateIntAsState(
         targetValue = if(isSlideSpring.value) 0 else -500,
         animationSpec = tween(durationMillis = 300,
-            delayMillis = 200,
+            delayMillis = if(isSlideSpring.value) 200 else 0,
             easing = LinearOutSlowInEasing))
 
     val thirdSlideAnimation = animateIntAsState(
         targetValue = if(isSlideSpring.value) 0 else -500,
         animationSpec = tween(durationMillis = 300,
-            delayMillis = 400,
+            delayMillis = if(isSlideSpring.value) 400 else 0,
             easing = LinearOutSlowInEasing))
 
     val fourSlideAnimation = animateIntAsState(
         targetValue = if(isSlideSpring.value) 0 else -500,
         animationSpec = tween(durationMillis = 300,
-            delayMillis = 600,
+            delayMillis = if(isSlideSpring.value) 600 else 0,
             easing = LinearOutSlowInEasing))
 
     val fiveSlideAnimation = animateIntAsState(
         targetValue = if(isSlideSpring.value) 0 else -500,
         animationSpec = tween(durationMillis = 300,
-            delayMillis = 800,
+            delayMillis = if(isSlideSpring.value) 800 else 0,
             easing = LinearOutSlowInEasing))
 
     val sixSlideAnimation = animateIntAsState(
         targetValue = if(isSlideSpring.value) 0 else -500,
         animationSpec = tween(durationMillis = 300,
-            delayMillis = 1000,
+            delayMillis = if(isSlideSpring.value) 1000 else 0,
             easing = LinearOutSlowInEasing))
 
     Dialog(onDismissRequest = {
@@ -932,6 +1034,35 @@ fun ProportionSelectDialog(
                 onClicked = {
                     dataViewModel.proportionStateFlow.value = "2"
                     showLottoAnimationDialog.value = true
+                },
+                buttonColor = ProportionButtonColor,
+                fontColor = Color.Black,
+                modifier = Modifier.fillMaxWidth(0.7f),
+                fontSize = 15
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Buttons(
+                label = "고비율3/ 저비율3",
+                onClicked = {
+
+
+                },
+                buttonColor = ProportionButtonColor,
+                fontColor = Color.Black,
+                modifier = Modifier.fillMaxWidth(0.7f),
+                fontSize = 15
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+
+            Buttons(
+                label = "범위 내 숫자 추첨",
+                onClicked = {
+
+
                 },
                 buttonColor = ProportionButtonColor,
                 fontColor = Color.Black,
