@@ -137,9 +137,9 @@ class AuthViewModel @Inject
 
                         localUser.emit(userData)
 
-                        allNumberSearchCountFlow.emit(userData.allNumberSearchCount!!)
-                        myNumberSearchCountFlow.emit(userData.myNumberSearchCount!!)
-                        numberLotteryCountFlow.emit(userData.allNumberSearchCount!!)
+//                        allNumberSearchCountFlow.emit(userData.allNumberSearchCount!!)
+//                        myNumberSearchCountFlow.emit(userData.myNumberSearchCount!!)
+//                        numberLotteryCountFlow.emit(userData.allNumberSearchCount!!)
                     }
 
         }

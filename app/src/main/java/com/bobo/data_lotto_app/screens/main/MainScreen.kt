@@ -569,6 +569,12 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 
                 }, text = "광고 삭제하기")
 
+            TextButton(onClick = {
+                mainRouteAction.navTo.invoke(MainRoute.Payment)
+            }) {
+                Text(text = "결제화면 이동")
+            }
+
             Divider(
                 modifier = Modifier
                     .fillMaxWidth()

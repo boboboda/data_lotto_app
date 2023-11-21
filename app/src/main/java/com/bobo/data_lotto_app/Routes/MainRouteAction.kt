@@ -18,6 +18,7 @@ sealed class MainRoute(
     object Notice: MainRoute("Notice", "게시판")
     object Write: MainRoute("Write", "글쓰기")
     object Post: MainRoute("Post", "게시글")
+    object Payment: MainRoute("Payment", "구독")
 
 
 }

@@ -21,7 +21,7 @@ android {
         applicationId "com.bobo.data_lotto_app"
         minSdk 26
         targetSdk 33
-        versionCode 1
+        versionCode 6
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -76,6 +76,7 @@ dependencies {
     implementation 'androidx.compose.material3:material3'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'com.google.android.gms:play-services-ads-lite:22.3.0'
+    implementation 'com.google.firebase:firebase-crashlytics-buildtools:2.9.9'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -149,4 +150,8 @@ dependencies {
     implementation "com.kakao.sdk:v2-share:2.15.0" // 메시지(카카오톡 공유)
     implementation "com.kakao.sdk:v2-navi:2.15.0" // 카카오내비
     implementation "com.kakao.sdk:v2-friend:2.15.0" // 카카오톡 소셜 피커, 리소스 번들 파일 포함
+
+    def billing_version = "6.0.1"
+
+    implementation "com.android.billingclient:billing-ktx:$billing_version"
 }

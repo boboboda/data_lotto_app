@@ -1,5 +1,6 @@
 package com.bobo.data_lotto_app
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -66,6 +67,7 @@ import com.bobo.data_lotto_app.screens.auth.LoginScreen
 import com.bobo.data_lotto_app.screens.auth.RegisterScreen
 import com.bobo.data_lotto_app.screens.main.DrawScreen
 import com.bobo.data_lotto_app.screens.main.NoticeScreen
+import com.bobo.data_lotto_app.screens.main.PaymentScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -99,7 +101,8 @@ class MainActivity : ComponentActivity() {
                         mainViewModel,
                         dataViewModel,
                         authViewModel,
-                        noticeViewModel)
+                        noticeViewModel,
+                        activity = this)
 
                 }
             }
@@ -113,7 +116,8 @@ fun AppScreen(
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
     authViewModel: AuthViewModel,
-    noticeViewModel: NoticeViewModel
+    noticeViewModel: NoticeViewModel,
+    activity: Activity
 ) {
 
     val mainNavController = rememberNavController()
@@ -162,7 +166,8 @@ fun AppScreen(
                     mainViewModel = mainViewModel,
                     dataViewModel = dataViewModel,
                     authViewModel = authViewModel,
-                    noticeViewModel = noticeViewModel
+                    noticeViewModel = noticeViewModel,
+                    activity = activity
                 )
             }
 
@@ -200,7 +205,8 @@ fun MainNaHost(
     mainViewModel: MainViewModel,
     dataViewModel: DataViewModel,
     authViewModel: AuthViewModel,
-    noticeViewModel: NoticeViewModel
+    noticeViewModel: NoticeViewModel,
+    activity: Activity
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -218,6 +224,12 @@ fun MainNaHost(
         }
         composable(MainRoute.Notice.routeName!!) {
             NoticeScreen(authViewModel = authViewModel, noticeViewModel = noticeViewModel, mainRouteAction)
+        }
+
+        composable(MainRoute.Payment.routeName!!) {
+            PaymentScreen(onPurchaseButtonClicked = {
+                MyApplication.instance.billingClientLifecycle.startBillingFlow(activity = activity, productDetails = it)
+            })
         }
     }
 }
@@ -366,4 +378,3 @@ fun LoadingDialog(
     }
 
 }
-
