@@ -734,7 +734,7 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
 
             ProportionSelectDialog(closeClicked = {
                 scope.launch {
-                    dataViewModel.bigDataNumberAndPercentValue.emit(emptyList())
+
                     dataViewModel.haveBigDataNumberData.emit(BigDataModeNumber())
                 }
                 showLottoAnimationDialog.value = it

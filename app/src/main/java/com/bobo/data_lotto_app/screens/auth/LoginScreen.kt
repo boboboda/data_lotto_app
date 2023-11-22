@@ -27,6 +27,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.MainRoute
 import com.bobo.data_lotto_app.MainRouteAction
 import com.bobo.data_lotto_app.R
@@ -45,10 +47,12 @@ import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.components.BaseButton
 import com.bobo.data_lotto_app.components.Buttons
 import com.bobo.data_lotto_app.components.EmailTextField
+import com.bobo.data_lotto_app.components.LoadingDialog
 import com.bobo.data_lotto_app.components.LogInBackButton
 import com.bobo.data_lotto_app.components.PasswordTextField
 import com.bobo.data_lotto_app.components.fontFamily
 import com.bobo.data_lotto_app.ui.theme.TextButtonColor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -69,6 +73,8 @@ fun LoginScreen(authViewModel: AuthViewModel,
 
     val logInIsLoading = authViewModel.isLoadingFlow.collectAsState()
 
+    val kakaoLogInIsLoading = authViewModel.kakaoisLoadingFlow.collectAsState()
+
     val failedLogin = authViewModel.failedLogIn.collectAsState()
 
     val isLoggedIn = authViewModel.isLoggedIn.collectAsState()
@@ -76,6 +82,8 @@ fun LoginScreen(authViewModel: AuthViewModel,
     val needAuth = authViewModel.needAuthContext.collectAsState()
 
     val snackBarHostState = remember { SnackbarHostState() }
+
+    val loadOpenDialog = remember { mutableStateOf(false) }
 
 
 
@@ -93,8 +101,6 @@ fun LoginScreen(authViewModel: AuthViewModel,
                 }
             }
         )
-
-
         Text(
             "LOGIN",
             fontSize = 35.sp,
@@ -141,22 +147,28 @@ fun LoginScreen(authViewModel: AuthViewModel,
             enabled = isLoginBtnActive,
             isLoading = logInIsLoading.value,
             onClick = {
-                authViewModel.loginUser(AuthViewModel.LoginType.DEFAULT)
+                Log.d(TAG, "로딩오픈 다이로그 확인 ${loadOpenDialog.value}")
                 focusManager.clearFocus()
                 coroutineScope.launch {
+                    authViewModel.isLoadingFlow.value = true
+                    loadOpenDialog.value = true
+                    delay(2000)
                     authViewModel.loginUser(type = AuthViewModel.LoginType.DEFAULT)
-
                     authViewModel.failedLogIn.collectLatest {
                         if (failedLogin.value == true) {
-
+                            authViewModel.isLoadingFlow.value = false
+                            loadOpenDialog.value = false
                             snackBarHostState.showSnackbar(
                                 "로그인에 실패하였습니다. 다시 확인해주세요",
                                 actionLabel = "닫기", SnackbarDuration.Short
                             )
+                            authViewModel.failedLogIn.value = false
+
                         }
                     }
 
                 }
+               loadOpenDialog.value = false
             },
             modifier = Modifier.imePadding())
 
@@ -190,22 +202,30 @@ fun LoginScreen(authViewModel: AuthViewModel,
 
             BaseButton(
                 title = "카카오 로그인",
-                isLoading = logInIsLoading.value,
+                isLoading = kakaoLogInIsLoading.value,
                 image = R.drawable.kakaotalk_icon,
                 onClick = {
                     focusManager.clearFocus()
                     coroutineScope.launch {
-
+                        loadOpenDialog.value = true
+                        authViewModel.kakaoisLoadingFlow.value = true
+                        delay(2000)
                         authViewModel.loginUser(type = AuthViewModel.LoginType.KAKAO)
 
                         authViewModel.failedLogIn.collectLatest {
                             if (failedLogin.value == true) {
+                                authViewModel.kakaoisLoadingFlow.value = false
                                 snackBarHostState.showSnackbar(
                                     "로그인에 실패하였습니다. 다시 확인해주세요",
                                     actionLabel = "닫기", SnackbarDuration.Short
                                 )
+                                authViewModel.failedLogIn.value = false
                             }
+
                         }
+
+
+                        loadOpenDialog.value = false
                     }
                     Log.d("웰컴스크린", "로그인 버튼 클릭")
 
@@ -269,11 +289,11 @@ fun LoginScreen(authViewModel: AuthViewModel,
 
             )
 
+        if(loadOpenDialog.value) {
+            LoadingDialog()
+        }
+
         Spacer(modifier = Modifier.weight(0.5f))
-
-
-
-
 
     }
 

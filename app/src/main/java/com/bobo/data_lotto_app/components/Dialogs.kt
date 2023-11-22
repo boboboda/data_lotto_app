@@ -1113,7 +1113,8 @@ fun UseCountDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .wrapContentHeight()
+                .padding(vertical = 30.dp)
                 .background(
                     shape = RoundedCornerShape(8.dp),
                     color = Color.White
@@ -1121,43 +1122,61 @@ fun UseCountDialog(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
 
-            Buttons(
-                label = "날짜 범위 내 조회 (무료횟수:${count})",
-                onClicked = {
-                    authViewModel.filterItem(
-                        itemCount = itemCount,
-                        searchDataCount = rangeDateData.value.toList(),
-                        useType = useType
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(vertical = 30.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Buttons(
+                    label = "날짜 범위 내 조회 (무료횟수:${count})",
+                    onClicked = {
+                        authViewModel.filterItem(
+                            itemCount = itemCount,
+                            searchDataCount = rangeDateData.value.toList(),
+                            useType = useType
                         )
-                    onClicked.invoke()
-                },
-                buttonColor = UseCountButtonColor,
-                fontColor = Color.Black,
-                modifier = Modifier
-                    .padding(horizontal = 10.dp)
-                    .fillMaxWidth(0.8f)
-                    .height(50.dp),
-                fontSize = 20
-            )
-            
-            Spacer(modifier = Modifier.height(20.dp))
+                        onClicked.invoke()
+                    },
+                    buttonColor = UseCountButtonColor,
+                    fontColor = Color.Black,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .fillMaxWidth(0.8f)
+                        .height(50.dp),
+                    fontSize = 20
+                )
 
-            Buttons(
-                label = "모든 데이터 조회 (무료횟수:${count})",
-                onClicked = {
-                     allDate?.invoke()
-                },
-                buttonColor = UseCountButtonColor,
-                fontColor = Color.Black,
-                modifier = Modifier
-                    .padding(horizontal = 10.dp)
-                    .fillMaxWidth(0.8f)
-                    .height(50.dp),
-                fontSize = 20
-            )
+
+
+                if(useType == UseType.MYNUMBER) {
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Buttons(
+                        label = "모든 데이터 조회 (무료횟수:${count})",
+                        onClicked = {
+                            allDate?.invoke()
+                        },
+                        buttonColor = UseCountButtonColor,
+                        fontColor = Color.Black,
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp)
+                            .fillMaxWidth(0.8f)
+                            .height(50.dp),
+                        fontSize = 20
+                    )
+                }
+            }
+
+
+
         }
 
     }
 
 
 }
+
+

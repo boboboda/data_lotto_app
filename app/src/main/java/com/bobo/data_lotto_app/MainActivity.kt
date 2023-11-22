@@ -63,6 +63,7 @@ import com.bobo.data_lotto_app.screens.auth.WelcomeScreen
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
 import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
+import com.bobo.data_lotto_app.components.LoadingDialog
 import com.bobo.data_lotto_app.screens.auth.LoginScreen
 import com.bobo.data_lotto_app.screens.auth.RegisterScreen
 import com.bobo.data_lotto_app.screens.main.DrawScreen
@@ -160,6 +161,7 @@ fun AppScreen(
                     bottom = it.calculateBottomPadding()
                 )
             ) {
+
                 MainNaHost(
                     mainNavController = mainNavController,
                     mainRouteAction = mainRouteAction,
@@ -266,115 +268,4 @@ fun AuthNavHost(
 
 
 
-@Composable
-fun LoadingDialog(
-) {
 
-    val isFirstMoving = remember { mutableStateOf(false) }
-
-    val isSecondMoving = remember { mutableStateOf(false) }
-
-    val isThreeMoving = remember { mutableStateOf(false) }
-
-    val isFourMoving = remember { mutableStateOf(false) }
-
-    LaunchedEffect(key1 = Unit) {
-        isFirstMoving.value = true
-        delay(200)
-        isSecondMoving.value = true
-        delay(200)
-        isThreeMoving.value = true
-        delay(200)
-        isFourMoving.value = true
-    }
-
-
-    val ballAnimate = animateIntAsState(
-        targetValue = if(isFirstMoving.value) 80 else 0 ,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800),
-            repeatMode = RepeatMode.Reverse))
-
-    val redBallAnimate = animateIntAsState(
-        targetValue = if(isSecondMoving.value) 80 else 0 ,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800),
-            repeatMode = RepeatMode.Reverse))
-
-    val grayBallAnimate = animateIntAsState(
-        targetValue = if(isThreeMoving.value) 80 else 0 ,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800),
-            repeatMode = RepeatMode.Reverse))
-
-    val greenBallAnimate = animateIntAsState(
-        targetValue = if(isFourMoving.value) 80 else 0 ,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800),
-            repeatMode = RepeatMode.Reverse))
-
-
-
-
-    Column(modifier = Modifier.fillMaxSize()) {
-
-        Row(modifier = Modifier
-            .weight(1f)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.blue_ball),
-                contentDescription = "C",
-                modifier = Modifier
-                    .size(50.dp)
-                    .offset(
-                        x = 100.dp,
-                        y = ballAnimate.value.dp
-                    )
-            )
-
-            Spacer(modifier = Modifier.width(5.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.red_ball),
-                contentDescription = "C",
-                modifier = Modifier
-                    .size(50.dp)
-                    .offset(
-                        x = 100.dp,
-                        y = redBallAnimate.value.dp
-                    )
-            )
-
-            Spacer(modifier = Modifier.width(5.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.gray_ball),
-                contentDescription = "C",
-                modifier = Modifier
-                    .size(50.dp)
-                    .offset(
-                        x = 100.dp,
-                        y = grayBallAnimate.value.dp
-                    )
-            )
-
-            Spacer(modifier = Modifier.width(5.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.green_ball),
-                contentDescription = "C",
-                modifier = Modifier
-                    .size(50.dp)
-                    .offset(
-                        x = 100.dp,
-                        y = greenBallAnimate.value.dp
-                    )
-            )
-
-        }
-
-        Row(modifier = Modifier.weight(1f)) {
-        }
-    }
-
-}

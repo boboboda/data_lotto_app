@@ -89,6 +89,8 @@ fun MainScreen(
 
     val resentLottoNumber = dataViewModel.resentLottoNumber.collectAsState()
 
+    val lastWeekLottoNumber = dataViewModel.lastWeekLottoNumber.collectAsState()
+
     val noticeCardState = noticeViewModel.mainNoticeCardValue.collectAsState()
 
     val announcementPost = noticeViewModel.announcementPost.collectAsState()
@@ -167,34 +169,64 @@ fun MainScreen(
             )
 
             // 게시판 뷰
-            MainNoticeTopTitleButton(noticeViewModel = noticeViewModel)
+//            MainNoticeTopTitleButton(noticeViewModel = noticeViewModel)
+//
+//            Spacer(modifier = Modifier.height(15.dp))
+//
+//            when(noticeCardState.value) {
+//                1 -> {
+//                    NoticeContent(
+//                        modifier = Modifier.weight(1f),
+//                        announcementPost.value,
+//                        clicked = {
+//
+//                        }
+//                    )
+//                }
+//                2 -> {
+//                    NoticeContent(
+//                        modifier = Modifier.weight(1f),
+//                        bragPost.value,
+//                        clicked = {
+//
+//                        }
+//                    )
+//                }
+//            }
+
+            // 게시판 뷰 보류
+
+
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "저번주 당첨번호  ${lastWeekLottoNumber.value.drwNo}회",
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            when(noticeCardState.value) {
-                1 -> {
-                    NoticeContent(
-                        modifier = Modifier.weight(1f),
-                        announcementPost.value,
-                        clicked = {
+            LottoRowView(
+                oneBall = lastWeekLottoNumber.value.drwtNo1!!.toInt(),
+                twoBall = lastWeekLottoNumber.value.drwtNo2!!.toInt(),
+                threeBall = lastWeekLottoNumber.value.drwtNo3!!.toInt(),
+                fourBall = lastWeekLottoNumber.value.drwtNo4!!.toInt(),
+                fiveBall = lastWeekLottoNumber.value.drwtNo5!!.toInt(),
+                sixBall = lastWeekLottoNumber.value.drwtNo6!!.toInt(),
+                bonusBall = lastWeekLottoNumber.value.bnusNo!!.toInt(),
+                totalMoney = lastWeekLottoNumber.value.totSellamnt!!,
+                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt!!,
+                firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo!!.toInt(),
+                modifier = Modifier.weight(1f)
 
-                        }
-                    )
-                }
-                2 -> {
-                    NoticeContent(
-                        modifier = Modifier.weight(1f),
-                        bragPost.value,
-                        clicked = {
-
-                        }
-                    )
-                }
-            }
-
-
-
-
+            )
         }
     }
 
@@ -495,7 +527,6 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 
 
                 }) {
-
                     androidx.compose.material.Text(text = "로그아웃")
                 }
 
@@ -555,24 +586,29 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
         Column(horizontalAlignment = Alignment.Start) {
 
 
-            Text(modifier = Modifier
-                .padding(start = 8.dp, bottom = 5.dp)
-                .clickable {
+//            Text(modifier = Modifier
+//                .padding(start = 8.dp, bottom = 5.dp)
+//                .clickable {
+//
+//                }, text = "내 글 보기")
 
-                }, text = "내 글 보기")
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            Text(modifier = Modifier
-                .padding(start = 8.dp, bottom = 5.dp)
-                .clickable {
-
-                }, text = "광고 삭제하기")
+//            Spacer(modifier = Modifier.height(5.dp))
+//
+//            Text(modifier = Modifier
+//                .padding(start = 8.dp, bottom = 5.dp)
+//                .clickable {
+//
+//                }, text = "광고 삭제하기")
 
             TextButton(onClick = {
-                mainRouteAction.navTo.invoke(MainRoute.Payment)
+                if(isSignIn.value) {
+                    mainRouteAction.navTo.invoke(MainRoute.Payment)
+                } else {
+                    authViewModel.needAuthContext.value = false
+                }
+
             }) {
-                Text(text = "결제화면 이동")
+                Text(text = "광고 삭제")
             }
 
             Divider(
@@ -580,25 +616,25 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
                     .fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(modifier = Modifier.padding(start = 10.dp),fontSize = 20.sp,text = "게시판")
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            Text(modifier = Modifier
-                .padding(start = 20.dp, bottom = 5.dp)
-                .clickable {
-                    mainRouteAction.navTo(MainRoute.Notice)
-                }, text = "공지사항")
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(modifier = Modifier
-                .padding(start = 20.dp, bottom = 5.dp)
-                .clickable {
-
-                }, text = "자랑글")
+//            Spacer(modifier = Modifier.height(2.dp))
+//
+//            Text(modifier = Modifier.padding(start = 10.dp),fontSize = 20.sp,text = "게시판")
+//
+//            Spacer(modifier = Modifier.height(5.dp))
+//
+//            Text(modifier = Modifier
+//                .padding(start = 20.dp, bottom = 5.dp)
+//                .clickable {
+//                    mainRouteAction.navTo(MainRoute.Notice)
+//                }, text = "공지사항")
+//
+//            Spacer(modifier = Modifier.height(2.dp))
+//
+//            Text(modifier = Modifier
+//                .padding(start = 20.dp, bottom = 5.dp)
+//                .clickable {
+//
+//                }, text = "자랑글")
 
 
             Spacer(modifier = Modifier.weight(1f))

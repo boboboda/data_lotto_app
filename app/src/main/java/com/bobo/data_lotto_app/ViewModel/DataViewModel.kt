@@ -148,16 +148,21 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val resentLottoNumber = MutableStateFlow<Lotto>(Lotto(drwNo = 0, drwtNo1 = 1, drwtNo2 = 2, drwtNo3 = 3, drwtNo4 = 4, drwtNo5 = 5, drwtNo6 = 6, bnusNo = 7, totSellamnt = "0", firstPrzwnerCo = 0, firstWinamnt = "0"))
 
+    val lastWeekLottoNumber = MutableStateFlow<Lotto>(Lotto(drwNo = 0, drwtNo1 = 1, drwtNo2 = 2, drwtNo3 = 3, drwtNo4 = 4, drwtNo5 = 5, drwtNo6 = 6, bnusNo = 7, totSellamnt = "0", firstPrzwnerCo = 0, firstWinamnt = "0"))
+
     fun resentLottoCall() {
         val lottoNumber = allLottoNumberDataFlow.value.map { it.drwNo }
 
         val maxValue = lottoNumber.maxByOrNull { it!! } ?: throw Exception("null max value")
 
-
         val filterLotto = allLottoNumberDataFlow.value.filter { it.drwNo == maxValue }.lastOrNull()
+
+        val filterLastWeekLotto = allLottoNumberDataFlow.value.filter { it.drwNo == maxValue - 1 }.lastOrNull()
 
         viewModelScope.launch {
             resentLottoNumber.emit(filterLotto!!)
+
+            lastWeekLottoNumber.emit(filterLastWeekLotto!!)
         }
     }
 
@@ -1005,7 +1010,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
             }
             LotteryType.BIGDATA -> {
 
-                Log.d(TAG, "빅데이터 필터넘버 실행")
+                Log.d(TAG, "빅데이터 필터넘버 실행, ${bigDataNumberAndPercentValue.value}")
                 val rangeNumber =
                     when(proportionStateFlow.value) {
                         "1" -> { bigDataNumberAndPercentValue.value.sortedByDescending { it.second } }

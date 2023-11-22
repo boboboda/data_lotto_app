@@ -64,6 +64,8 @@ class AuthViewModel @Inject
 
     val isLoadingFlow = MutableStateFlow(false)
 
+    val kakaoisLoadingFlow = MutableStateFlow(false)
+
     val needAuthContext = MutableStateFlow(false)
 
     val allNumberSearchCountFlow = MutableStateFlow(0)
@@ -105,7 +107,7 @@ class AuthViewModel @Inject
                                     userDataReSet()
 
                                     // 관리자 권한으로 횟수 리셋함 출시 때 삭제
-                                    adminReSetLocalUserCount()
+//                                    adminReSetLocalUserCount()
                                 }
                             }
                     }
@@ -126,22 +128,10 @@ class AuthViewModel @Inject
             )
 
             localRepository.localUserAdd(createGuestUser)
-        }
 
-        viewModelScope.launch(Dispatchers.IO) {
-
-                localRepository.localUserDataGet().distinctUntilChanged()
-                    .collect{userData ->
-
-                        Log.d(USER, "생성 후 로컬 유저 불러옴 실행 ${userData}")
-
-                        localUser.emit(userData)
-
-//                        allNumberSearchCountFlow.emit(userData.allNumberSearchCount!!)
-//                        myNumberSearchCountFlow.emit(userData.myNumberSearchCount!!)
-//                        numberLotteryCountFlow.emit(userData.allNumberSearchCount!!)
-                    }
-
+            allNumberSearchCountFlow.emit(3)
+            myNumberSearchCountFlow.emit(3)
+            numberLotteryCountFlow.emit(3)
         }
     }
 
@@ -286,6 +276,10 @@ class AuthViewModel @Inject
 
                     Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
 
+                    viewModelScope.launch {
+                        isLoggedIn.emit(true)
+                    }
+
                     kakaoDataRequest(type)
 
                 }
@@ -328,6 +322,7 @@ class AuthViewModel @Inject
                            val receiveUserData = response.users
                            receiveUserDataFlow.emit(receiveUserData!!)
                            needAuthContext.emit(true)
+                           isLoggedIn.emit(true)
                        }
                    }
 
