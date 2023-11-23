@@ -23,15 +23,15 @@ private val LottoRetrofit = Retrofit.Builder()
     .build()
 
 
-object LottoApi {
-    val retrofitService : LottoApiService by lazy { LottoRetrofit.create(LottoApiService::class.java) }
-}
-
-interface LottoApiService {
-    @GET("lottos/loadData")
-    suspend fun fetchLottos() : LottoListResponse
-
-}
+//object LottoApi {
+//    val retrofitService : LottoApiService by lazy { LottoRetrofit.create(LottoApiService::class.java) }
+//}
+//
+//interface LottoApiService {
+//    @GET("lottos/loadData")
+//    suspend fun fetchLottos() : LottoListResponse
+//
+//}
 
 
 

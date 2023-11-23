@@ -161,8 +161,8 @@ fun MainScreen(
                 fiveBall = resentLottoNumber.value.drwtNo5!!.toInt(),
                 sixBall = resentLottoNumber.value.drwtNo6!!.toInt(),
                 bonusBall = resentLottoNumber.value.bnusNo!!.toInt(),
-                totalMoney = resentLottoNumber.value.totSellamnt!!,
-                firstWinamnt = resentLottoNumber.value.firstWinamnt!!,
+                totalMoney = resentLottoNumber.value.totSellamnt!!.toInt(),
+                firstWinamnt = resentLottoNumber.value.firstWinamnt!!.toInt(),
                 firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo!!.toInt(),
                 modifier = Modifier.weight(1f)
 
@@ -221,8 +221,8 @@ fun MainScreen(
                 fiveBall = lastWeekLottoNumber.value.drwtNo5!!.toInt(),
                 sixBall = lastWeekLottoNumber.value.drwtNo6!!.toInt(),
                 bonusBall = lastWeekLottoNumber.value.bnusNo!!.toInt(),
-                totalMoney = lastWeekLottoNumber.value.totSellamnt!!,
-                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt!!,
+                totalMoney = lastWeekLottoNumber.value.totSellamnt!!.toInt(),
+                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt!!.toInt(),
                 firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo!!.toInt(),
                 modifier = Modifier.weight(1f)
 
@@ -245,8 +245,8 @@ fun LottoRowView(
     fiveBall: Int,
     sixBall: Int,
     bonusBall: Int,
-    totalMoney: String,
-    firstWinamnt: String,
+    totalMoney: Int,
+    firstWinamnt: Int,
     firstPrzwnerCo: Int,
     modifier: Modifier
 

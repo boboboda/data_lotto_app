@@ -74,3 +74,24 @@ interface LocalUserDatabaseDao {
     suspend fun deleteNote(localUserData: LocalUserData)
 }
 
+
+@Dao
+interface AllLottoNumberDatabaseDao {
+    @Query("SELECT * from AllLottoNumber_table")
+    fun getAllLottoNumber(): Flow<List<Lotto>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(lotto: Lotto)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(lottoList: List<Lotto>)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(lotto: Lotto)
+
+    @Query("DELETE from AllLottoNumber_table")
+    suspend fun deleteAll()
+    @Delete
+    suspend fun deleteNote(lotto: Lotto)
+}
+

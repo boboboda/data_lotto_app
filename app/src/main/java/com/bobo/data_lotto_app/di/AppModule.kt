@@ -1,5 +1,6 @@
 package com.bobo.data_lotto_app.di
 
+import com.bobo.data_lotto_app.Localdb.AllLottoNumberDatabaseDao
 import com.bobo.data_lotto_app.Localdb.BigdataModeNumberDatabaseDao
 import com.bobo.data_lotto_app.Localdb.LocalRepository
 import com.bobo.data_lotto_app.Localdb.LocalUserDatabaseDao
@@ -20,10 +21,12 @@ object AppModule {
     fun provideLocalRepository(
         normalModeNumberDatabaseDao: NormalModeNumberDatabaseDao,
         bigdataModeNumberDatabaseDao: BigdataModeNumberDatabaseDao,
-        userDatabaseDao: LocalUserDatabaseDao): LocalRepository {
+        userDatabaseDao: LocalUserDatabaseDao,
+        allLottoNumberDatabaseDao: AllLottoNumberDatabaseDao): LocalRepository {
         return LocalRepository(
             normalModeNumberDatabaseDao,
             bigdataModeNumberDatabaseDao,
-            userDatabaseDao)
+            userDatabaseDao,
+            allLottoNumberDatabaseDao)
     }
 }

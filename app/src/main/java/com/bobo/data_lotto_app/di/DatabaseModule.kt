@@ -2,6 +2,7 @@ package com.bobo.data_lotto_app.di
 
 import android.content.Context
 import androidx.room.Room
+import com.bobo.data_lotto_app.Localdb.AllLottoNumberDatabaseDao
 import com.bobo.data_lotto_app.Localdb.BigdataModeNumberDatabaseDao
 import com.bobo.data_lotto_app.Localdb.LocalDatabase
 import com.bobo.data_lotto_app.Localdb.LocalUserDatabaseDao
@@ -31,6 +32,11 @@ private object DatabaseModule {
     @Provides
     fun provideLocalUserDao(localDatabase: LocalDatabase): LocalUserDatabaseDao {
         return localDatabase.localUserDao()
+    }
+
+    @Provides
+    fun provideAllLottoNumberDao(allLocalDatabase: LocalDatabase): AllLottoNumberDatabaseDao {
+        return allLocalDatabase.allLottoNumberDao()
     }
 
     @Provides

@@ -7,12 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
 import com.bobo.data_lotto_app.Localdb.LocalRepository
+import com.bobo.data_lotto_app.Localdb.Lotto
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.service.FirebaseLottoListResponse
-import com.bobo.data_lotto_app.service.Lotto
-import com.bobo.data_lotto_app.service.LottoApi
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObjects
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.app
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -72,7 +74,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
             //api 요청
         // firebase 이관 작업
         // firebase store data 요청
-            allFetched()
+            localAllFetchedLottoNumber()
 
         viewModelScope.launch {
             // 노말모드, 빅데이터모드 추첨번호 불러오기
@@ -123,58 +125,92 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     }
 
-    // 업로드 로또 모든 로또 번호
-    fun allFetched() {
-        viewModelScope.launch {
-            var response = LottoApi.retrofitService.fetchLottos()
+    fun localAllFetchedLottoNumber() {
 
-            response?.let{
-               val mapDataResponse = it.lottos
-                _allLottoNumberDataFlow.emit(mapDataResponse!!)
+        viewModelScope.launch(Dispatchers.IO) {
+//            localRepository.allLottoNumberDeleteAll()
 
-                _selectRangeLottoNumber.emit(mapDataResponse)
+            var allLottoNumber = localRepository.allLottoNumberGetAll().first()
 
-                //빅데이터 조회 모든 번호 초기 실행
-                if(!selectRangeLottoNumber.value.isEmpty()) {
+            if(allLottoNumber.isNullOrEmpty()) {
+                Log.d(TAG, "Empty allLottoNumber list")
 
-                    Log.d(TAG, "빅데이터 조회 초기 실행")
+                db.collection("lottos")
+                    .get()
+                    .addOnSuccessListener { result->
 
-                    val allNumberAndPercentData = calculate(type = ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+                        val fetchAllLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
 
-                    val sortedData = allNumberAndPercentData.sortedBy { it.second }
+                        val mapLottoNumber = fetchAllLottoNumber.mapNotNull { it.lotto }
 
-                    allNumberAndPercentValue.emit(sortedData)
-                }
+                        allFetched(mapLottoNumber)
 
-                // 최신 로또번호 추출
-                resentLottoCall()
-            } ?: Log.d(TAG, "allLotto 데이터가 없습니다.")
+                        Log.d(TAG, "firebase 모든로또번호 불러오기 실행 ${mapLottoNumber}")
+                        Log.d(TAG, "firebase 모든로또번호 불러오기 실행 갯수 ${mapLottoNumber.count()}")
+
+                        viewModelScope.launch(Dispatchers.IO) {
+                            localRepository.allLottoNumberAllAdd(mapLottoNumber)
+                        }
+                    }
+                    .addOnFailureListener{e ->
+                        Log.d(TAG, "Error adding document", e)
+                    }
+            } else {
+
+                db.collection("lottos")
+                    .orderBy("lotto.drwNo", Query.Direction.DESCENDING)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener { result ->
+                        viewModelScope.launch {
+                            val resentLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
+
+                            val mapLottoNumber = resentLottoNumber.mapNotNull { it.lotto }.first()
+                            Log.d(TAG, "최신 로또번호 ${mapLottoNumber.drwNo}")
+                        }
+
+                    }
+                    .addOnFailureListener{e ->
+                        Log.d(TAG, "최신 로또번호 불러오기 실패", e)
+                    }
+
+                Log.d(TAG, "local 모든로또번호 불러오기 실행 ${allLottoNumber}")
+                Log.d(TAG, "local 모든로또번호 불러오기 실행 갯수 ${allLottoNumber.count()}")
+
+                allFetched(allLottoNumber)
+
+            }
         }
+    }
 
+    // 업로드 로또 모든 로또 번호
+    fun allFetched(lottos : List<Lotto>) {
+        //localdb 작업 필요
         //firebase firestore 데이터 요청
-        db.collection("lottos")
-            .get()
-            .addOnSuccessListener { result->
-                viewModelScope.launch {
-                    val fetchAllLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
+        viewModelScope.launch {
+            _allLottoNumberDataFlow.emit(lottos)
 
-                    Log.d(TAG, "firebaseLottoNumber count: ${fetchAllLottoNumber.count()}")
-                    Log.d(TAG, "firebaseLottoNumber: ${fetchAllLottoNumber}")
-                }
+            _selectRangeLottoNumber.emit(lottos)
+
+            if(!selectRangeLottoNumber.value.isEmpty()) {
+
+                Log.d(TAG, "빅데이터 조회 초기 실행")
+
+                val allNumberAndPercentData = calculate(type = ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+
+                val sortedData = allNumberAndPercentData.sortedBy { it.second }
+
+                allNumberAndPercentValue.emit(sortedData)
             }
-            .addOnFailureListener{e ->
-                Log.d(TAG, "Error adding document", e)
-            }
-
-
-
+            resentLottoCall()
+        }
     }
 
     // 최근 로또 번호 추출
 
-    val resentLottoNumber = MutableStateFlow<Lotto>(Lotto(drwNo = 0, drwtNo1 = 1, drwtNo2 = 2, drwtNo3 = 3, drwtNo4 = 4, drwtNo5 = 5, drwtNo6 = 6, bnusNo = 7, totSellamnt = "0", firstPrzwnerCo = 0, firstWinamnt = "0"))
+    val resentLottoNumber = MutableStateFlow<Lotto>(Lotto(drwNo = 0, drwtNo1 = 1, drwtNo2 = 2, drwtNo3 = 3, drwtNo4 = 4, drwtNo5 = 5, drwtNo6 = 6, bnusNo = 7, totSellamnt = 1, firstPrzwnerCo = 0, firstWinamnt = 0))
 
-    val lastWeekLottoNumber = MutableStateFlow<Lotto>(Lotto(drwNo = 0, drwtNo1 = 1, drwtNo2 = 2, drwtNo3 = 3, drwtNo4 = 4, drwtNo5 = 5, drwtNo6 = 6, bnusNo = 7, totSellamnt = "0", firstPrzwnerCo = 0, firstWinamnt = "0"))
+    val lastWeekLottoNumber = MutableStateFlow<Lotto>(Lotto(drwNo = 0, drwtNo1 = 1, drwtNo2 = 2, drwtNo3 = 3, drwtNo4 = 4, drwtNo5 = 5, drwtNo6 = 6, bnusNo = 7, totSellamnt = 1, firstPrzwnerCo = 0, firstWinamnt = 0))
 
     fun resentLottoCall() {
         val lottoNumber = allLottoNumberDataFlow.value.map { it.drwNo }

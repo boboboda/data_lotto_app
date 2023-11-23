@@ -54,12 +54,12 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
+import com.bobo.data_lotto_app.Localdb.Lotto
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.screens.main.BallDraw
-import com.bobo.data_lotto_app.service.Lotto
 import com.bobo.data_lotto_app.ui.theme.DataSelectFirstColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
 import com.bobo.data_lotto_app.ui.theme.DisableButtonColor

@@ -8,10 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bobo.data_lotto_app.Localdb.LocalRepository
 import com.bobo.data_lotto_app.Localdb.LocalUserData
+import com.bobo.data_lotto_app.Localdb.Lotto
 import com.bobo.data_lotto_app.MainActivity
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.components.UseType
-import com.bobo.data_lotto_app.service.Lotto
 import com.bobo.data_lotto_app.service.User
 import com.bobo.data_lotto_app.service.UserApi
 import com.bobo.data_lotto_app.service.UserRequest

@@ -9,9 +9,17 @@ import javax.inject.Inject
 class LocalRepository @Inject constructor(
     private val normalModeNumberDatabaseDao: NormalModeNumberDatabaseDao,
     private  val bigdataModeNumberDatabaseDao: BigdataModeNumberDatabaseDao,
-    private val localUserDatabaseDao: LocalUserDatabaseDao
+    private val localUserDatabaseDao: LocalUserDatabaseDao,
+    private val allLottoNumberDatabaseDao: AllLottoNumberDatabaseDao
     ) {
 
+    // 모든 로또번호 로컬 저장
+    suspend fun allLottoNumberAdd(lotto: Lotto) = allLottoNumberDatabaseDao.insert(lotto)
+    suspend fun allLottoNumberAllAdd(lottos: List<Lotto>) = allLottoNumberDatabaseDao.insertAll(lottos)
+    suspend fun allLottoNumberUpdate(lotto: Lotto) = allLottoNumberDatabaseDao.update(lotto)
+    suspend fun allLottoNumberDelete(lotto: Lotto) = allLottoNumberDatabaseDao.deleteNote(lotto)
+    suspend fun allLottoNumberDeleteAll() = allLottoNumberDatabaseDao.deleteAll()
+    fun allLottoNumberGetAll(): Flow<List<Lotto>> = allLottoNumberDatabaseDao.getAllLottoNumber().flowOn(Dispatchers.IO).conflate()
 
     // 노말모드
     suspend fun add(normalModeNumber: NormalModeNumber) = normalModeNumberDatabaseDao.insert(normalModeNumber)
