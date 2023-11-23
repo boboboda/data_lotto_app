@@ -9,8 +9,12 @@ import com.bobo.data_lotto_app.Localdb.BigDataModeNumber
 import com.bobo.data_lotto_app.Localdb.LocalRepository
 import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
+import com.bobo.data_lotto_app.service.FirebaseLottoListResponse
 import com.bobo.data_lotto_app.service.Lotto
 import com.bobo.data_lotto_app.service.LottoApi
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.app
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +42,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DataViewModel @Inject constructor(private val localRepository: LocalRepository): ViewModel() {
 
+    val db = Firebase.firestore
 
     val dataCardId = MutableStateFlow(1)
 
@@ -65,6 +70,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     //초기 실행
     init {
             //api 요청
+        // firebase 이관 작업
+        // firebase store data 요청
             allFetched()
 
         viewModelScope.launch {
@@ -139,9 +146,28 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                     allNumberAndPercentValue.emit(sortedData)
                 }
 
+                // 최신 로또번호 추출
                 resentLottoCall()
             } ?: Log.d(TAG, "allLotto 데이터가 없습니다.")
         }
+
+        //firebase firestore 데이터 요청
+        db.collection("lottos")
+            .get()
+            .addOnSuccessListener { result->
+                viewModelScope.launch {
+                    val fetchAllLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
+
+                    Log.d(TAG, "firebaseLottoNumber count: ${fetchAllLottoNumber.count()}")
+                    Log.d(TAG, "firebaseLottoNumber: ${fetchAllLottoNumber}")
+                }
+            }
+            .addOnFailureListener{e ->
+                Log.d(TAG, "Error adding document", e)
+            }
+
+
+
     }
 
     // 최근 로또 번호 추출

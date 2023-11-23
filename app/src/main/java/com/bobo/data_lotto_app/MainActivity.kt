@@ -70,13 +70,20 @@ import com.bobo.data_lotto_app.screens.main.DrawScreen
 import com.bobo.data_lotto_app.screens.main.NoticeScreen
 import com.bobo.data_lotto_app.screens.main.PaymentScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.app
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 
 
+
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
 
     companion object {
         const val TAG = "메인"

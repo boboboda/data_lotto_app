@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id("com.google.dagger.hilt.android")
+    id 'com.google.gms.google-services'
 }
 
 kapt {
@@ -77,6 +78,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'com.google.android.gms:play-services-ads-lite:22.3.0'
     implementation 'com.google.firebase:firebase-crashlytics-buildtools:2.9.9'
+    implementation 'com.google.firebase:firebase-firestore:24.9.1'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -154,4 +156,12 @@ dependencies {
     def billing_version = "6.0.1"
 
     implementation "com.android.billingclient:billing-ktx:$billing_version"
+
+    //firebase
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+
+    // Declare the dependency for the Cloud Firestore library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-firestore")
 }

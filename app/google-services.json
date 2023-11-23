@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "986291625395",
+    "project_id": "lotto-app-service",
+    "storage_bucket": "lotto-app-service.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986291625395:android:c4ab736bafe976f7437fc6",
+        "android_client_info": {
+          "package_name": "com.bobo.data_lotto_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_ZQKglqQOobcS3AlmeoomZmTPRVoKQZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
