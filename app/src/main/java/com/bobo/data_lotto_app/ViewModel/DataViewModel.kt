@@ -68,12 +68,16 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     var selectRangeMyLottoNumber = _selectRangeMyLottoNumber.asStateFlow()
 
+    // 최신로또번호
+
+
+
 
     //초기 실행
     init {
-            //api 요청
-        // firebase 이관 작업
+
         // firebase store data 요청
+        // 최신 로또번호 체크 후 로컬 또는 파이어베이스 데이터 불러오기 실행
             localAllFetchedLottoNumber()
 
         viewModelScope.launch {
@@ -125,6 +129,53 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     }
 
+    fun resentLottoNumberCheck(localResentLottoNumber: Long) {
+            db.collection("lottos")
+                .orderBy("lotto.drwNo", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener { result ->
+                    viewModelScope.launch {
+                        val resentLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
+
+                        val mapLottoNumber = resentLottoNumber.mapNotNull { it.lotto }.first()
+                        Log.d(TAG, "최신 로또번호 ${mapLottoNumber.drwNo}")
+                        Log.d(TAG, "firebase 최신 로또번호: ${mapLottoNumber.drwNo}")
+                        Log.d(TAG, "local 최신 로또번호: ${localResentLottoNumber}")
+
+
+                        if(localResentLottoNumber != mapLottoNumber.drwNo) {
+                            Log.d(TAG, "현재 최신 로또번호가 달라서 실행")
+                            db.collection("lottos")
+                                .get()
+                                .addOnSuccessListener { result->
+
+                                    val fetchAllLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
+
+                                    val mapLottoNumber = fetchAllLottoNumber.mapNotNull { it.lotto }
+
+                                    allFetched(mapLottoNumber)
+
+                                    viewModelScope.launch(Dispatchers.IO) {
+                                        localRepository.allLottoNumberAllAdd(mapLottoNumber)
+                                    }
+                                }
+                                .addOnFailureListener{e ->
+                                    Log.d(TAG, "Error adding document", e)
+                                }
+                        } else {
+                            Log.d(TAG, "firebase & local 최신 로또번호 일치함")
+                            return@launch
+                        }
+                    }
+
+                }
+                .addOnFailureListener{e ->
+                    Log.d(TAG, "최신 로또번호 불러오기 실패", e)
+                }
+    }
+
+
     fun localAllFetchedLottoNumber() {
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -155,31 +206,20 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                     .addOnFailureListener{e ->
                         Log.d(TAG, "Error adding document", e)
                     }
+
             } else {
+                val maxValue = allLottoNumber.map { it.drwNo }.maxBy { it!! }
 
-                db.collection("lottos")
-                    .orderBy("lotto.drwNo", Query.Direction.DESCENDING)
-                    .limit(1)
-                    .get()
-                    .addOnSuccessListener { result ->
-                        viewModelScope.launch {
-                            val resentLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
+                resentLottoNumberCheck(maxValue!!)
 
-                            val mapLottoNumber = resentLottoNumber.mapNotNull { it.lotto }.first()
-                            Log.d(TAG, "최신 로또번호 ${mapLottoNumber.drwNo}")
-                        }
-
-                    }
-                    .addOnFailureListener{e ->
-                        Log.d(TAG, "최신 로또번호 불러오기 실패", e)
-                    }
+                Log.d(TAG, "local 모든로또번호 불러오기 중 제일 최근 번호 ${maxValue}")
 
                 Log.d(TAG, "local 모든로또번호 불러오기 실행 ${allLottoNumber}")
                 Log.d(TAG, "local 모든로또번호 불러오기 실행 갯수 ${allLottoNumber.count()}")
 
                 allFetched(allLottoNumber)
-
             }
+
         }
     }
 
