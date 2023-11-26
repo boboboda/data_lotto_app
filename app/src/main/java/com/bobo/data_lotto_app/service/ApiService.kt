@@ -10,7 +10,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 
-private const val BASE_URL = "https://lotto-app-service-production.up.railway.app"
+private const val BASE_URL = "https://asia-northeast3-lotto-app-service.cloudfunctions.net/"
 
 private val moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
@@ -46,11 +46,11 @@ object UserApi {
 }
 
 interface UserApiService {
-    @POST("auth/signup")
-    suspend fun UserSignUp(@Body request: UserRequest) : UserResponse
+    @POST("sendEmailVerification")
+    suspend fun sendEmailVerification(@Body request: EmailRequest) : EmailResponse
 
 
-    @POST("auth/login")
-    suspend fun UserLogin(@Body request: UserRequest) : UserResponse
+//    @POST("auth/login")
+//    suspend fun UserLogin(@Body request: UserRequest) : UserResponse
 
 }

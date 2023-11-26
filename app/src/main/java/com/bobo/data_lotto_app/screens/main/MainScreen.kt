@@ -69,6 +69,8 @@ import com.bobo.data_lotto_app.extentions.toWon
 import com.bobo.data_lotto_app.service.Post
 import com.bobo.data_lotto_app.ui.theme.MainFirstBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.MainMenuBarColor
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -523,6 +525,7 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
                     scope.launch {
                         authViewModel.isLoggedIn.emit(false)
                         authViewModel.needAuthContext.emit(false)
+                        Firebase.auth.signOut()
                     }
 
 

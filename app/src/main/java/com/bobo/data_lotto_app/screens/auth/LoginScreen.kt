@@ -1,5 +1,6 @@
 package com.bobo.data_lotto_app.screens.auth
 
+import android.app.Activity
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -27,16 +28,20 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.MainActivity
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.MainRoute
 import com.bobo.data_lotto_app.MainRouteAction
@@ -56,10 +61,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun LoginScreen(authViewModel: AuthViewModel,
-                routeAction: AuthRouteAction) {
+                routeAction: AuthRouteAction,
+                activity: Activity) {
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -210,7 +216,7 @@ fun LoginScreen(authViewModel: AuthViewModel,
                         loadOpenDialog.value = true
                         authViewModel.kakaoisLoadingFlow.value = true
                         delay(2000)
-                        authViewModel.loginUser(type = AuthViewModel.LoginType.KAKAO)
+                        authViewModel.loginUser(type = AuthViewModel.LoginType.KAKAO, activity)
 
                         authViewModel.failedLogIn.collectLatest {
                             if (failedLogin.value == true) {

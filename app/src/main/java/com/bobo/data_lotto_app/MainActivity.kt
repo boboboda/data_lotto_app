@@ -197,7 +197,8 @@ fun AppScreen(
                     authNavController = authNavController,
                     routeAction = authRouteAction,
                     authViewModel = authViewModel,
-                    mainRouteAction = mainRouteAction)
+                    mainRouteAction = mainRouteAction,
+                    activity = activity)
 
             }
         }
@@ -250,7 +251,8 @@ fun AuthNavHost(
     startRouter: AuthRoute = AuthRoute.WELCOME,
     routeAction: AuthRouteAction,
     authViewModel: AuthViewModel,
-    mainRouteAction: MainRouteAction
+    mainRouteAction: MainRouteAction,
+    activity: Activity
 ) {
 
 
@@ -258,7 +260,7 @@ fun AuthNavHost(
         navController = authNavController,
         startDestination = startRouter.routeName) {
         composable(AuthRoute.LOGIN.routeName) {
-            LoginScreen(authViewModel = authViewModel, routeAction = routeAction)
+            LoginScreen(authViewModel = authViewModel, routeAction = routeAction, activity = activity)
         }
 
         composable(AuthRoute.REGISTER.routeName) {

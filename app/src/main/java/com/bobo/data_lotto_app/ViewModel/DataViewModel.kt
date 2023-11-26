@@ -2,6 +2,7 @@ package com.bobo.data_lotto_app.ViewModel
 
 import android.util.Log
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -137,9 +138,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 .addOnSuccessListener { result ->
                     viewModelScope.launch {
                         val resentLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
-
                         val mapLottoNumber = resentLottoNumber.mapNotNull { it.lotto }.first()
-                        Log.d(TAG, "최신 로또번호 ${mapLottoNumber.drwNo}")
+                        Log.d(TAG, "최신 로또번호 data ${mapLottoNumber}")
                         Log.d(TAG, "firebase 최신 로또번호: ${mapLottoNumber.drwNo}")
                         Log.d(TAG, "local 최신 로또번호: ${localResentLottoNumber}")
 
@@ -215,7 +215,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 Log.d(TAG, "local 모든로또번호 불러오기 중 제일 최근 번호 ${maxValue}")
 
                 Log.d(TAG, "local 모든로또번호 불러오기 실행 ${allLottoNumber}")
-                Log.d(TAG, "local 모든로또번호 불러오기 실행 갯수 ${allLottoNumber.count()}")
+                Log.d(TAG, "local 최신로또 번호 ${allLottoNumber.sortedByDescending { it.drwNo }.first()}")
 
                 allFetched(allLottoNumber)
             }

@@ -1,5 +1,6 @@
 package com.bobo.data_lotto_app.ViewModel
 
+import android.app.Activity
 import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -11,16 +12,24 @@ import com.bobo.data_lotto_app.Localdb.LocalUserData
 import com.bobo.data_lotto_app.Localdb.Lotto
 import com.bobo.data_lotto_app.MainActivity
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
+import com.bobo.data_lotto_app.ViewModel.AuthViewModel.Companion.USER
 import com.bobo.data_lotto_app.components.UseType
+import com.bobo.data_lotto_app.firebase.AuthRepository
+import com.bobo.data_lotto_app.firebase.Resource
+import com.bobo.data_lotto_app.service.EmailRequest
 import com.bobo.data_lotto_app.service.User
 import com.bobo.data_lotto_app.service.UserApi
-import com.bobo.data_lotto_app.service.UserRequest
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -34,6 +43,7 @@ import retrofit2.HttpException
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.Calendar
 import java.util.Timer
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -44,7 +54,8 @@ import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.DeclaredMembe
 @HiltViewModel
 class AuthViewModel @Inject
     constructor(application: Application,
-                private val localRepository: LocalRepository
+                private val localRepository: LocalRepository,
+                private val authRepository: AuthRepository
             ): AndroidViewModel(application) {
 
     companion object {
@@ -74,7 +85,13 @@ class AuthViewModel @Inject
 
     val numberLotteryCountFlow = MutableStateFlow(0)
 
+    val db = Firebase.firestore
+
+    val userDb = Firebase.auth
+
     init {
+
+//        testApi()
 
         //로그인 상태에 따라 유저 데이터 변경
         viewModelScope.launch {
@@ -171,24 +188,83 @@ class AuthViewModel @Inject
 
     val registerSuccessFlow = MutableStateFlow(false)
 
+    val userAuthState = MutableStateFlow(false)
 
-    fun registerUser() {
+    fun registerUser() = viewModelScope.launch {
+        authRepository.registerUser(registerEmailInputFlow.value, registerPasswordInputFlow.value).collect{ result ->
+            when(result) {
+                is Resource.Success -> {
+                    Log.d(TAG, "가입성공")
 
-        viewModelScope.launch {
-            val response = UserApi.retrofitService.UserSignUp(request = UserRequest(
-                type = "default",
-                username = registerNicknameFlow.value,
-                email = registerEmailInputFlow.value,
-                password = registerPasswordInputFlow.value
-            ))
+                    val firebaseCurrentEmail = userDb.currentUser?.let { it.email }
+
+                    Log.d(TAG, "이메일 인증 토큰 ${firebaseCurrentEmail}")
+
+                    //이메일 인증 api 호출
+
+                    val emailResponse = UserApi.retrofitService.sendEmailVerification(
+                        request = EmailRequest(email = "kju9038@gmail.com")
+                    )
+
+                    if(emailResponse.message == "success") {
+                        Log.d(TAG, "이메일 인증 전송 성공 ${emailResponse.email}")
+
+                        val newDocumentRef = db.collection("users").document()
+
+                        val time = Calendar.getInstance().time.toString()
+
+                    val newUserData = User(
+                        id = newDocumentRef.id,
+                        deviceId = localUser.value.id.toString(),
+                        type = "default",
+                        authState = false,
+                        signupVerifyToken = emailResponse.email?.token,
+                        username = registerNicknameFlow.value,
+                        email = firebaseCurrentEmail,
+                        payment = false,
+                        paymentStartDate = null,
+                        paymentEndDate = null,
+                        allNumberSearchCount = allNumberSearchCountFlow.value,
+                        myNumberSearchCount = myNumberSearchCountFlow.value,
+                        numberLotteryCount = numberLotteryCountFlow.value,
+                        createdAt = time,
+                        updatedAt = time,
 
 
-            Log.d(TAG, "유저 정보 - ${response}")
+                    )
+                    newDocumentRef
+                        .set(newUserData.asHasMap())
+                        .addOnSuccessListener { result->
+                            Log.d(TAG, "유저데이터 저장 성공")
+                            viewModelScope.launch {
+                                delay(500)
+                                registerIsLoadingFlow.emit(false)
+                                registerSuccessFlow.emit(true)
 
-            if(response != null) {
-                registerSuccessFlow.emit(true)
+                                registerEmailInputFlow.emit("")
+                                registerPasswordInputFlow.emit("")
+                                registerPasswordConfirmInputFlow.emit("")
+                                registerNicknameFlow.emit("")
+                            }
+
+                        }
+                        .addOnFailureListener {
+                            Log.d(TAG, "유저데이터 저장 실패 ${it}")
+                        }
+
+                    } else {
+                        Log.d(TAG, "이메일 인증 전송 실패")
+                    }
+
+
+                }
+                is Resource.Loading -> {
+                    registerIsLoadingFlow.emit(false)
+                }
+                is Resource.Error -> {
+                    registerIsLoadingFlow.emit(false)
+                }
             }
-
         }
     }
 
@@ -196,46 +272,37 @@ class AuthViewModel @Inject
         DEFAULT(name = "default"),
         KAKAO(name = "kakao")
     }
-    fun loginUser(type: LoginType) {
+    fun loginUser(type: LoginType, activity: Activity? = null) {
 
         when(type) {
             LoginType.DEFAULT -> {
                 viewModelScope.launch {
 
-                    try {
-                        val response = UserApi.retrofitService.UserLogin(
-                            request = UserRequest(
-                                type = "default",
-                                email = logInEmailInputFlow.value,
-                                password = logInPasswordInputFlow.value
-                            )
-                        )
+                    authRepository.loginUser(logInEmailInputFlow.value, logInPasswordInputFlow.value).collect { result->
+                        when(result) {
+                            is Resource.Success -> {
+                                Log.d(TAG, "파이어 베이스 로그인 성공 ${result.data}")
 
-                        receiveUserDataFlow.emit(response.users!!)
+                               userDataLoad(logInEmailInputFlow.value)
 
-                        Log.d(TAG, "유저 정보 - ${receiveUserDataFlow.value}")
+                            }
+                            is Resource.Loading -> {
 
-                        logInEmailInputFlow.emit("")
-                        logInPasswordInputFlow.emit("")
+                            }
 
-                        if (response == null) {
-                            Log.d(USER, "로그인 실패")
-                        } else {
-                            isLoggedIn.emit(true)
-                            needAuthContext.emit(true)
+                            is Resource.Error -> {
+                                Log.d(TAG, "파이어 베이스 로그인 실패, ${result.message} ${result.data}")
+
+                                logInEmailInputFlow.emit("")
+                                logInPasswordInputFlow.emit("")
+                                failedLogIn.value = true
+                            }
                         }
-
-
-                    } catch (e: HttpException) {
-                        logInEmailInputFlow.emit("")
-                        logInPasswordInputFlow.emit("")
-                        failedLogIn.value = true
-                        Log.d(TAG, "로그인 실패 $e ")
                     }
                 }
             }
             LoginType.KAKAO -> {
-                handleKakaoLogin(type = "kakao")
+                handleKakaoLogin(type = "kakao", activity!!)
             }
         }
 
@@ -243,8 +310,48 @@ class AuthViewModel @Inject
 
     }
 
+    fun userDataLoad(email: String) {
 
-    fun handleKakaoLogin(type: String) {
+        viewModelScope.launch {
+            db.collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnSuccessListener { result->
+                    val userData = result.toObjects(User::class.java)
+                    val authState = userData.map { it.authState }.first()!!
+
+                    viewModelScope.launch {
+                        if(authState) {
+                            Log.d(TAG , "이메일 인증 또는 유저 정보 로드 성공")
+                            val userResponse = userData.first()
+
+                            receiveUserDataFlow.emit(userResponse)
+
+                            Log.d(TAG, "유저 정보 - ${receiveUserDataFlow.value}")
+
+                            isLoggedIn.emit(true)
+                            needAuthContext.emit(true)
+                            delay(2000)
+                            isLoadingFlow.emit(false)
+                        } else {
+                            Log.d(TAG , "이메일 인증 또는 유저정보 로드 실패")
+
+                        }
+                    }
+                }
+                .addOnFailureListener { e->
+                    Log.d(TAG, "유저정보 로드 실패 ${e}")
+                    viewModelScope.launch {
+                        logInEmailInputFlow.emit("")
+                        logInPasswordInputFlow.emit("")
+                        failedLogIn.value = true
+                    }
+                }
+        }
+    }
+
+
+    fun handleKakaoLogin(type: String, activity: Activity) {
         // 로그인 조합 예제
         // 카카오계정으로 로그인 공통 callback 구성
         // 카카오톡으로 로그인 할 수 없어 카카오계정으로 로그인할 경우 사용됨
@@ -259,8 +366,8 @@ class AuthViewModel @Inject
         }
 
 // 카카오톡이 설치되어 있으면 카카오톡으로 로그인, 아니면 카카오계정으로 로그인
-        if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
-            UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
+        if (UserApiClient.instance.isKakaoTalkLoginAvailable(activity)) {
+            UserApiClient.instance.loginWithKakaoTalk(activity) { token, error ->
                 if (error != null) {
                     Log.e(TAG, "카카오톡으로 로그인 실패", error)
 
@@ -271,21 +378,17 @@ class AuthViewModel @Inject
                     }
 
                     // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인 시도
-                    UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+                    UserApiClient.instance.loginWithKakaoAccount(activity, callback = callback)
                 } else if (token != null) {
 
                     Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
-
-                    viewModelScope.launch {
-                        isLoggedIn.emit(true)
-                    }
 
                     kakaoDataRequest(type)
 
                 }
             }
         } else {
-            UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+            UserApiClient.instance.loginWithKakaoAccount(activity, callback = callback)
         }
     }
 
@@ -307,25 +410,101 @@ class AuthViewModel @Inject
                    kakaoUserEmailFlow.emit(user.kakaoAccount?.email!!)
                    kakaoUsernameFlow.emit(user.kakaoAccount?.profile?.nickname!!)
 
-                   viewModelScope.launch {
-                       val response = UserApi.retrofitService.UserLogin(request = UserRequest(
-                           type = "${type}",
-                           email = kakaoUserEmailFlow.value,
-                           username = kakaoUsernameFlow.value
-                       ))
 
-                       Log.d(TAG, "유저 정보 - ${response}")
+                   db.collection("users")
+                       .whereEqualTo("email", kakaoUserEmailFlow.value)
+                       .get()
+                       .addOnSuccessListener { result->
+                           val userData = result.toObjects(User::class.java).firstOrNull()
+                           val loadKakaoEmail = userData?.email
 
-                       if(response == null) {
-                           failedLogIn.value = true
-                       } else {
-                           val receiveUserData = response.users
-                           receiveUserDataFlow.emit(receiveUserData!!)
-                           needAuthContext.emit(true)
-                           isLoggedIn.emit(true)
+                           if(!loadKakaoEmail.isNullOrEmpty()){
+                               viewModelScope.launch {
+                                       Log.d(TAG , "카카오 유저데이터 불러오기 성공")
+                                       val userResponse = userData!!
+
+                                       receiveUserDataFlow.emit(userResponse)
+
+                                       Log.d(TAG, "유저 정보 - ${receiveUserDataFlow.value}")
+
+                                       isLoggedIn.emit(true)
+                                       needAuthContext.emit(true)
+                                       delay(2000)
+                                   kakaoisLoadingFlow.emit(false)
+                               }
+                           } else {
+                               Log.d(TAG , "카카오 유저 정보 없음, 카카오 유저 정보 생성")
+
+                               val newDocumentRef = db.collection("users").document()
+
+                               val time = Calendar.getInstance().time.toString()
+
+                               val newUserData = User(
+                                   id = newDocumentRef.id,
+                                   deviceId = localUser.value.id.toString(),
+                                   type = "kakao",
+                                   authState = true,
+                                   signupVerifyToken = null,
+                                   username = kakaoUsernameFlow.value,
+                                   email = kakaoUserEmailFlow.value,
+                                   payment = false,
+                                   paymentStartDate = null,
+                                   paymentEndDate = null,
+                                   allNumberSearchCount = allNumberSearchCountFlow.value,
+                                   myNumberSearchCount = myNumberSearchCountFlow.value,
+                                   numberLotteryCount = numberLotteryCountFlow.value,
+                                   createdAt = time,
+                                   updatedAt = time,
+
+
+                                   )
+                               newDocumentRef
+                                   .set(newUserData.asHasMap())
+                                   .addOnSuccessListener { result->
+                                       Log.d(TAG, "카카오 유저데이터 저장 성공")
+
+                                       db.collection("users")
+                                           .whereEqualTo("email", kakaoUserEmailFlow.value)
+                                           .get()
+                                           .addOnSuccessListener { result->
+                                               Log.d(TAG, "카카오 유저데이터 저장 후 불러오기 성공")
+
+                                               val userData = result.toObjects(User::class.java)
+                                               val loadKakaoEmail = userData.map { it.email }.first()!!
+
+                                               if(loadKakaoEmail == kakaoUserEmailFlow.value) {
+
+                                                   val userResponse = userData.first()
+
+                                                   viewModelScope.launch {
+                                                       receiveUserDataFlow.emit(userResponse)
+
+                                                       Log.d(TAG, "유저 정보 - ${receiveUserDataFlow.value}")
+
+                                                       isLoggedIn.emit(true)
+                                                       needAuthContext.emit(true)
+                                                       delay(2000)
+                                                       kakaoisLoadingFlow.emit(false)
+                                                   }
+                                               } else {
+                                                   Log.d(TAG , "카카오 유저 정보 저장 후 다시 불러오기 실패")
+                                               }
+                                           }
+                                           .addOnFailureListener {
+                                               Log.d(TAG , "카카오 유저 정보 저장 후 다시 불러오기 실패")
+                                           }
+
+                                   }
+                                   .addOnFailureListener {
+                                       Log.d(TAG, "카카오 유저데이터 저장 실패 ${it}")
+                                   }
+                           }
+
+
                        }
-                   }
-
+                       .addOnFailureListener { e->
+                           Log.d(TAG, "카카오 유저정보 로드 실패 ${e}")
+                       }
                }
 
            }

@@ -171,6 +171,7 @@ fun RegisterScreen(authViewModel: AuthViewModel,
                 coroutineScope.launch {
                     focusManager.clearFocus()
                     authViewModel.registerUser()
+                    authViewModel.registerIsLoadingFlow.value = true
 
                     authViewModel.registerSuccessFlow.collectLatest {
                         if(registerSuccess.value) {
