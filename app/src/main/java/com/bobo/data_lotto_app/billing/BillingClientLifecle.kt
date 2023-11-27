@@ -159,6 +159,7 @@ class BillingClientLifecycle private constructor(
             Log.e(TAG, "launchBillingFlow: BillingClient is not ready")
         }
         val billingResult = billingClient.launchBillingFlow(activity, billingFlowParams)
+
         val responseCode = billingResult.responseCode
         val debugMessage = billingResult.debugMessage
         Log.d(TAG, "launchBillingFlow: BillingResponse $responseCode $debugMessage")
