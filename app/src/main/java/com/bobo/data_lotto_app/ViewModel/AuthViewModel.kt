@@ -264,6 +264,8 @@ class AuthViewModel @Inject
                 is Resource.Error -> {
                     registerIsLoadingFlow.emit(false)
                 }
+
+                else -> { }
             }
         }
     }
@@ -297,6 +299,8 @@ class AuthViewModel @Inject
                                 logInPasswordInputFlow.emit("")
                                 failedLogIn.value = true
                             }
+
+                            else ->{ }
                         }
                     }
                 }
