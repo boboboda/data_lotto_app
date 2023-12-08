@@ -43,6 +43,9 @@ import retrofit2.HttpException
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 import java.util.Calendar
 import java.util.Timer
 import java.util.UUID
@@ -522,7 +525,29 @@ class AuthViewModel @Inject
     // 회원가입 된 유저는 db에서 초기화 실행
     fun userDataReSet() {
 
-        Log.d(USER, "유저데이터 리셋 체크, 현재 날짜: ${LocalDateTime.now()}, 요일: ${LocalDateTime.now().dayOfWeek} 현재시간: ${LocalDateTime.now().hour}")
+        val now = LocalDateTime.now()
+
+        val kstZoneId = ZoneId.of("Asia/Seoul")
+        val newTime = now.atZone(ZoneId.of("UTC")).withZoneSameInstant(kstZoneId)
+
+        val saturday = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
+
+        val settingTime = saturday.withHour(21).withMinute(0).withSecond(0)
+
+        val formatter =  DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+        val formatTime = formatter.format(newTime)
+
+        val formatSettingTime = formatter.format(settingTime)
+
+
+        Log.d(USER, "유저데이터 리셋 체크, 현재 날짜: ${LocalDateTime.now()}, 요일: ${LocalDateTime.now().dayOfWeek} 현재시간: ${formatTime} 이번주 토요일 ${formatSettingTime}")
+
+        if(formatTime >= "2023-12-08 01:41:00") {
+            Log.d(USER, "지정 날짜보다 크다")
+        } else {
+            Log.d(USER, "지정 날짜보다 작다")
+        }
 
         if(LocalDateTime.now().dayOfWeek == DayOfWeek.SATURDAY &&
             LocalDateTime.now().hour >= 22)

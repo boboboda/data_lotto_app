@@ -124,6 +124,10 @@ class BillingClientLifecycle private constructor(
             .setProductList(
                 ImmutableList.of(
                     QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId("product_02")
+                        .setProductType(BillingClient.ProductType.SUBS)
+                        .build(),
+                    QueryProductDetailsParams.Product.newBuilder()
                         .setProductId("product_03")
                         .setProductType(BillingClient.ProductType.SUBS)
                         .build()
