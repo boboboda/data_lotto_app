@@ -1,7 +1,9 @@
 package com.bobo.data_lotto_app
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -45,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -70,21 +73,23 @@ import com.bobo.data_lotto_app.screens.main.DrawScreen
 import com.bobo.data_lotto_app.screens.main.NoticeScreen
 import com.bobo.data_lotto_app.screens.main.PaymentScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.app
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-
-
+import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-
     companion object {
         const val TAG = "메인"
     }
@@ -93,6 +98,15 @@ class MainActivity : ComponentActivity() {
     private val dataViewModel: DataViewModel by viewModels()
     private val authViewModel: AuthViewModel by viewModels()
     private val noticeViewModel: NoticeViewModel by viewModels()
+
+
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val RC_SIGN_IN = 1313
+
+    private lateinit var googleSignInClient: GoogleSignInClient
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,15 +119,41 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
+                    authViewModel.googleLogInCheck(this)
+
                     AppScreen(
                         mainViewModel,
                         dataViewModel,
                         authViewModel,
                         noticeViewModel,
-                        activity = this)
+                        activity = this
+                    )
+
 
                 }
             }
+        }
+    }
+
+    private fun googleSignIn(activity: Activity) {
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+//                firebaseAuthWithGoogle(account)
+            } catch (e: ApiException) {
+                Log.d(TAG, "구글 회원가입에 실패하였습니다")
+            }
+        } else {
+            /*no-op*/
         }
     }
 }
@@ -148,7 +188,6 @@ fun AppScreen(
     }
 
     val needAuth = authViewModel.needAuthContext.collectAsState()
-
 
     if (needAuth.value) {
 

@@ -28,12 +28,6 @@ class BillingClientLifecycle private constructor(
         CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ): DefaultLifecycleObserver {
 
-    enum class ProductId{
-        Product_01,
-        Product_02,
-        Product_03
-    }
-
     private val _fetchedProductList = MutableStateFlow<List<ProductDetails>>(emptyList())
 
     val fetchedProductList = _fetchedProductList.asStateFlow()

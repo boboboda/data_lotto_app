@@ -2,6 +2,7 @@ package com.bobo.data_lotto_app.ViewModel
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.AndroidViewModel
@@ -19,6 +20,10 @@ import com.bobo.data_lotto_app.firebase.Resource
 import com.bobo.data_lotto_app.service.EmailRequest
 import com.bobo.data_lotto_app.service.User
 import com.bobo.data_lotto_app.service.UserApi
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.ktx.firestore
@@ -64,15 +69,18 @@ class AuthViewModel @Inject
     companion object {
         const val KAKAO = "카카오"
         const val USER = "유저"
+        const val GOOGLE = "구글"
     }
+
+    private lateinit var googleSignInClient: GoogleSignInClient
+
+    private val RC_SIGN_IN = 1313
 
     //로컬에서 받아온 유저 데이터
     val localUser = MutableStateFlow<LocalUserData>(LocalUserData())
 
     // 로그인 후 받아온 유저 데이터
     val receiveUserDataFlow = MutableStateFlow<User>(User())
-
-    private val context = application.applicationContext
 
     val isLoggedIn = MutableStateFlow<Boolean>(false)
 
@@ -92,11 +100,27 @@ class AuthViewModel @Inject
 
     val userDb = Firebase.auth
 
+
+
+    fun googleLogInCheck(context: Context){
+
+        val account = GoogleSignIn.getLastSignedInAccount(context)
+        if(account != null) {
+            Log.d(GOOGLE, "구글 로그인 되어있지 않음")
+            isLoggedIn.value = true
+        } else {
+            Log.d(GOOGLE, "구글 로그인 되어있음")
+            isLoggedIn.value = false
+        }
+    }
+
     init {
 
 //        testApi()
 
-        //로그인 상태에 따라 유저 데이터 변경
+
+
+    //로그인 상태에 따라 유저 데이터 변경
         viewModelScope.launch {
             isLoggedIn.collectLatest {
                 if(isLoggedIn.value) {
@@ -670,6 +694,19 @@ class AuthViewModel @Inject
                 numberLotteryCount = 3))
         }
     }
+
+    // 구글 로그인
+//    fun googleLogin() {
+//        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//            .requestIdToken(getString(R.string.default_web_client_id))
+//            .requestEmail()
+//            .build()
+//
+//        googleSignInClient = GoogleSignIn.getClient(this, gso)
+//
+//        googleSignIn()
+//    }
+
 }
 
 

@@ -37,7 +37,7 @@
 
                 <!-- Redirect URI: "kakao${NATIVE_APP_KEY}://oauth" -->
                 <data android:host="oauth"
-                    android:scheme="@string/kakao_oauth_host" />
+                    android:scheme="kakao_oauth_host" />
             </intent-filter>
         </activity>
 
