@@ -1,0 +1,268 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 9,
+    "identityHash": "7fc4643ac44da3a32e5ed433afcafd72",
+    "entities": [
+      {
+        "tableName": "NormalModeNumber_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` BLOB NOT NULL, `firstNumber` INTEGER, `secondNumber` INTEGER, `thirdNumber` INTEGER, `fourthNumber` INTEGER, `fifthNumber` INTEGER, `sixthNumber` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstNumber",
+            "columnName": "firstNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "secondNumber",
+            "columnName": "secondNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "thirdNumber",
+            "columnName": "thirdNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fourthNumber",
+            "columnName": "fourthNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fifthNumber",
+            "columnName": "fifthNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "sixthNumber",
+            "columnName": "sixthNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "BigDataModeNumber_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` BLOB NOT NULL, `firstNumber` INTEGER, `secondNumber` INTEGER, `thirdNumber` INTEGER, `fourthNumber` INTEGER, `fifthNumber` INTEGER, `sixthNumber` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstNumber",
+            "columnName": "firstNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "secondNumber",
+            "columnName": "secondNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "thirdNumber",
+            "columnName": "thirdNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fourthNumber",
+            "columnName": "fourthNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fifthNumber",
+            "columnName": "fifthNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "sixthNumber",
+            "columnName": "sixthNumber",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "LocalUserData_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` BLOB NOT NULL, `horseman` INTEGER, `allNumber_Search_Count` INTEGER, `myNumber_search_Count` INTEGER, `number_Lottery_Count` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horseman",
+            "columnName": "horseman",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "allNumberSearchCount",
+            "columnName": "allNumber_Search_Count",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "myNumberSearchCount",
+            "columnName": "myNumber_search_Count",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "numberLotteryCount",
+            "columnName": "number_Lottery_Count",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "AllLottoNumber_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`drwNo` INTEGER, `totSellamnt` INTEGER, `returnValue` TEXT, `drwNoDate` TEXT, `firstWinamnt` INTEGER, `firstPrzwnerCo` INTEGER, `firstAccumamnt` INTEGER, `drwtNo1` INTEGER, `drwtNo2` INTEGER, `drwtNo3` INTEGER, `drwtNo4` INTEGER, `drwtNo5` INTEGER, `drwtNo6` INTEGER, `bnusNo` INTEGER, PRIMARY KEY(`drwNo`))",
+        "fields": [
+          {
+            "fieldPath": "drwNo",
+            "columnName": "drwNo",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "totSellamnt",
+            "columnName": "totSellamnt",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "returnValue",
+            "columnName": "returnValue",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "drwNoDate",
+            "columnName": "drwNoDate",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "firstWinamnt",
+            "columnName": "firstWinamnt",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "firstPrzwnerCo",
+            "columnName": "firstPrzwnerCo",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "firstAccumamnt",
+            "columnName": "firstAccumamnt",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "drwtNo1",
+            "columnName": "drwtNo1",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "drwtNo2",
+            "columnName": "drwtNo2",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "drwtNo3",
+            "columnName": "drwtNo3",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "drwtNo4",
+            "columnName": "drwtNo4",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "drwtNo5",
+            "columnName": "drwtNo5",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "drwtNo6",
+            "columnName": "drwtNo6",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "bnusNo",
+            "columnName": "bnusNo",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "drwNo"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7fc4643ac44da3a32e5ed433afcafd72')"
+    ]
+  }
+}

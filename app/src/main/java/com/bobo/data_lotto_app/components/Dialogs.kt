@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material3.Card
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,6 +61,7 @@ import com.bobo.data_lotto_app.Localdb.NormalModeNumber
 import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
+import com.bobo.data_lotto_app.components.admob.showInterstitial
 import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.ui.theme.DataSelectFirstColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
@@ -731,6 +734,7 @@ fun LottoAnimationDialog(
 fun BigDataLottoAnimationDialog(
     closeClicked: (Boolean) -> Unit,
     dataViewModel: DataViewModel,
+    authViewModel: AuthViewModel,
     onDismissRequest: (Boolean) -> Unit,
 ) {
 
@@ -741,6 +745,16 @@ fun BigDataLottoAnimationDialog(
     val newNumberData = dataViewModel.haveBigDataNumberData.collectAsState()
 
     val removeNumber = dataViewModel.bigDataRemoveNumber.collectAsState()
+
+    val lotteryCount = authViewModel.numberLotteryCountFlow.collectAsState()
+
+    val isSelectedDate = dataViewModel.bigDataModeRangeNumberStateFlow.collectAsState()
+
+    val context = LocalContext.current
+
+
+
+
 
 
     val lottieComposition by rememberLottieComposition(
@@ -814,21 +828,47 @@ fun BigDataLottoAnimationDialog(
             Spacer(modifier = Modifier.height(5.dp))
             Text(
                 fontSize = 20.sp
-                ,text = "기회: 3")
+                ,text = "기회: ${lotteryCount.value}")
 
 
             Card(
                 modifier = Modifier.size(200.dp),
                 onClick = {
-                    if(newNumberData.value.firstNumber == null){
-                        animationStop.value = 3
-                        isSlideSpring.value = true
-                        dataViewModel.lottery(
-                            removeNumber = removeNumber.value,
-                            modeType = DataViewModel.LotteryType.BIGDATA
-                        )
+                    if(lotteryCount.value == 0) {
+                        showInterstitial(context) {
+                            if (newNumberData.value.firstNumber == null) {
+                                animationStop.value = 3
+                                isSlideSpring.value = true
+                                dataViewModel.lottery(
+                                    removeNumber = removeNumber.value,
+                                    modeType = DataViewModel.LotteryType.BIGDATA
+                                )
+                            } else {
+                                return@showInterstitial
+                            }
+                        }
                     } else {
-                        return@Card
+
+                        if (newNumberData.value.firstNumber == null) {
+                            animationStop.value = 3
+                            isSlideSpring.value = true
+                            dataViewModel.lottery(
+                                removeNumber = removeNumber.value,
+                                modeType = DataViewModel.LotteryType.BIGDATA
+                            )
+
+                            // 기회 차감
+                            authViewModel.filterItem(
+                                itemCount = lotteryCount.value,
+                                searchDataCount = isSelectedDate.value,
+                                useType = UseType.LOTTERY
+                            )
+
+                        } else {
+                            return@Card
+                        }
+
+
                     }
                 }
             ) {
@@ -976,12 +1016,18 @@ fun BigDataLottoAnimationDialog(
 
 @Composable
 fun ProportionSelectDialog(
+    snackBarHostState: SnackbarHostState,
     closeClicked: (Boolean) -> Unit,
     dataViewModel: DataViewModel,
+    authViewModel: AuthViewModel,
     onDismissRequest: (Boolean) -> Unit,
 ) {
 
     val showLottoAnimationDialog = remember{ mutableStateOf( false ) }
+
+    val scope = rememberCoroutineScope()
+
+    val isSelectDateValue = dataViewModel.bigDataModeRangeNumberStateFlow.collectAsState()
 
     Dialog(onDismissRequest = { onDismissRequest(false)}
     ) {
@@ -1009,7 +1055,8 @@ fun ProportionSelectDialog(
                     lineHeight = 23.sp,
                     text = "날짜 범위를 선택하면 범위 내 \n" +
                         "고비율과 저비율을 계산할 수 있습니다.\n" +
-                            "(날짜 범위를 선택하지 않으면 전체 범위에서 선택됩니다.)")
+                            "(날짜 범위를 선택하지 않으면 전체 범위에서 선택됩니다. \n " +
+                            "전체 범위는 기회가 차감되지 않습니다)")
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -1018,8 +1065,22 @@ fun ProportionSelectDialog(
                 label = "고비율",
                 onClicked = {
 
-                    dataViewModel.proportionStateFlow.value = "1"
-                    showLottoAnimationDialog.value = true
+                    if(isSelectDateValue.value.count() <= 0) {
+
+                        Log.d(TAG, "UseCountDialog 예외처리됨")
+
+                        scope.launch {
+                            snackBarHostState.showSnackbar(
+                                "날짜 범위가 지정되어 있지 않습니다.\n" +
+                                        "지정 후 사용해주세요"
+                            )
+                        }
+                        showLottoAnimationDialog.value = false
+
+                    } else {
+                        dataViewModel.proportionStateFlow.value = "1"
+                        showLottoAnimationDialog.value = true
+                    }
                 },
                 buttonColor = ProportionButtonColor,
                 fontColor = Color.Black,
@@ -1032,8 +1093,22 @@ fun ProportionSelectDialog(
             Buttons(
                 label = "저비율",
                 onClicked = {
-                    dataViewModel.proportionStateFlow.value = "2"
-                    showLottoAnimationDialog.value = true
+                    if(isSelectDateValue.value.count() <= 0) {
+
+                        Log.d(TAG, "UseCountDialog 예외처리됨")
+
+                        scope.launch {
+                            snackBarHostState.showSnackbar(
+                                "날짜 범위가 지정되어 있지 않습니다.\n" +
+                                        "지정 후 사용해주세요"
+                            )
+                        }
+                        showLottoAnimationDialog.value = false
+
+                    } else {
+                        dataViewModel.proportionStateFlow.value = "2"
+                        showLottoAnimationDialog.value = true
+                    }
                 },
                 buttonColor = ProportionButtonColor,
                 fontColor = Color.Black,
@@ -1043,34 +1118,34 @@ fun ProportionSelectDialog(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Buttons(
-                label = "고비율3/ 저비율3",
-                onClicked = {
-
-
-                },
-                buttonColor = ProportionButtonColor,
-                fontColor = Color.Black,
-                modifier = Modifier.fillMaxWidth(0.7f),
-                fontSize = 15
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-
-            Buttons(
-                label = "범위 내 숫자 추첨",
-                onClicked = {
-
-
-                },
-                buttonColor = ProportionButtonColor,
-                fontColor = Color.Black,
-                modifier = Modifier.fillMaxWidth(0.7f),
-                fontSize = 15
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
+//            Buttons(
+//                label = "고비율3/ 저비율3",
+//                onClicked = {
+//
+//
+//                },
+//                buttonColor = ProportionButtonColor,
+//                fontColor = Color.Black,
+//                modifier = Modifier.fillMaxWidth(0.7f),
+//                fontSize = 15
+//            )
+//
+//            Spacer(modifier = Modifier.height(10.dp))
+//
+//
+//            Buttons(
+//                label = "범위 내 숫자 추첨",
+//                onClicked = {
+//
+//
+//                },
+//                buttonColor = ProportionButtonColor,
+//                fontColor = Color.Black,
+//                modifier = Modifier.fillMaxWidth(0.7f),
+//                fontSize = 15
+//            )
+//
+//            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 
@@ -1080,6 +1155,7 @@ fun ProportionSelectDialog(
                 closeClicked(it)
             },
             dataViewModel = dataViewModel,
+            authViewModel = authViewModel,
             onDismissRequest = {
                 showLottoAnimationDialog.value = it
             }
@@ -1094,22 +1170,14 @@ enum class UseType(name: String){
 }
 @Composable
 fun UseCountDialog(
+    label: String,
     onClicked: () -> Unit,
-    itemCount: Int,
-    authViewModel: AuthViewModel,
-    dataViewModel: DataViewModel,
     onDismissRequest: (Boolean) -> Unit,
-    useType: UseType,
-    rangeDateData: State<List<Lotto>>,
-    allDate: (() -> Unit)? = null
 ) {
 
     Dialog(onDismissRequest = {
         onDismissRequest.invoke(false)
     }) {
-
-        val count = itemCount
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1130,14 +1198,9 @@ fun UseCountDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Buttons(
-                    label = "날짜 범위 내 조회 (무료횟수:${count})",
+                    label = label,
                     onClicked = {
-                        authViewModel.filterItem(
-                            itemCount = itemCount,
-                            searchDataCount = rangeDateData.value.toList(),
-                            useType = useType
-                        )
-                        onClicked.invoke()
+                                onClicked.invoke()
                     },
                     buttonColor = UseCountButtonColor,
                     fontColor = Color.Black,
@@ -1147,31 +1210,7 @@ fun UseCountDialog(
                         .height(50.dp),
                     fontSize = 20
                 )
-
-
-
-                if(useType == UseType.MYNUMBER) {
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Buttons(
-                        label = "모든 데이터 조회 (무료횟수:${count})",
-                        onClicked = {
-                            allDate?.invoke()
-                        },
-                        buttonColor = UseCountButtonColor,
-                        fontColor = Color.Black,
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .fillMaxWidth(0.8f)
-                            .height(50.dp),
-                        fontSize = 20
-                    )
-                }
             }
-
-
-
         }
 
     }

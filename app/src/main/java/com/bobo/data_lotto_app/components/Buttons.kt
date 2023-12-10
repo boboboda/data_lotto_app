@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.R
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,7 +70,8 @@ fun BaseButton(
     enabled: Boolean = true,
     isLoading: Boolean = false,
     onClick: () -> Unit,
-    image: Int? = null
+    image: Int? = null,
+    imageModifier: Modifier? = null
 ) {
     when(type) {
         ButtonType.FILL -> MainFilledButton(
@@ -77,7 +80,9 @@ fun BaseButton(
             enabled,
             isLoading,
             onClick,
-            image
+            image,
+            imageModifier ?: Modifier
+
         )
         ButtonType.OUTLINE -> MainOutlineButton(
             modifier,
@@ -97,7 +102,8 @@ fun MainFilledButton(
     enabled: Boolean = true,
     isLoading: Boolean = false,
     onClick: () -> Unit,
-    image: Int?
+    image: Int?,
+    imageModifier: Modifier = Modifier
 ) {
     Button(
         modifier = modifier
@@ -120,7 +126,8 @@ fun MainFilledButton(
                 Image(
                     painter = painterResource(id = image),
                     contentDescription = "",
-                    alignment = Alignment.Center
+                    alignment = Alignment.Center,
+                    modifier = imageModifier
                 )
 
 
@@ -241,5 +248,61 @@ fun CustomButton(
         } else {
             composable()
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CardButton(label: String,
+               selectedLabel: String? = null,
+               onClicked: (String) -> Unit,
+               fontSize: Int,
+               modifier: Modifier,
+               fontColor: Color,
+               buttonColor: Color,
+               disableColor: Color? = null
+) {
+
+    var cardLabel : String = label
+
+
+
+
+    var color = if(disableColor != null) {
+        if (cardLabel == selectedLabel) fontColor else disableColor
+    } else {
+        fontColor
+    }
+
+    androidx.compose.material3.Card(colors = CardDefaults.cardColors(buttonColor),
+        elevation = CardDefaults.cardElevation(8.dp),
+        modifier = modifier,
+        border = BorderStroke(1.dp, color),
+        shape = RoundedCornerShape(2.dp),
+        onClick = {
+            onClicked(label)
+        }) {
+        Row(
+            Modifier
+                .fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                AutoSizeText(
+                    value = "$label",
+                    modifier = Modifier,
+                    fontSize = fontSize.sp,
+                    maxLines = 1,
+                    minFontSize = 10.sp,
+                    color = color!!
+                )
+            }
+
+        }
+
     }
 }

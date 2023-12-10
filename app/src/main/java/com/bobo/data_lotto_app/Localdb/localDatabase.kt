@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase
     BigDataModeNumber::class,
     LocalUserData::class,
     Lotto::class
-], version = 8, exportSchema = true)
+], version = 10, exportSchema = true)
 abstract class LocalDatabase: RoomDatabase() {
 
     abstract fun normalModeNumberDao() : NormalModeNumberDatabaseDao

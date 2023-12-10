@@ -17,24 +17,6 @@ private val moshi = Moshi.Builder()
 //    .add(EnumJsonAdapter)
     .build()
 
-private val LottoRetrofit = Retrofit.Builder()
-    .addConverterFactory(MoshiConverterFactory.create(moshi))
-    .baseUrl(BASE_URL)
-    .build()
-
-
-//object LottoApi {
-//    val retrofitService : LottoApiService by lazy { LottoRetrofit.create(LottoApiService::class.java) }
-//}
-//
-//interface LottoApiService {
-//    @GET("lottos/loadData")
-//    suspend fun fetchLottos() : LottoListResponse
-//
-//}
-
-
-
 private val UserRetrofit = Retrofit.Builder()
     .addConverterFactory(MoshiConverterFactory.create(moshi))
     .baseUrl(BASE_URL)
@@ -48,9 +30,5 @@ object UserApi {
 interface UserApiService {
     @POST("sendEmailVerification")
     suspend fun sendEmailVerification(@Body request: EmailRequest) : EmailResponse
-
-
-//    @POST("auth/login")
-//    suspend fun UserLogin(@Body request: UserRequest) : UserResponse
 
 }

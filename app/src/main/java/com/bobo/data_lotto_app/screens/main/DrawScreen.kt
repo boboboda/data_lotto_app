@@ -6,6 +6,7 @@ import android.widget.ScrollView
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,8 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -81,7 +84,7 @@ import com.bobo.data_lotto_app.components.FilterDialog
 import com.bobo.data_lotto_app.components.LotteryTopTitleButton
 import com.bobo.data_lotto_app.components.LottoAnimationDialog
 import com.bobo.data_lotto_app.components.ProportionSelectDialog
-import com.bobo.data_lotto_app.components.rangeDateDialog
+import com.bobo.data_lotto_app.components.RangeDateDialog
 import com.bobo.data_lotto_app.ui.theme.DeleteColor
 import com.bobo.data_lotto_app.ui.theme.NormalModeLottoNumberBackgroundColor
 import kotlinx.coroutines.launch
@@ -122,7 +125,7 @@ fun DrawScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
                 }
 
                 2 -> {
-                    BigDataModeView(dataViewModel = dataViewModel)
+                    BigDataModeView(dataViewModel = dataViewModel, authViewModel = authViewModel)
                 }
             }
         }
@@ -467,7 +470,8 @@ fun FilterCard(number: String, deleteClicked: () -> Unit) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BigDataModeView(dataViewModel: DataViewModel) {
+fun BigDataModeView(dataViewModel: DataViewModel,
+                    authViewModel: AuthViewModel) {
 
     val callStartDate = dataViewModel.bigDataModeStartDateFlow.collectAsState()
 
@@ -492,6 +496,8 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
     val showCalendarDialog = remember { mutableStateOf(false) }
 
     val showLottoAnimationDialog = remember{ mutableStateOf( false ) }
+
+    val snackBarHostState = remember { SnackbarHostState() }
 
     Column(
         modifier = Modifier
@@ -677,8 +683,16 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
 
                 FloatingActionButton(
                     onClick = {
-                        scope.launch {
+
+                        if(dataViewModel.bigDataDateRangeFlow.value.isEmpty()) {
                             showOpenDialog.value = true
+                        } else {
+                            scope.launch {
+                                snackBarHostState.showSnackbar(
+                                    "이미 날짜가 설정되어 있습니다.\n" +
+                                            "삭제 후 클릭해주세요."
+                                )
+                            }
                         }
 
                     },
@@ -696,13 +710,11 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                 FloatingActionButton(
                     onClick = {
                         scope.launch {
-                            if(dataViewModel.bigDataModeRangeNumberStateFlow.value.isEmpty()) {
 
-                                Log.d(TAG, "날짜 값이 없을 때 전체범위로 실행")
                                 val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.LOTTERY) as List<Pair<Int, Float>>
 
                                 dataViewModel.bigDataNumberAndPercentValue.emit(rangePercentValue)
-                            }
+
                             showLottoAnimationDialog.value = true
                         }
 
@@ -718,6 +730,49 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
                     )
                 }
             }
+
+            SnackbarHost(hostState = snackBarHostState, modifier = Modifier,
+                snackbar = { snackbarData ->
+
+                    Card(
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(2.dp, Color.Black),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .padding(start = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+
+                            Text(
+                                text = snackbarData.message,
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.Bold)
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Card(
+                                modifier = Modifier.wrapContentSize(),
+                                onClick = {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                }) {
+                                Text(
+                                    modifier = Modifier.padding(8.dp),
+                                    text = "닫기"
+                                )
+                            }
+                        }
+                    }
+                }
+            )
+
         }
 
         if(showOpenDialog.value) {
@@ -732,49 +787,43 @@ fun BigDataModeView(dataViewModel: DataViewModel) {
 
         if(showLottoAnimationDialog.value) {
 
-            ProportionSelectDialog(closeClicked = {
-                scope.launch {
-
+            ProportionSelectDialog(
+                snackBarHostState,
+                closeClicked = {
+                    scope.launch {
                     dataViewModel.haveBigDataNumberData.emit(BigDataModeNumber())
+                        showLottoAnimationDialog.value = it
                 }
-                showLottoAnimationDialog.value = it
             },
                 dataViewModel = dataViewModel,
+                authViewModel = authViewModel,
                 onDismissRequest = {
                     showLottoAnimationDialog.value = it
                 })
         }
 
         if(showCalendarDialog.value) {
-            rangeDateDialog(
+            RangeDateDialog(
+                dataViewModel,
                 onDismissRequest = {
                     showCalendarDialog.value = it
                 },
                 callStartDate.value,
                 callEndDate.value,
-                selectedStartDate = {
-                    dataViewModel.bigDataModeStartDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                },
-                selectedEndDate = {
-                    dataViewModel.bigDataModeEndDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                },
-                onClicked = {
+                onClicked = { startDete, endDate ->
+
+                    dataViewModel.bigDataModeStartDateFlow.value = startDete
+                    dataViewModel.bigDataModeEndDateFlow.value = endDate
 
                     scope.launch {
 
                         val dateData = BigDataDate(startDate = dataViewModel.bigDataModeStartDateFlow.value, endDate = dataViewModel.bigDataModeEndDateFlow.value )
-
 
                         val addList = dataViewModel.bigDataDateRangeFlow.value.toMutableList().apply {
                             add(dateData)
                         }
 
                         dataViewModel.bigDataDateRangeFlow.emit(addList)
-
-                        val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.LOTTERY) as List<Pair<Int, Float>>
-
-
-                        dataViewModel.bigDataNumberAndPercentValue.emit(rangePercentValue)
                     }
 
                 }

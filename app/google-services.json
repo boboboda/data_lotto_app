@@ -12,7 +12,28 @@
           "package_name": "com.bobo.data_lotto_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "986291625395-fk3cqb11acc3iqu6jfcpqfldu0n1v4u1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bobo.data_lotto_app",
+            "certificate_hash": "e1fd0652df8e62d6b4a4a44f519ef832344ed638"
+          }
+        },
+        {
+          "client_id": "986291625395-vo2sp98jbkkd8gl3euhvkhdgifu0s3d4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bobo.data_lotto_app",
+            "certificate_hash": "70f0ea1c73da322f0ec4ad8c3053e6bf5ece1dff"
+          }
+        },
+        {
+          "client_id": "986291625395-mkurv5vilr16m8gdtu05qbttrm6ec8d6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA_ZQKglqQOobcS3AlmeoomZmTPRVoKQZs"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "986291625395-mkurv5vilr16m8gdtu05qbttrm6ec8d6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

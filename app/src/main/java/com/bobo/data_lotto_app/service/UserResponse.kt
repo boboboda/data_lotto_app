@@ -20,6 +20,7 @@ data class EmailRequest(
 
 data class User (
     var id: String? = null,
+    var horseman: Int? = null,
     var deviceId: String? = null,
     var type: String? = null,
     var authState: Boolean? = null,
@@ -37,6 +38,7 @@ data class User (
 
     constructor(data: QueryDocumentSnapshot): this() {
         this.id = data.id
+        this.horseman = data["horseman"] as Int? ?: 0
         this.deviceId = data["deviceId"] as String? ?: ""
         this.type = data["type"] as String? ?: ""
         this.authState = data["authState"] as Boolean? ?: false
@@ -56,6 +58,7 @@ data class User (
     fun asHasMap() : HashMap<String, Any?>{
         return hashMapOf(
             "id" to this.id,
+            "horseman" to this.horseman,
             "deviceId" to this.deviceId,
             "type" to this.type,
             "authState" to this.authState,
@@ -73,18 +76,3 @@ data class User (
         )
     }
 }
-
-
-
-data class UpdateUserRequest(
-    val type: String? = null,
-    val id: Long? = null,
-    val username: String? = null,
-    val email: String? = null,
-    val payment: Boolean? = null,
-    val paymentStartDate: String? = null,
-    val paymentEndDate: String? = null,
-    val allNumberSearchCount: Int? = null,
-    val myNumberSearchCount: Int? = null,
-    val numberLotteryCount: Int? = null,
-)

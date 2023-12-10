@@ -27,9 +27,6 @@ class MyApplication : Application() {
     lateinit var billingClientLifecycle: BillingClientLifecycle
         private set
 
-
-
-
     override fun onCreate() {
 
 //        MobileAds.initialize(this)

@@ -163,9 +163,9 @@ fun MainScreen(
                 fiveBall = resentLottoNumber.value.drwtNo5!!.toInt(),
                 sixBall = resentLottoNumber.value.drwtNo6!!.toInt(),
                 bonusBall = resentLottoNumber.value.bnusNo!!.toInt(),
-                totalMoney = resentLottoNumber.value.totSellamnt!!.toInt(),
-                firstWinamnt = resentLottoNumber.value.firstWinamnt!!.toInt(),
-                firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo!!.toInt(),
+                firstAccount = resentLottoNumber.value.firstAccumamnt!!,
+                firstWinamnt = resentLottoNumber.value.firstWinamnt!!,
+                firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo!!,
                 modifier = Modifier.weight(1f)
 
             )
@@ -223,9 +223,9 @@ fun MainScreen(
                 fiveBall = lastWeekLottoNumber.value.drwtNo5!!.toInt(),
                 sixBall = lastWeekLottoNumber.value.drwtNo6!!.toInt(),
                 bonusBall = lastWeekLottoNumber.value.bnusNo!!.toInt(),
-                totalMoney = lastWeekLottoNumber.value.totSellamnt!!.toInt(),
-                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt!!.toInt(),
-                firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo!!.toInt(),
+                firstAccount = resentLottoNumber.value.firstAccumamnt!!,
+                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt!!,
+                firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo!!,
                 modifier = Modifier.weight(1f)
 
             )
@@ -247,9 +247,9 @@ fun LottoRowView(
     fiveBall: Int,
     sixBall: Int,
     bonusBall: Int,
-    totalMoney: Int,
-    firstWinamnt: Int,
-    firstPrzwnerCo: Int,
+    firstAccount: Long,
+    firstWinamnt: Long,
+    firstPrzwnerCo: Long,
     modifier: Modifier
 
 
@@ -315,7 +315,7 @@ fun LottoRowView(
             ) {
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
-                    text = "누적금액: ${totalMoney.toLong().toWon()}원 "
+                    text = "누적금액: ${firstAccount.toWon()}원 "
                 )
             }
 
@@ -331,7 +331,7 @@ fun LottoRowView(
             ) {
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
-                    text = "1등 당첨금액: ${firstWinamnt.toLong().toWon()}원"
+                    text = "1등 당첨금액: ${firstWinamnt.toWon()}원"
                 )
             }
 
@@ -494,6 +494,12 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 
     val needAuth = authViewModel.needAuthContext.collectAsState()
 
+    val allSearchCount = authViewModel.allNumberSearchCountFlow.collectAsState()
+
+    val myNumberCount = authViewModel.myNumberSearchCountFlow.collectAsState()
+
+    val lotteryCount = authViewModel.numberLotteryCountFlow.collectAsState()
+
     val scope = rememberCoroutineScope()
 
     Column(
@@ -566,11 +572,11 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
                 .wrapContentSize()
                 .padding(start = 10.dp)) {
 
-                Text(text = "범위 검색 횟수: ${userdata.value.allNumberSearchCount}")
+                Text(text = "범위 검색 횟수: ${allSearchCount.value}")
 
-                Text(text = "나의 번호 조회 횟수: ${userdata.value.myNumberSearchCount}")
+                Text(text = "나의 번호 조회 횟수: ${myNumberCount.value}")
 
-                Text(text = "빅데이터 로또번호 추첨 횟수: ${userdata.value.numberLotteryCount}")
+                Text(text = "빅데이터 로또번호 추첨 횟수: ${lotteryCount.value}")
 
             }
         } else {
@@ -586,7 +592,8 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
                 .padding(top = 10.dp)
         )
 
-        Column(horizontalAlignment = Alignment.Start) {
+        Column(horizontalAlignment = Alignment.Start,
+            modifier = Modifier.padding(start = 5.dp)) {
 
 
 //            Text(modifier = Modifier
@@ -604,14 +611,14 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 //                }, text = "광고 삭제하기")
 
             TextButton(onClick = {
-                if(isSignIn.value) {
-                    mainRouteAction.navTo.invoke(MainRoute.Payment)
-                } else {
-                    authViewModel.needAuthContext.value = false
-                }
+//                if(isSignIn.value) {
+//                    mainRouteAction.navTo.invoke(MainRoute.Payment)
+//                } else {
+//                    authViewModel.needAuthContext.value = false
+//                }
 
             }) {
-                Text(text = "광고 삭제")
+                Text(text = "광고 삭제(구현 예정)")
             }
 
             Divider(
@@ -643,9 +650,8 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
             Spacer(modifier = Modifier.weight(1f))
 
             androidx.compose.material.Text(text = "고객센터")
+            androidx.compose.material.Text("카카오 아이디: kju9038")
             androidx.compose.material.Text("개발자 이메일: kju9038@gmail.com")
-            androidx.compose.material.Text("개발자 유튜브: ")
-            androidx.compose.material.Text("문의: 000-0000-0000")
         }
     }
 }

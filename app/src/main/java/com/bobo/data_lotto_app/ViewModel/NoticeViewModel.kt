@@ -74,7 +74,7 @@ class NoticeViewModel:  ViewModel()  {
 
         viewModelScope.launch {
             announcementPost.emit(dummyList)
-            Log.d(MainActivity.TAG, "dummyList: ${announcementPost.value}")
+//            Log.d(MainActivity.TAG, "dummyList: ${announcementPost.value}")
         }
     }
 

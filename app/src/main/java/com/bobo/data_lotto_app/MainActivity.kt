@@ -7,48 +7,25 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.Scaffold
-import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.rememberDismissState
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Image
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -58,33 +35,24 @@ import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.Routes.AuthRoute
 import com.bobo.data_lotto_app.Routes.AuthRouteAction
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
-import com.bobo.data_lotto_app.screens.main.DataScreen
-import com.bobo.data_lotto_app.components.MainBottomBar
-import com.bobo.data_lotto_app.screens.main.MainScreen
-import com.bobo.data_lotto_app.components.MainTopBar
-import com.bobo.data_lotto_app.screens.auth.WelcomeScreen
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
 import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
-import com.bobo.data_lotto_app.components.LoadingDialog
+import com.bobo.data_lotto_app.components.MainBottomBar
+import com.bobo.data_lotto_app.components.MainTopBar
+import com.bobo.data_lotto_app.components.admob.BannerAd
+import com.bobo.data_lotto_app.components.admob.loadInterstitial
 import com.bobo.data_lotto_app.screens.auth.LoginScreen
 import com.bobo.data_lotto_app.screens.auth.RegisterScreen
+import com.bobo.data_lotto_app.screens.auth.WelcomeScreen
+import com.bobo.data_lotto_app.screens.main.DataScreen
 import com.bobo.data_lotto_app.screens.main.DrawScreen
+import com.bobo.data_lotto_app.screens.main.MainScreen
 import com.bobo.data_lotto_app.screens.main.NoticeScreen
 import com.bobo.data_lotto_app.screens.main.PaymentScreen
 import com.bobo.data_lotto_app.ui.theme.Data_lotto_appTheme
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.common.api.ApiException
-import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.ktx.app
+import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 
@@ -96,64 +64,36 @@ class MainActivity : ComponentActivity() {
 
     private val mainViewModel: MainViewModel by viewModels()
     private val dataViewModel: DataViewModel by viewModels()
-    private val authViewModel: AuthViewModel by viewModels()
     private val noticeViewModel: NoticeViewModel by viewModels()
-
-
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val RC_SIGN_IN = 1313
-
-    private lateinit var googleSignInClient: GoogleSignInClient
-
-
-
+    private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         setContent {
+
+            MobileAds.initialize(this)
+
+            loadInterstitial(this)
+
+            val intent = intent
+
             Data_lotto_appTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
-                    authViewModel.googleLogInCheck(this)
-
                     AppScreen(
                         mainViewModel,
                         dataViewModel,
                         authViewModel,
                         noticeViewModel,
-                        activity = this
+                        activity = this,
+                        intent = intent
                     )
-
-
                 }
             }
-        }
-    }
-
-    private fun googleSignIn(activity: Activity) {
-        val signInIntent = googleSignInClient.signInIntent
-        startActivityForResult(signInIntent, RC_SIGN_IN)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == RC_SIGN_IN) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-//                firebaseAuthWithGoogle(account)
-            } catch (e: ApiException) {
-                Log.d(TAG, "구글 회원가입에 실패하였습니다")
-            }
-        } else {
-            /*no-op*/
         }
     }
 }
@@ -165,7 +105,8 @@ fun AppScreen(
     dataViewModel: DataViewModel,
     authViewModel: AuthViewModel,
     noticeViewModel: NoticeViewModel,
-    activity: Activity
+    activity: Activity,
+    intent: Intent
 ) {
 
     val mainNavController = rememberNavController()
@@ -189,6 +130,16 @@ fun AppScreen(
 
     val needAuth = authViewModel.needAuthContext.collectAsState()
 
+    val googleEmail = intent.getStringExtra("email")
+    val googleLogin = intent.getBooleanExtra("success", false)
+
+    LaunchedEffect(key1 = intent, block = {
+        if(googleLogin) {
+            authViewModel.googleUserDataMake(googleEmail!!)
+            Log.d(TAG, "googleEmail: ${googleEmail}")
+        }
+    })
+
     if (needAuth.value) {
 
         Scaffold(
@@ -202,27 +153,41 @@ fun AppScreen(
                 )
             }) {
             Column(
-                modifier = Modifier.padding(
-                    top = it.calculateTopPadding(),
-                    bottom = it.calculateBottomPadding()
-                )
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        top = it.calculateTopPadding(),
+                        bottom = it.calculateBottomPadding()
+                    )
             ) {
 
-                MainNaHost(
-                    mainNavController = mainNavController,
-                    mainRouteAction = mainRouteAction,
-                    mainViewModel = mainViewModel,
-                    dataViewModel = dataViewModel,
-                    authViewModel = authViewModel,
-                    noticeViewModel = noticeViewModel,
-                    activity = activity
-                )
+                Column(Modifier.weight(1f)) {
+                    MainNaHost(
+                        mainNavController = mainNavController,
+                        mainRouteAction = mainRouteAction,
+                        mainViewModel = mainViewModel,
+                        dataViewModel = dataViewModel,
+                        authViewModel = authViewModel,
+                        noticeViewModel = noticeViewModel,
+                        activity = activity
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    BannerAd()
+                }
+                
+                Spacer(modifier = Modifier.height(5.dp))
             }
 
 
         }
     } else {
 
+        // 로그인 필요 여부
         Scaffold(
             scaffoldState = scaffoldState,
         ) {
@@ -236,7 +201,6 @@ fun AppScreen(
                     authNavController = authNavController,
                     routeAction = authRouteAction,
                     authViewModel = authViewModel,
-                    mainRouteAction = mainRouteAction,
                     activity = activity)
 
             }
@@ -290,8 +254,7 @@ fun AuthNavHost(
     startRouter: AuthRoute = AuthRoute.WELCOME,
     routeAction: AuthRouteAction,
     authViewModel: AuthViewModel,
-    mainRouteAction: MainRouteAction,
-    activity: Activity
+    activity: Activity,
 ) {
 
 
@@ -312,8 +275,4 @@ fun AuthNavHost(
 
     }
 }
-
-
-
-
 

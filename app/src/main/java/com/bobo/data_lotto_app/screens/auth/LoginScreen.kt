@@ -1,6 +1,7 @@
 package com.bobo.data_lotto_app.screens.auth
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -103,6 +104,8 @@ fun LoginScreen(authViewModel: AuthViewModel,
             onClick = {
                 coroutineScope.launch {
                     authViewModel.isLoggedIn.emit(false)
+                    authViewModel.logInEmailInputFlow.emit("")
+                    authViewModel.logInPasswordInputFlow.emit("")
                     routeAction.navTo(AuthRoute.WELCOME)
                 }
             }
@@ -208,19 +211,16 @@ fun LoginScreen(authViewModel: AuthViewModel,
 
             BaseButton(
                 title = "카카오 로그인",
-                isLoading = kakaoLogInIsLoading.value,
+                isLoading = false,
                 image = R.drawable.kakaotalk_icon,
                 onClick = {
                     focusManager.clearFocus()
                     coroutineScope.launch {
-                        loadOpenDialog.value = true
-                        authViewModel.kakaoisLoadingFlow.value = true
-                        delay(2000)
+
                         authViewModel.loginUser(type = AuthViewModel.LoginType.KAKAO, activity)
 
                         authViewModel.failedLogIn.collectLatest {
                             if (failedLogin.value == true) {
-                                authViewModel.kakaoisLoadingFlow.value = false
                                 snackBarHostState.showSnackbar(
                                     "로그인에 실패하였습니다. 다시 확인해주세요",
                                     actionLabel = "닫기", SnackbarDuration.Short
@@ -242,6 +242,37 @@ fun LoginScreen(authViewModel: AuthViewModel,
 
 
         }
+
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+
+            BaseButton(
+                title = "구글 로그인",
+                isLoading = false,
+                image = R.drawable.google_icon,
+                modifier = Modifier.imePadding(),
+                imageModifier = Modifier.size(33.dp),
+                onClick = {
+                    focusManager.clearFocus()
+                    coroutineScope.launch {
+
+                        authViewModel.googleLogin(activity)
+                    }
+                    Log.d("웰컴스크린", "로그인 버튼 클릭")
+
+
+                },
+                )
+        }
+
+
 
 
         Row(

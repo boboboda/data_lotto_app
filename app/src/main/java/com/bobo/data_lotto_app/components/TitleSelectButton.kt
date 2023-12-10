@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,48 +39,34 @@ import com.bobo.data_lotto_app.ui.theme.TopButtonInColor
 fun TopTitleButton(dataViewModel: DataViewModel) {
 
     val cardState = dataViewModel.dataCardId.collectAsState()
-    Column(
-        modifier = Modifier
-    ) {
-        LazyVerticalGrid(
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp),
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            content = {
 
-                item(span = {
-                    GridItemSpan(1)
-                }
-                ) {
-                    TopTitleView(
-                        "빅데이터 조회",
-                        1,
-                        selectedId = cardState.value,
-                        selectAction = {
-                            dataViewModel.dataCardId.value = it
-                        })
-                }
+        Row(Modifier.padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            TopTitleView(
+                "빅데이터 조회",
+                modifier = Modifier.weight(1f),
+                1,
+                selectedId = cardState.value,
+                selectAction = {
+                    dataViewModel.dataCardId.value = it
+                })
 
-                item(span = {
-                    GridItemSpan(1)
-                }
-                ) {
-                    TopTitleView(
-                        "내 번호 조회",
-                        2,
-                        selectedId = cardState.value,
-                        selectAction = {
-                            dataViewModel.dataCardId.value = it
-                        })
-                }
-            })
-    }
+            TopTitleView(
+                "내 번호 조회",
+                modifier = Modifier.weight(1f),
+                2,
+                selectedId = cardState.value,
+                selectAction = {
+                    dataViewModel.dataCardId.value = it
+                })
+        }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopTitleView(mainText: String,
+                 modifier: Modifier,
                  id: Int,
                  selectedId: Int,
                  selectAction: (Int) -> Unit) {
@@ -91,10 +78,7 @@ fun TopTitleView(mainText: String,
     Card(
         colors = CardDefaults.cardColors(color),
         elevation = CardDefaults.cardElevation(8.dp),
-        modifier = Modifier
-            .height(70.dp)
-            .padding(7.dp)
-            .fillMaxWidth(),
+        modifier = modifier,
         onClick = {
             Log.d(TAG, "클릭되었습니다.")
             selectAction(currentCardId) }
@@ -118,41 +102,25 @@ fun TopTitleView(mainText: String,
 fun LotteryTopTitleButton(dataViewModel: DataViewModel) {
 
     val cardState = dataViewModel.lottoCardId.collectAsState()
-    Column(
-        modifier = Modifier
-    ) {
-        LazyVerticalGrid(
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp),
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            content = {
 
-                item(span = {
-                    GridItemSpan(1)
-                }
-                ) {
-                    TopTitleView(
-                        "일반 모드",
-                        1,
-                        selectedId = cardState.value,
-                        selectAction = {
-                            dataViewModel.lottoCardId.value = it
-                        })
-                }
+    Row(Modifier.padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        TopTitleView(
+            "일반 모드",
+            modifier = Modifier.weight(1f),
+            1,
+            selectedId = cardState.value,
+            selectAction = {
+                dataViewModel.lottoCardId.value = it
+            })
 
-                item(span = {
-                    GridItemSpan(1)
-                }
-                ) {
-                    TopTitleView(
-                        "빅데이터 모드",
-                        2,
-                        selectedId = cardState.value,
-                        selectAction = {
-                            dataViewModel.lottoCardId.value = it
-                        })
-                }
+        TopTitleView(
+            "빅데이터 모드",
+            modifier = Modifier.weight(1f),
+            2,
+            selectedId = cardState.value,
+            selectAction = {
+                dataViewModel.lottoCardId.value = it
             })
     }
 }
@@ -178,6 +146,7 @@ fun MainNoticeTopTitleButton(noticeViewModel: NoticeViewModel) {
                 ) {
                     TopTitleView(
                         "일반 모드",
+                        modifier = Modifier.weight(1f),
                         1,
                         selectedId = cardState.value,
                         selectAction = {
@@ -191,6 +160,7 @@ fun MainNoticeTopTitleButton(noticeViewModel: NoticeViewModel) {
                 ) {
                     TopTitleView(
                         "빅데이터 모드",
+                        modifier = Modifier.weight(1f),
                         2,
                         selectedId = cardState.value,
                         selectAction = {

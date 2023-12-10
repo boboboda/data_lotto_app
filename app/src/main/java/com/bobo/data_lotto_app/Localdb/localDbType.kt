@@ -70,6 +70,9 @@ data class LocalUserData(
     @ColumnInfo(name = "id")
     var id: UUID = UUID.randomUUID(),
 
+    @ColumnInfo(name = "horseman")
+    val horseman: Int? = null,
+
     @ColumnInfo(name = "allNumber_Search_Count")
     val allNumberSearchCount: Int? = null,
 

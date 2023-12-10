@@ -84,14 +84,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         viewModelScope.launch {
             // 노말모드, 빅데이터모드 추첨번호 불러오기
             allFetchedLotteryNumber()
-
-            if(allLottoNumberDataFlow != null) {
-                Log.d(TAG, "${allLottoNumberDataFlow.value}")
-            } else {
-                return@launch
-            }
-
-
         }
     }
 
@@ -107,7 +99,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 .collect { listNumber ->
 
                     if (listNumber.isNullOrEmpty()) {
-                        Log.d(TAG, "Empty number list")
+                        Log.d(TAG, "저장된 일반 추첨번호가 없습니다.")
                     } else {
                         normalLottoNumberList.emit(listNumber)
                     }
@@ -119,7 +111,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
             localRepository.bigdataGetAll().distinctUntilChanged()
                 .collect { bigDataListNumber ->
                     if (bigDataListNumber.isNullOrEmpty()) {
-                        Log.d(TAG, "Empty bigdatanumber list")
+                        Log.d(TAG, "저장된 빅데이터 추첨번호가 없습니다.")
                     } else {
                         bigDataLottoNumberList.emit(bigDataListNumber)
                         Log.d(TAG, "빅데이터 블러오기 성공${bigDataLottoNumberList.value}")
@@ -139,9 +131,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                     viewModelScope.launch {
                         val resentLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
                         val mapLottoNumber = resentLottoNumber.mapNotNull { it.lotto }.first()
-                        Log.d(TAG, "최신 로또번호 data ${mapLottoNumber}")
-                        Log.d(TAG, "firebase 최신 로또번호: ${mapLottoNumber.drwNo}")
-                        Log.d(TAG, "local 최신 로또번호: ${localResentLottoNumber}")
 
 
                         if(localResentLottoNumber != mapLottoNumber.drwNo) {
@@ -269,6 +258,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     }
 
     // 모든 로또 번호 로또 날짜 범위 값
+
+    val dateStringFlow = MutableStateFlow("모두")
 
     val startDateFlow = MutableStateFlow("${LocalDate.now()}")
 
@@ -525,6 +516,8 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         AllNUMBERSEARCH, MYNUMBERSEARCH , LOTTERY
     }
 
+    // 필터 날짜 설정 모두// 일년// 한달// 직접설정
+
     // 숫자 별 퍼센트 계산
     fun calculate(
         filterNumber: String? = null,
@@ -572,6 +565,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                     lottoNumber.forEach { number ->
 
+                        // 날짜 관련
                         val selectData = _selectRangeLottoNumber.value
                         val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
                         val rangeCount = _selectRangeLottoNumber.value.count()
@@ -597,6 +591,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
                 var results : MutableList<Pair<Int, Float>> = mutableListOf()
 
 
+                // 날짜 관련, 모두 / 직접 설정
                 if(!bigDataModeRangeNumberStateFlow.value.isEmpty()) {
                     lottoNumber.forEach {number ->
                         val selectData = bigDataModeRangeNumberStateFlow.value
@@ -608,19 +603,20 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                         results.add(Pair(number, result))
                     }
-                } else {
-
-                    lottoNumber.forEach {number ->
-                        val selectData = allLottoNumberDataFlow.value
-                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
-                        val rangeCount = allLottoNumberDataFlow.value.count()
-                        val countNumber = numberFilterData.count()
-
-                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
-
-                        results.add(Pair(number, result))
-                    }
                 }
+//                else {
+//
+//                    lottoNumber.forEach {number ->
+//                        val selectData = allLottoNumberDataFlow.value
+//                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
+//                        val rangeCount = allLottoNumberDataFlow.value.count()
+//                        val countNumber = numberFilterData.count()
+//
+//                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+//
+//                        results.add(Pair(number, result))
+//                    }
+//                }
 
                 return results
             }

@@ -71,7 +71,6 @@ import com.bobo.data_lotto_app.R
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.LottoNumberTextField
 import com.bobo.data_lotto_app.components.StickBar
-import com.bobo.data_lotto_app.components.rangeDateDialog
 import com.bobo.data_lotto_app.extentions.toPer
 import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.ui.theme.DateBackgroundColor
@@ -87,9 +86,11 @@ import androidx.compose.material.ThresholdConfig
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.components.AutoSizeText
+import com.bobo.data_lotto_app.components.RangeDateDialog
 import com.bobo.data_lotto_app.components.TopTitleButton
 import com.bobo.data_lotto_app.components.UseCountDialog
 import com.bobo.data_lotto_app.components.UseType
+import com.bobo.data_lotto_app.components.admob.showInterstitial
 import com.bobo.data_lotto_app.extentions.toWon
 import com.bobo.data_lotto_app.screens.main.views.MyNumberViewPager
 import com.bobo.data_lotto_app.ui.theme.MainFirstBackgroundColor
@@ -115,6 +116,7 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
 
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .weight(0.1f)
         ) {
             TopTitleButton(dataViewModel = dataViewModel)
@@ -176,6 +178,8 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
     val allNumberAndPercentValue = dataViewModel.allNumberAndPercentValue.collectAsState()
     
     val sortState = dataViewModel.allNumberSortState.collectAsState()
+
+    val context = LocalContext.current
 
 
     Column(modifier = Modifier
@@ -336,27 +340,35 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
                 FloatingActionButton(
                     onClick = {
-                        showOpenDialog.value = true
+
+                        if(dataViewModel.allNumberDateRangeFlow.value.isEmpty()) {
+                            showOpenDialog.value = true
+                        } else {
+                            scope.launch {
+                                snackBarHostState.showSnackbar(
+                                    "이미 날짜가 설정되어 있습니다.\n" +
+                                            "삭제 후 클릭해주세요."
+                                )
+                            }
+                        }
                     },
                     modifier = Modifier.padding(8.dp)) {
                     Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
                 }
 
                 if(showOpenDialog.value) {
-                    rangeDateDialog(
+                    RangeDateDialog(
+                        dataViewModel,
                         onDismissRequest = {
                             showOpenDialog.value = it
                         },
                         callStartDate.value,
                         callEndDate.value,
-                        selectedStartDate = {
-                            dataViewModel.startDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                        },
-                        selectedEndDate = {
-                            dataViewModel.endDateFlow.value = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                        },
-                        onClicked = {
+                        onClicked = { startDate, endDate ->
                             scope.launch {
+
+                                dataViewModel.startDateFlow.emit(startDate)
+                                dataViewModel.endDateFlow.emit(endDate)
 
                                 val dateData = BigDataDate(startDate = dataViewModel.startDateFlow.value, endDate = dataViewModel.endDateFlow.value )
 
@@ -400,28 +412,60 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                                 showOpenCountDialog.value = false
 
                             } else {
-                                scope.launch {
-                                    dataViewModel.filterRange()
 
-                                    val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+                                if(allNumberSearchCount.value == 0) {
 
-                                    dataViewModel.allNumberAndPercentValue.emit(rangePercentValue)
+                                    showInterstitial(context) {
+
+                                        scope.launch {
+                                            dataViewModel.filterRange()
+
+                                            val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+
+                                            dataViewModel.allNumberAndPercentValue.emit(rangePercentValue)
+                                        }
+
+                                        authViewModel.filterItem(
+                                            itemCount = allNumberSearchCount.value,
+                                            searchDataCount = isSelectDateValue.value,
+                                            useType = UseType.ALLNUMBER
+                                        )
+
+                                        showOpenCountDialog.value = false
+
+                                    }
+
+                                } else {
+
+                                    scope.launch {
+                                        dataViewModel.filterRange()
+
+                                        val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+
+                                        dataViewModel.allNumberAndPercentValue.emit(rangePercentValue)
+                                    }
+
+                                    Log.d(TAG, "UseCountDialog 예외처리 안됨")
+
+                                    authViewModel.filterItem(
+                                        itemCount = allNumberSearchCount.value,
+                                        searchDataCount = isSelectDateValue.value,
+                                        useType = UseType.ALLNUMBER
+                                    )
+
+                                    showOpenCountDialog.value = false
+
+
                                 }
 
-                                Log.d(TAG, "UseCountDialog 예외처리 안됨")
-
-                                showOpenCountDialog.value = false
                             }
 
                         },
-                        authViewModel = authViewModel,
+
                         onDismissRequest = {
                             showOpenCountDialog.value = it
                         },
-                        useType = UseType.ALLNUMBER,
-                        dataViewModel = dataViewModel,
-                        itemCount = allNumberSearchCount.value,
-                        rangeDateData = isSelectDateValue
+                        label = "조회 (무료기회:${allNumberSearchCount.value})"
                     )
 
                 }
@@ -512,6 +556,8 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
     val myNumberCount = authViewModel.myNumberSearchCountFlow.collectAsState()
 
     val myNumberSortState = dataViewModel.myNumberSortState.collectAsState()
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -868,6 +914,17 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
                 FloatingActionButton(
                     onClick = {
+                        if(dataViewModel.myNumberDateRangeFlow.value.isEmpty()) {
+                            showOpenDialog.value = true
+                        } else {
+                            coroutineScope.launch {
+                                snackBarHostState.showSnackbar(
+                                    "이미 날짜가 설정되어 있습니다.\n" +
+                                            "삭제 후 클릭해주세요."
+                                )
+                            }
+                        }
+
                         showOpenDialog.value = true
                     },
                     modifier = Modifier.padding(8.dp)
@@ -879,31 +936,23 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 }
 
                 if (showOpenDialog.value) {
-                    rangeDateDialog(
+                    RangeDateDialog(
+                        dataViewModel = dataViewModel,
                         onDismissRequest = {
                             showOpenDialog.value = it
                         },
                         callStartDate = callStartDate.value,
                         callEndDate = callEndDate.value,
-                        selectedStartDate = {
-                            dataViewModel.myNumberStartDateFlow.value =
-                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
-                                    .toLocalDate().toString()
-                        },
-                        selectedEndDate = {
-                            dataViewModel.myNumberEndDateFlow.value =
-                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
-                                    .toLocalDate().toString()
-                        },
-                        onClicked = {
+                        onClicked = { startDate, endDate ->
+
+                            dataViewModel.myNumberStartDateFlow.value = startDate
+                            dataViewModel.myNumberEndDateFlow.value = endDate
 
                             coroutineScope.launch {
                                 val dateData = BigDataDate(
                                     startDate = dataViewModel.myNumberStartDateFlow.value,
                                     endDate = dataViewModel.myNumberEndDateFlow.value
                                 )
-
-
                                 val addList =
                                     dataViewModel.myNumberDateRangeFlow.value.toMutableList()
                                         .apply {
@@ -951,108 +1000,128 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                             showOpenCountDialog.value = false
 
                         } else {
-                            coroutineScope.launch {
 
-                                if (oneNumber.value == "" &&
-                                    twoNumber.value == "" &&
-                                    threeNumber.value == "" &&
-                                    fourNumber.value == "" &&
-                                    fiveNumber.value == "" &&
-                                    sixNumber.value == ""
-                                ) {
-                                    return@launch
-                                } else {
-
-                                    val chunkValue = dataViewModel.chunkMake()
-
+                            if(myNumberCount.value == 0) {
+                                showInterstitial(context) {
                                     coroutineScope.launch {
-                                        dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
 
-                                        dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
-
-                                        dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
-
-                                        dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
-
-                                        dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
-
-
-                                        if(chunkValue.secondNumber != null &&
-                                            chunkValue.thirdNumber != null &&
-                                            chunkValue.fourthNumber != null &&
-                                            chunkValue.fifthNumber != null &&
-                                            chunkValue.sixthNumber != null) {
-
-                                            Log.d(TAG, "myNumberChunkEmit() 실행됨")
-                                            dataViewModel.myNumberChunkEmit()
+                                        if (oneNumber.value == "" &&
+                                            twoNumber.value == "" &&
+                                            threeNumber.value == "" &&
+                                            fourNumber.value == "" &&
+                                            fiveNumber.value == "" &&
+                                            sixNumber.value == ""
+                                        ) {
+                                            return@launch
                                         } else {
-                                            Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
+
+                                            val chunkValue = dataViewModel.chunkMake()
+
+                                            coroutineScope.launch {
+                                                dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
+
+                                                dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
+
+                                                dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
+
+                                                dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
+
+                                                dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
+
+
+                                                if(chunkValue.secondNumber != null &&
+                                                    chunkValue.thirdNumber != null &&
+                                                    chunkValue.fourthNumber != null &&
+                                                    chunkValue.fifthNumber != null &&
+                                                    chunkValue.sixthNumber != null) {
+
+                                                    Log.d(TAG, "myNumberChunkEmit() 실행됨")
+                                                    dataViewModel.myNumberChunkEmit()
+
+                                                    authViewModel.filterItem(
+                                                        itemCount = myNumberCount.value,
+                                                        searchDataCount = isSelectDateValue.value,
+                                                        useType = UseType.MYNUMBER
+                                                    )
+
+
+                                                } else {
+                                                    Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
+                                                }
+                                            }
+
                                         }
+
+
                                     }
+
+                                    Log.d(TAG, "UseCountDialog 예외처리 안됨")
+                                    showOpenCountDialog.value = false
+                                }
+                            } else {
+                                coroutineScope.launch {
+
+                                    if (oneNumber.value == "" &&
+                                        twoNumber.value == "" &&
+                                        threeNumber.value == "" &&
+                                        fourNumber.value == "" &&
+                                        fiveNumber.value == "" &&
+                                        sixNumber.value == ""
+                                    ) {
+                                        return@launch
+                                    } else {
+
+                                        val chunkValue = dataViewModel.chunkMake()
+
+                                        coroutineScope.launch {
+                                            dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
+
+                                            dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
+
+                                            dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
+
+                                            dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
+
+                                            dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
+
+
+                                            if(chunkValue.secondNumber != null &&
+                                                chunkValue.thirdNumber != null &&
+                                                chunkValue.fourthNumber != null &&
+                                                chunkValue.fifthNumber != null &&
+                                                chunkValue.sixthNumber != null) {
+
+                                                Log.d(TAG, "myNumberChunkEmit() 실행됨")
+                                                dataViewModel.myNumberChunkEmit()
+
+                                                authViewModel.filterItem(
+                                                    itemCount = myNumberCount.value,
+                                                    searchDataCount = isSelectDateValue.value,
+                                                    useType = UseType.MYNUMBER
+                                                )
+
+
+                                            } else {
+                                                Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
+                                            }
+                                        }
+
+                                    }
+
 
                                 }
 
-
+                                Log.d(TAG, "UseCountDialog 예외처리 안됨")
+                                showOpenCountDialog.value = false
                             }
 
-                            Log.d(TAG, "UseCountDialog 예외처리 안됨")
-                            showOpenCountDialog.value = false
                         }
 
                     },
-                    authViewModel = authViewModel,
                     onDismissRequest = {
                         showOpenCountDialog.value = it
                     },
-                    useType = UseType.MYNUMBER,
-                    dataViewModel = dataViewModel,
-                    itemCount = myNumberCount.value,
-                    rangeDateData = isSelectDateValue,
-                    allDate = {
-
-                        coroutineScope.launch {
-
-                            if (oneNumber.value == "" &&
-                                twoNumber.value == "" &&
-                                threeNumber.value == "" &&
-                                fourNumber.value == "" &&
-                                fiveNumber.value == "" &&
-                                sixNumber.value == ""
-                            ) {
-                                return@launch
-                            } else {
-
-                                val chunkValue = dataViewModel.chunkMake()
-
-                                coroutineScope.launch {
-                                    dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
-
-                                    dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
-
-                                    dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
-
-                                    dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
-
-                                    dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
-
-                                    if(chunkValue.secondNumber != null &&
-                                        chunkValue.thirdNumber != null &&
-                                        chunkValue.fourthNumber != null &&
-                                        chunkValue.fifthNumber != null &&
-                                        chunkValue.sixthNumber != null) {
-
-                                        Log.d(TAG, "myNumberChunkEmit() 실행됨")
-                                        dataViewModel.myNumberChunkEmit()
-                                    } else {
-                                        Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
-                                    }
-                                }
-
-                            }
-
-                            showOpenCountDialog.value = false
-                        }
-                    }
+                    label = "조회 (무료기회:${myNumberCount.value})"
                 )
 
             }
@@ -1104,8 +1173,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
         }
 
 }
-
-
 
 
 

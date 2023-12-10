@@ -93,7 +93,15 @@ fun RegisterScreen(authViewModel: AuthViewModel,
             LogInBackButton(
                 modifier = Modifier
                     .padding(top = 20.dp),
-                onClick = routeAction.goBack
+                onClick = {
+                    coroutineScope.launch {
+                        authViewModel.registerEmailInputFlow.emit("")
+                        authViewModel.registerPasswordInputFlow.emit("")
+                        authViewModel.registerPasswordConfirmInputFlow.emit("")
+                        authViewModel.registerNicknameFlow.emit("")
+                        routeAction.navTo(AuthRoute.WELCOME)
+                    }
+                }
             )
         }
 

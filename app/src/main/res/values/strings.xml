@@ -1,6 +1,21 @@
 <resources>
     <string name="app_name">빅데이터 로또번호 추천</string>
-    <string name="admob_sample_app_id">ca-app-pub-8596470561558049~6897152045</string>
-    <string name="default_web_client_id">986291625395-gumtv0r29g19h04ctk71c40977u8hjri.apps.googleusercontent.com</string>
+    <string name="admob_app_id">ca-app-pub-8596470561558049~1920704298</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+
+
+    <string name="kakao_native_app_key">"ae0c8a8953e790ab3dfbba55ee2b489f"</string>
+    <string name="kakao_oauth_host">"kakaoae0c8a8953e790ab3dfbba55ee2b489f"</string>
+    <string name="banner_ad_key">"ca-app-pub-8596470561558049/9154512277"</string>
+    <string name="font_ad_key">"ca-app-pub-8596470561558049/1034998036"</string>
+
 </resources>
 
