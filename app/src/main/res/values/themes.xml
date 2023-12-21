@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.Data_lotto_app" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="SplashTheme" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>
