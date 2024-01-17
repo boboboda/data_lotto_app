@@ -111,6 +111,7 @@ fun PasswordTextField(
     val passwordVisibleIcon = if (passwordVisible.value) R.drawable.ic_visible else R.drawable.ic_invisible
 
     Column {
+
                TextField(
                     modifier = modifier.fillMaxWidth(),
                     textStyle = TextStyle(fontSize = 18.sp),
@@ -169,8 +170,8 @@ fun LottoNumberTextField(
                             }
             },
         value = value,
-        textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
         onValueChange = onValueChanged,
+        textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
         interactionSource = interactionSource,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
         singleLine = true,

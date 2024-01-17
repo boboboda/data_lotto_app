@@ -72,28 +72,26 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
+//            Data_lotto_appTheme {
+//                // A surface container using the 'background' color from the theme
+//
+//            }
+
             MobileAds.initialize(this)
 
             loadInterstitial(this)
 
             val intent = intent
 
-            Data_lotto_appTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    AppScreen(
-                        mainViewModel,
-                        dataViewModel,
-                        authViewModel,
-                        noticeViewModel,
-                        activity = this,
-                        intent = intent
-                    )
-                }
-            }
+            AppScreen(
+                mainViewModel,
+                dataViewModel,
+                authViewModel,
+                noticeViewModel,
+                activity = this,
+                intent = intent
+            )
+
         }
     }
 }
@@ -132,81 +130,83 @@ fun AppScreen(
 
     val googleEmail = intent.getStringExtra("email")
     val googleLogin = intent.getBooleanExtra("success", false)
+//
+//    LaunchedEffect(key1 = intent, block = {
+//        if(googleLogin) {
+//            authViewModel.googleUserDataMake(googleEmail!!)
+//            Log.d(TAG, "googleEmail: ${googleEmail}")
+//        }
+//    })
 
-    LaunchedEffect(key1 = intent, block = {
-        if(googleLogin) {
-            authViewModel.googleUserDataMake(googleEmail!!)
-            Log.d(TAG, "googleEmail: ${googleEmail}")
-        }
-    })
-
-    if (needAuth.value) {
-
-        Scaffold(
-            scaffoldState = scaffoldState,
-            topBar = { MainTopBar() },
-            bottomBar = {
-                MainBottomBar(
-                    mainRouteAction,
-                    mainBackStack.value,
-                    mainViewModel = mainViewModel
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = { MainTopBar() },
+        bottomBar = {
+            MainBottomBar(
+                mainRouteAction,
+                mainBackStack.value,
+                mainViewModel = mainViewModel
+            )
+        }) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = it.calculateTopPadding(),
+                    bottom = it.calculateBottomPadding()
                 )
-            }) {
+        ) {
+
+            Column(Modifier.weight(1f)) {
+                MainNaHost(
+                    mainNavController = mainNavController,
+                    mainRouteAction = mainRouteAction,
+                    mainViewModel = mainViewModel,
+                    dataViewModel = dataViewModel,
+                    authViewModel = authViewModel,
+                    noticeViewModel = noticeViewModel,
+                    activity = activity
+                )
+            }
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        top = it.calculateTopPadding(),
-                        bottom = it.calculateBottomPadding()
-                    )
-            ) {
-
-                Column(Modifier.weight(1f)) {
-                    MainNaHost(
-                        mainNavController = mainNavController,
-                        mainRouteAction = mainRouteAction,
-                        mainViewModel = mainViewModel,
-                        dataViewModel = dataViewModel,
-                        authViewModel = authViewModel,
-                        noticeViewModel = noticeViewModel,
-                        activity = activity
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-                    BannerAd()
-                }
-                
-                Spacer(modifier = Modifier.height(5.dp))
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                BannerAd()
             }
 
-
+            Spacer(modifier = Modifier.height(5.dp))
         }
-    } else {
 
-        // 로그인 필요 여부
-        Scaffold(
-            scaffoldState = scaffoldState,
-        ) {
-            Column(modifier = Modifier.padding(
-                top = it.calculateTopPadding(),
-                bottom = it.calculateBottomPadding())
-
-            ) {
-
-                AuthNavHost(
-                    authNavController = authNavController,
-                    routeAction = authRouteAction,
-                    authViewModel = authViewModel,
-                    activity = activity)
-
-            }
-        }
 
     }
+
+//    if (needAuth.value) {
+//
+//
+//    } else {
+//
+//        // 로그인 필요 여부
+//        Scaffold(
+//            scaffoldState = scaffoldState,
+//        ) {
+//            Column(modifier = Modifier.padding(
+//                top = it.calculateTopPadding(),
+//                bottom = it.calculateBottomPadding())
+//
+//            ) {
+//
+//                AuthNavHost(
+//                    authNavController = authNavController,
+//                    routeAction = authRouteAction,
+//                    authViewModel = authViewModel,
+//                    activity = activity)
+//
+//            }
+//        }
+//
+//    }
 
 }
 

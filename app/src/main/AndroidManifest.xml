@@ -17,13 +17,6 @@
         android:theme="@style/Theme.Data_lotto_app"
         tools:targetApi="31">
         <activity
-            android:name=".SplashActivity"
-            android:exported="false"
-            android:theme="@style/SplashTheme"
-            />
-
-
-        <activity
             android:name=".GoogleLoginActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat" />

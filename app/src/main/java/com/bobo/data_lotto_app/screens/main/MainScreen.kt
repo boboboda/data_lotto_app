@@ -156,16 +156,16 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(15.dp))
 
             LottoRowView(
-                oneBall = resentLottoNumber.value.drwtNo1!!.toInt(),
-                twoBall = resentLottoNumber.value.drwtNo2!!.toInt(),
-                threeBall = resentLottoNumber.value.drwtNo3!!.toInt(),
-                fourBall = resentLottoNumber.value.drwtNo4!!.toInt(),
-                fiveBall = resentLottoNumber.value.drwtNo5!!.toInt(),
-                sixBall = resentLottoNumber.value.drwtNo6!!.toInt(),
-                bonusBall = resentLottoNumber.value.bnusNo!!.toInt(),
-                firstAccount = resentLottoNumber.value.firstAccumamnt!!,
-                firstWinamnt = resentLottoNumber.value.firstWinamnt!!,
-                firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo!!,
+                oneBall = resentLottoNumber.value.drwtNo1?.toInt() ?: 0,
+                twoBall = resentLottoNumber.value.drwtNo2?.toInt() ?: 0,
+                threeBall = resentLottoNumber.value.drwtNo3?.toInt() ?: 0,
+                fourBall = resentLottoNumber.value.drwtNo4?.toInt() ?: 0,
+                fiveBall = resentLottoNumber.value.drwtNo5?.toInt() ?: 0,
+                sixBall = resentLottoNumber.value.drwtNo6?.toInt() ?: 0,
+                bonusBall = resentLottoNumber.value.bnusNo?.toInt() ?: 0,
+                firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
+                firstWinamnt = resentLottoNumber.value.firstWinamnt ?: 0L,
+                firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo ?: 0L,
                 modifier = Modifier.weight(1f)
 
             )
@@ -216,16 +216,16 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(15.dp))
 
             LottoRowView(
-                oneBall = lastWeekLottoNumber.value.drwtNo1!!.toInt(),
-                twoBall = lastWeekLottoNumber.value.drwtNo2!!.toInt(),
-                threeBall = lastWeekLottoNumber.value.drwtNo3!!.toInt(),
-                fourBall = lastWeekLottoNumber.value.drwtNo4!!.toInt(),
-                fiveBall = lastWeekLottoNumber.value.drwtNo5!!.toInt(),
-                sixBall = lastWeekLottoNumber.value.drwtNo6!!.toInt(),
-                bonusBall = lastWeekLottoNumber.value.bnusNo!!.toInt(),
-                firstAccount = resentLottoNumber.value.firstAccumamnt!!,
-                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt!!,
-                firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo!!,
+                oneBall = lastWeekLottoNumber.value.drwtNo1?.toInt() ?: 0,
+                twoBall = lastWeekLottoNumber.value.drwtNo2?.toInt() ?: 0,
+                threeBall = lastWeekLottoNumber.value.drwtNo3?.toInt() ?: 0,
+                fourBall = lastWeekLottoNumber.value.drwtNo4?.toInt() ?: 0,
+                fiveBall = lastWeekLottoNumber.value.drwtNo5?.toInt() ?: 0,
+                sixBall = lastWeekLottoNumber.value.drwtNo6?.toInt() ?: 0,
+                bonusBall = lastWeekLottoNumber.value.bnusNo?.toInt() ?: 0,
+                firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
+                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt ?: 0L,
+                firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo ?: 0L,
                 modifier = Modifier.weight(1f)
 
             )
@@ -611,11 +611,7 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 //                }, text = "광고 삭제하기")
 
             TextButton(onClick = {
-//                if(isSignIn.value) {
-//                    mainRouteAction.navTo.invoke(MainRoute.Payment)
-//                } else {
-//                    authViewModel.needAuthContext.value = false
-//                }
+                mainRouteAction.navTo.invoke(MainRoute.Payment)
 
             }) {
                 Text(text = "광고 삭제(구현 예정)")

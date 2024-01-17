@@ -14,7 +14,6 @@ private const val BASE_URL = "https://asia-northeast3-lotto-app-service.cloudfun
 
 private val moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
-//    .add(EnumJsonAdapter)
     .build()
 
 private val UserRetrofit = Retrofit.Builder()
