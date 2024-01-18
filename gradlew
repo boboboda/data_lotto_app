@@ -1,3 +1,8 @@
+./gradlew signingReport
+or
+gradlew signingReport
+
+
 #!/usr/bin/env sh
 
 #

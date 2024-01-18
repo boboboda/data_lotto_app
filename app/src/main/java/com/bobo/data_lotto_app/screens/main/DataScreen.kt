@@ -87,6 +87,7 @@ import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.components.AutoSizeText
 import com.bobo.data_lotto_app.components.RangeDateDialog
+import com.bobo.data_lotto_app.components.SliderAdvanced
 import com.bobo.data_lotto_app.components.TopTitleButton
 import com.bobo.data_lotto_app.components.UseCountDialog
 import com.bobo.data_lotto_app.components.UseType
@@ -122,6 +123,19 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
             TopTitleButton(dataViewModel = dataViewModel)
         }
 
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(top = 3.dp)
+                .padding(horizontal = 10.dp)
+//                .padding(start = 5.dp)
+        ) {
+            SliderAdvanced() { sliderValue->
+                dataViewModel.allDataFilter(sliderValue)
+            }
+        }
+
         Column(
             modifier = Modifier
             .weight(1f),
@@ -147,31 +161,19 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
 fun BigDataSearchView(dataViewModel: DataViewModel,
                       authViewModel: AuthViewModel) {
 
-    val scrollState = rememberScrollState()
-
-    val showOpenDialog = remember { mutableStateOf(false) }
-
-    val lottoNumber = (1..45).toList()
 
     val resentLottoNumber = dataViewModel.resentLottoNumber.collectAsState()
 
     val selectedRangeLotto = dataViewModel.selectRangeLottoNumber.collectAsState()
 
-    val isSelectDateValue = dataViewModel.endFilterStateFlow.collectAsState()
-
     val showOpenCountDialog = remember { mutableStateOf(false) }
 
-    val callStartDate = dataViewModel.startDateFlow.collectAsState()
-
-    var callEndDate = dataViewModel.endDateFlow.collectAsState()
 
     val scope = rememberCoroutineScope()
 
     val snackBarHostState = remember { SnackbarHostState() }
 
     val allNumberSearchCount = authViewModel.allNumberSearchCountFlow.collectAsState()
-
-    val rangeDateState = dataViewModel.allNumberDateRangeFlow.collectAsState()
 
     val lazyListState = rememberLazyListState()
 
@@ -187,7 +189,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
         horizontalAlignment = Alignment.CenterHorizontally) {
 
         Spacer(modifier = Modifier
-            .height(20.dp))
+            .height(5.dp))
 
         Column(
             Modifier
@@ -232,36 +234,6 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-
-
-        LazyVerticalGrid(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentSize()
-                .padding(horizontal = 13.dp),
-            columns = GridCells.Fixed(4), content = {
-                items(rangeDateState.value, span = {
-                    GridItemSpan(2)
-                }) { date ->
-
-                    FilterCard(number = "${date.startDate}~${date.endDate}",
-                        deleteClicked = {
-                            scope.launch {
-                                val removeList = dataViewModel.allNumberDateRangeFlow.value.toMutableList().apply {
-                                    remove(date)
-                                }
-                                dataViewModel.allNumberDateRangeFlow.emit(removeList)
-
-                                dataViewModel.startDateFlow.emit("${LocalDate.now()}")
-
-                                dataViewModel.endDateFlow.emit("${LocalDate.now()}")
-
-
-                            }
-                        })
-                }
-            }
-        )
 
         Row(modifier = Modifier
             .fillMaxWidth(),
@@ -322,7 +294,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
             state = lazyListState
         ) {
             items(allNumberAndPercentValue.value) { numberAndPercents ->
-                StickBar(ballNumber = numberAndPercents.first, data = numberAndPercents.second)
+                StickBar(ballNumber = numberAndPercents.first, count = numberAndPercents.second, data = numberAndPercents.third)
             }
         }
 
@@ -340,53 +312,6 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
                 FloatingActionButton(
                     onClick = {
-
-                        if(dataViewModel.allNumberDateRangeFlow.value.isEmpty()) {
-                            showOpenDialog.value = true
-                        } else {
-                            scope.launch {
-                                snackBarHostState.showSnackbar(
-                                    "이미 날짜가 설정되어 있습니다.\n" +
-                                            "삭제 후 클릭해주세요."
-                                )
-                            }
-                        }
-                    },
-                    modifier = Modifier.padding(8.dp)) {
-                    Image(painter = painterResource(id = R.drawable.outline_calendar_icon), contentDescription = "")
-                }
-
-                if(showOpenDialog.value) {
-                    RangeDateDialog(
-                        dataViewModel,
-                        onDismissRequest = {
-                            showOpenDialog.value = it
-                        },
-                        callStartDate.value,
-                        callEndDate.value,
-                        onClicked = { startDate, endDate ->
-                            scope.launch {
-
-                                dataViewModel.startDateFlow.emit(startDate)
-                                dataViewModel.endDateFlow.emit(endDate)
-
-                                val dateData = BigDataDate(startDate = dataViewModel.startDateFlow.value, endDate = dataViewModel.endDateFlow.value )
-
-
-                                val addList = dataViewModel.allNumberDateRangeFlow.value.toMutableList().apply {
-                                    add(dateData)
-                                }
-
-                                dataViewModel.allNumberDateRangeFlow.emit(addList)
-                            }
-                        }
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(5.dp))
-
-                FloatingActionButton(
-                    onClick = {
                         showOpenCountDialog.value = true
                     },
                     modifier = Modifier.padding(8.dp)
@@ -399,7 +324,7 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
                     UseCountDialog(
                         onClicked = {
-                            if(isSelectDateValue.value.count() <= 0) {
+                            if(allNumberAndPercentValue.value.count() <= 0) {
 
                                 Log.d(TAG, "UseCountDialog 예외처리됨")
 
@@ -418,16 +343,17 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                                     showInterstitial(context) {
 
                                         scope.launch {
-                                            dataViewModel.filterRange()
 
-                                            val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+                                            val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Triple<Int, Int, Float>>
 
-                                            dataViewModel.allNumberAndPercentValue.emit(rangePercentValue)
+                                            val sortRangePercent = rangePercentValue.sortedByDescending { it.third }
+
+                                            dataViewModel.allNumberAndPercentValue.emit(sortRangePercent)
                                         }
 
                                         authViewModel.filterItem(
                                             itemCount = allNumberSearchCount.value,
-                                            searchDataCount = isSelectDateValue.value,
+                                            searchDataCount = allNumberAndPercentValue.value,
                                             useType = UseType.ALLNUMBER
                                         )
 
@@ -438,18 +364,19 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                                 } else {
 
                                     scope.launch {
-                                        dataViewModel.filterRange()
 
-                                        val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+                                        val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Triple<Int, Int, Float>>
 
-                                        dataViewModel.allNumberAndPercentValue.emit(rangePercentValue)
+                                        val sortRangePercent = rangePercentValue.sortedByDescending { it.third }
+
+                                        dataViewModel.allNumberAndPercentValue.emit(sortRangePercent)
                                     }
 
                                     Log.d(TAG, "UseCountDialog 예외처리 안됨")
 
                                     authViewModel.filterItem(
                                         itemCount = allNumberSearchCount.value,
-                                        searchDataCount = isSelectDateValue.value,
+                                        searchDataCount = allNumberAndPercentValue.value,
                                         useType = UseType.ALLNUMBER
                                     )
 
@@ -566,7 +493,7 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
         Spacer(
             modifier = Modifier
-                .height(20.dp)
+                .height(5.dp)
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -1040,7 +967,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
                                                     authViewModel.filterItem(
                                                         itemCount = myNumberCount.value,
-                                                        searchDataCount = isSelectDateValue.value,
                                                         useType = UseType.MYNUMBER
                                                     )
 
@@ -1096,7 +1022,6 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
                                                 authViewModel.filterItem(
                                                     itemCount = myNumberCount.value,
-                                                    searchDataCount = isSelectDateValue.value,
                                                     useType = UseType.MYNUMBER
                                                 )
 

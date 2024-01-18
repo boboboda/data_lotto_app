@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.extentions.toPer
@@ -134,6 +135,7 @@ fun StickGageBar(percent: Float = 0f,
 @Composable
 fun StickBar(
     ballNumber: Int,
+    count: Int,
     data: Float) {
 
     Row(modifier = Modifier
@@ -151,15 +153,31 @@ fun StickBar(
                 .weight(1f)
                 .padding(end = 3.dp))
 
-        AutoSizeText(
-            value = "${data.toPer()} %",
-            fontSize = 18.sp,
-            minFontSize = 13.sp,
-            color = Color.Black,
+        Column(
             modifier = Modifier
-                .weight(0.4f)
-                .padding(end = 20.dp),
-            maxLines = 1)
+            .weight(0.4f)
+            .padding(end = 20.dp),
+            horizontalAlignment = Alignment.End) {
+            AutoSizeText(
+                value = "${data.toPer()} %",
+                fontSize = 16.sp,
+                minFontSize = 13.sp,
+                color = Color.Black,
+                modifier = Modifier,
+                maxLines = 1,
+                textAlign = TextAlign.Start)
+
+            AutoSizeText(
+                value = "(${count}회)",
+                fontSize = 16.sp,
+                minFontSize = 13.sp,
+                color = Color.Black,
+                modifier = Modifier,
+                maxLines = 1,
+                textAlign = TextAlign.Start)
+        }
+
+
     }
 }
 
@@ -212,7 +230,7 @@ fun MyNumberStickBar(
 
         Row(modifier = Modifier
             .wrapContentHeight()
-            .padding(start = 10.dp,bottom = 3.dp),
+            .padding(start = 10.dp, bottom = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start) {
             Text(text = "${allDataCount} 중 ${partDataCount} 일치", fontWeight = FontWeight.Bold, fontSize = 15.sp)

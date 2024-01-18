@@ -860,7 +860,6 @@ fun BigDataLottoAnimationDialog(
                             // 기회 차감
                             authViewModel.filterItem(
                                 itemCount = lotteryCount.value,
-                                searchDataCount = isSelectedDate.value,
                                 useType = UseType.LOTTERY
                             )
 

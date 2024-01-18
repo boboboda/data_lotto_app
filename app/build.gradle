@@ -72,9 +72,6 @@ android {
             buildConfigField("String", "FONT_AD_KEY", properties['font_ad_key'])
 
             signingConfig signingConfigs.release
-//            minifyEnabled true
-//            debuggable false
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
 
         debug {

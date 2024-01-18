@@ -225,9 +225,9 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                 Log.d(TAG, "빅데이터 조회 초기 실행")
 
-                val allNumberAndPercentData = calculate(type = ModeType.AllNUMBERSEARCH) as List<Pair<Int, Float>>
+                val allNumberAndPercentData = calculate(type = ModeType.AllNUMBERSEARCH) as List<Triple<Int, Int, Float>>
 
-                val sortedData = allNumberAndPercentData.sortedBy { it.second }
+                val sortedData = allNumberAndPercentData.sortedBy { it.third }
 
                 allNumberAndPercentValue.emit(sortedData)
             }
@@ -257,6 +257,12 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         }
     }
 
+
+    //슬라이드 아이템 서치
+
+
+
+
     // 모든 로또 번호 로또 날짜 범위 값
 
     val dateStringFlow = MutableStateFlow("모두")
@@ -265,42 +271,74 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val endDateFlow = MutableStateFlow("${LocalDate.now()}")
 
-    val allNumberDateRangeFlow =  MutableStateFlow<List<BigDataDate>>(emptyList())
-
-    val allNumberAndPercentValue = MutableStateFlow<List<Pair<Int, Float>>>(emptyList())
-
-    val startFilterRecordFlow = allLottoNumberDataFlow.combine(startDateFlow.filterNot { it.isEmpty() }) { recordList, startDate ->
-        recordList.filter { it.drwNoDate!! >= startDate } }
-
-    var endFilterRecordFlow = startFilterRecordFlow.combine(endDateFlow) { sellRecordList, endDate ->
-        sellRecordList.filter { it.drwNoDate!! <= endDate }
-    }
-
-    val cgStateValue = MutableStateFlow<Lotto>(
-        Lotto()
-    )
-
-    val cgValue = cgStateValue.replayCache
-
-    val endFilterStateFlow = endFilterRecordFlow.stateIn(viewModelScope, SharingStarted.Eagerly, cgValue)
+    val allNumberAndPercentValue = MutableStateFlow<List<Triple<Int, Int, Float>>>(emptyList())
 
     val allNumberSortState = MutableStateFlow(true)
 
     // 날짜 범위 데이터 필터 매소드
-    fun filterRange() {
+
+    fun allDataFilter(eventValue: Float) {
+        val allNumber = allLottoNumberDataFlow.value
+
+
         viewModelScope.launch {
-            _selectRangeLottoNumber.emit(endFilterStateFlow.value)
+            when (eventValue) {
+                0f -> {
+                    val filterTen = allNumber.takeLast(10)
+                    _selectRangeLottoNumber.emit(filterTen)
+
+                    Log.d(TAG, "${selectRangeLottoNumber.value}")
+                }
+
+                10f -> {
+                    val filterFifty = allNumber.takeLast(50)
+                    _selectRangeLottoNumber.emit(filterFifty)
+                }
+
+                20f -> {
+                    val filterOneHundred = allNumber.takeLast(100)
+                    _selectRangeLottoNumber.emit(filterOneHundred)
+                }
+
+                30f -> {
+                    val filterTwoHundred = allNumber.takeLast(200)
+                    _selectRangeLottoNumber.emit(filterTwoHundred)
+                }
+
+                40f -> {
+                    val filterFourHundred = allNumber.takeLast(400)
+                    _selectRangeLottoNumber.emit(filterFourHundred)
+                }
+
+                50f -> {
+                    val filterEightHundred = allNumber.takeLast(800)
+                    _selectRangeLottoNumber.emit(filterEightHundred)
+                }
+
+                60f -> {
+                    _selectRangeLottoNumber.emit(allNumber)
+                }
+
+                else -> {
+                    _selectRangeLottoNumber.emit(allNumber)
+                }
+            }
         }
+
+
+
+
     }
+
 
     // 빅데이터 조회 데이터 정렬 매소드
 
     fun allNumberSort() {
 
        val sortAllNumbers = if(allNumberSortState.value) {
-            allNumberAndPercentValue.value.sortedBy { it.second }
+            allNumberAndPercentValue.value.sortedBy { it.third }
         } else {
-            allNumberAndPercentValue.value.sortedByDescending { it.second }
+            allNumberAndPercentValue.value.sortedByDescending { it.third }
         }
 
         viewModelScope.launch {
@@ -520,7 +558,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     // 숫자 별 퍼센트 계산
     fun calculate(
-        filterNumber: String? = null,
         type: ModeType = ModeType.AllNUMBERSEARCH
     ): Any {
 
@@ -531,7 +568,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                 val lottoNumber = (1..45).toList()
 
-                var results : MutableList<Pair<Int, Float>> = mutableListOf()
+                var results : MutableList<Triple<Int, Int , Float>> = mutableListOf()
 
                 if(!_selectRangeLottoNumber.value.isEmpty()) {
 
@@ -544,7 +581,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
                         val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
 
-                        results.add(Pair(number, result))
+                        results.add(Triple(number, countNumber ,result))
 
                     }
 

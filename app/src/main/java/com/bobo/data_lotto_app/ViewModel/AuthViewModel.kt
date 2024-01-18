@@ -125,49 +125,36 @@ class AuthViewModel @Inject
                     val resentLottoNumber = result.toObjects(FirebaseLottoListResponse::class.java)
                     val mapLottoNumber = resentLottoNumber.mapNotNull { it.lotto }.first().drwNo?.toInt()
 
-                    viewModelScope.launch {
+                    viewModelScope.launch(Dispatchers.IO) {
                         horsemanNumber.emit(mapLottoNumber!!)
+
+                        localRepository.localUserDataGet().distinctUntilChanged()
+                            .collect{userData ->
+                                if(userData == null) {
+                                    localUserAdd()
+                                    Log.d(USER, "로컬 유저 아이디 없음") }
+                                else {
+
+                                    Log.d(USER, "로컬 유저 불러옴 실행 ${userData}")
+
+                                    localUser.emit(userData)
+
+                                    allNumberSearchCountFlow.emit(userData.allNumberSearchCount!!)
+                                    myNumberSearchCountFlow.emit(userData.myNumberSearchCount!!)
+                                    numberLotteryCountFlow.emit(userData.numberLotteryCount!!)
+
+                                    //토요일 10시 이후 횟수 초기화
+                                    userDataReSet()
+
+
+                                    // 관리자 권한으로 횟수 리셋함 출시 때 삭제
+//                                    adminReSetLocalUserCount()
+                                }
+                            }
                     }
                 }
                 .addOnFailureListener { return@addOnFailureListener }
 
-            isLoggedIn.collectLatest {
-                            if(isLoggedIn.value) {
-                                Log.d(USER, "로그인 후 유저 데이터 변경 실행 ${receiveUserDataFlow.value}")
-                                if(receiveUserDataFlow.value.deviceId != null) {
-                                    allNumberSearchCountFlow.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
-                                    myNumberSearchCountFlow.emit(receiveUserDataFlow.value.myNumberSearchCount!!)
-                                    numberLotteryCountFlow.emit(receiveUserDataFlow.value.allNumberSearchCount!!)
-                                } else { return@collectLatest}
-                            } else {
-                                viewModelScope.launch(Dispatchers.IO) {
-                                    localRepository.localUserDataGet().distinctUntilChanged()
-                                        .collect{userData ->
-                                            if(userData == null) {
-                                                localUserAdd()
-                                                Log.d(USER, "로컬 유저 아이디 없음") }
-                                            else {
-
-                                                Log.d(USER, "로컬 유저 불러옴 실행 ${userData}")
-
-                                                localUser.emit(userData)
-
-                                                allNumberSearchCountFlow.emit(userData.allNumberSearchCount!!)
-                                                myNumberSearchCountFlow.emit(userData.myNumberSearchCount!!)
-                                                numberLotteryCountFlow.emit(userData.numberLotteryCount!!)
-
-                                                //토요일 10시 이후 횟수 초기화
-                                                userDataReSet()
-
-
-                                                // 관리자 권한으로 횟수 리셋함 출시 때 삭제
-//                                    adminReSetLocalUserCount()
-                                            }
-                                        }
-                                }
-                            }
-
-                        }
             }
 
 
@@ -639,14 +626,14 @@ class AuthViewModel @Inject
     }
 
     fun filterItem(itemCount: Int,
-                   searchDataCount: List<Lotto>,
+                   searchDataCount: List<Triple<Int, Int, Float>>? = null,
                    useType: UseType) {
         if(itemCount == 0) {
             // 광고 나온 후
         } else {
             viewModelScope.launch {
 
-                if(searchDataCount.count() <= 0) {
+                if(searchDataCount!!.count() <= 0) {
                     Log.d(TAG, "UseCountDialog 예외처리됨")
                     return@launch
                 } else {

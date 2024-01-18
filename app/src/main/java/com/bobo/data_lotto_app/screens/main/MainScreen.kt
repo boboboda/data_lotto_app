@@ -103,74 +103,78 @@ fun MainScreen(
 
     val snackBarHostState = remember { SnackbarHostState() }
 
-    ModalDrawer(
-        drawerState = drawerState,
-        drawerShape = customShape(),
-        drawerContent = {
-            DrawerCustom(authViewModel, mainRouteAction)
-                        },
+//    ModalDrawer(
+//        drawerState = drawerState,
+//        drawerShape = customShape(),
+//        drawerContent = {
+//            DrawerCustom(authViewModel, mainRouteAction)
+//                        },
+//
+//        ) {
+//
+//
+//    }
 
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.LightGray)
+    ) {
 
-        Column(
+        Spacer(modifier = Modifier.height(15.dp))
+
+        // 마이페이지
+        // 추후 마이페이지 사용 시 공개
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(end = 8.dp),
+//            horizontalArrangement = Arrangement.End
+//        ) {
+//            Image(
+//                modifier = Modifier
+//                    .size(30.dp)
+//                    .clickable {
+//                        coroutineScope.launch {
+//                            drawerState.open()
+//                        }
+//                    },
+//                painter = painterResource(id = R.drawable.list_icon), contentDescription = ""
+//            )
+//        }
+//
+//        Spacer(modifier = Modifier.height(5.dp))
+
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.LightGray)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            // 마이페이지
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 8.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Image(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable {
-                            coroutineScope.launch {
-                                drawerState.open()
-                            }
-                        },
-                    painter = painterResource(id = R.drawable.list_icon), contentDescription = ""
-                )
-            }
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "이번주 당첨번호  ${resentLottoNumber.value.drwNo}회",
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            LottoRowView(
-                oneBall = resentLottoNumber.value.drwtNo1?.toInt() ?: 0,
-                twoBall = resentLottoNumber.value.drwtNo2?.toInt() ?: 0,
-                threeBall = resentLottoNumber.value.drwtNo3?.toInt() ?: 0,
-                fourBall = resentLottoNumber.value.drwtNo4?.toInt() ?: 0,
-                fiveBall = resentLottoNumber.value.drwtNo5?.toInt() ?: 0,
-                sixBall = resentLottoNumber.value.drwtNo6?.toInt() ?: 0,
-                bonusBall = resentLottoNumber.value.bnusNo?.toInt() ?: 0,
-                firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
-                firstWinamnt = resentLottoNumber.value.firstWinamnt ?: 0L,
-                firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo ?: 0L,
-                modifier = Modifier.weight(1f)
-
+            Text(
+                text = "이번주 당첨번호  ${resentLottoNumber.value.drwNo}회",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
             )
+        }
 
-            // 게시판 뷰
+        Spacer(modifier = Modifier.height(15.dp))
+
+        LottoRowView(
+            oneBall = resentLottoNumber.value.drwtNo1?.toInt() ?: 0,
+            twoBall = resentLottoNumber.value.drwtNo2?.toInt() ?: 0,
+            threeBall = resentLottoNumber.value.drwtNo3?.toInt() ?: 0,
+            fourBall = resentLottoNumber.value.drwtNo4?.toInt() ?: 0,
+            fiveBall = resentLottoNumber.value.drwtNo5?.toInt() ?: 0,
+            sixBall = resentLottoNumber.value.drwtNo6?.toInt() ?: 0,
+            bonusBall = resentLottoNumber.value.bnusNo?.toInt() ?: 0,
+            firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
+            firstWinamnt = resentLottoNumber.value.firstWinamnt ?: 0L,
+            firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo ?: 0L,
+            modifier = Modifier.weight(1f)
+
+        )
+
+        // 게시판 뷰
 //            MainNoticeTopTitleButton(noticeViewModel = noticeViewModel)
 //
 //            Spacer(modifier = Modifier.height(15.dp))
@@ -196,40 +200,39 @@ fun MainScreen(
 //                }
 //            }
 
-            // 게시판 뷰 보류
+        // 게시판 뷰 보류
 
 
-            Spacer(modifier = Modifier.height(5.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "저번주 당첨번호  ${lastWeekLottoNumber.value.drwNo}회",
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            LottoRowView(
-                oneBall = lastWeekLottoNumber.value.drwtNo1?.toInt() ?: 0,
-                twoBall = lastWeekLottoNumber.value.drwtNo2?.toInt() ?: 0,
-                threeBall = lastWeekLottoNumber.value.drwtNo3?.toInt() ?: 0,
-                fourBall = lastWeekLottoNumber.value.drwtNo4?.toInt() ?: 0,
-                fiveBall = lastWeekLottoNumber.value.drwtNo5?.toInt() ?: 0,
-                sixBall = lastWeekLottoNumber.value.drwtNo6?.toInt() ?: 0,
-                bonusBall = lastWeekLottoNumber.value.bnusNo?.toInt() ?: 0,
-                firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
-                firstWinamnt = lastWeekLottoNumber.value.firstWinamnt ?: 0L,
-                firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo ?: 0L,
-                modifier = Modifier.weight(1f)
-
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "저번주 당첨번호  ${lastWeekLottoNumber.value.drwNo}회",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
             )
         }
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        LottoRowView(
+            oneBall = lastWeekLottoNumber.value.drwtNo1?.toInt() ?: 0,
+            twoBall = lastWeekLottoNumber.value.drwtNo2?.toInt() ?: 0,
+            threeBall = lastWeekLottoNumber.value.drwtNo3?.toInt() ?: 0,
+            fourBall = lastWeekLottoNumber.value.drwtNo4?.toInt() ?: 0,
+            fiveBall = lastWeekLottoNumber.value.drwtNo5?.toInt() ?: 0,
+            sixBall = lastWeekLottoNumber.value.drwtNo6?.toInt() ?: 0,
+            bonusBall = lastWeekLottoNumber.value.bnusNo?.toInt() ?: 0,
+            firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
+            firstWinamnt = lastWeekLottoNumber.value.firstWinamnt ?: 0L,
+            firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo ?: 0L,
+            modifier = Modifier.weight(1f)
+
+        )
     }
 
 
@@ -594,21 +597,6 @@ fun DrawerCustom(authViewModel: AuthViewModel, mainRouteAction: MainRouteAction)
 
         Column(horizontalAlignment = Alignment.Start,
             modifier = Modifier.padding(start = 5.dp)) {
-
-
-//            Text(modifier = Modifier
-//                .padding(start = 8.dp, bottom = 5.dp)
-//                .clickable {
-//
-//                }, text = "내 글 보기")
-
-//            Spacer(modifier = Modifier.height(5.dp))
-//
-//            Text(modifier = Modifier
-//                .padding(start = 8.dp, bottom = 5.dp)
-//                .clickable {
-//
-//                }, text = "광고 삭제하기")
 
             TextButton(onClick = {
                 mainRouteAction.navTo.invoke(MainRoute.Payment)
