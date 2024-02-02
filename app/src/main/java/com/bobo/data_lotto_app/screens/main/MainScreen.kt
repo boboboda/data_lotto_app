@@ -1,12 +1,11 @@
 package com.bobo.data_lotto_app.screens.main
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,24 +20,23 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Divider
 import androidx.compose.material.DrawerValue
-import androidx.compose.material.ModalDrawer
-import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.TextButton
 import androidx.compose.material.rememberDrawerState
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,11 +47,11 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bobo.data_lotto_app.Localdb.Lotto
 import com.bobo.data_lotto_app.MainRoute
 import com.bobo.data_lotto_app.MainRouteAction
 import com.bobo.data_lotto_app.R
@@ -61,9 +59,9 @@ import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.ViewModel.MainViewModel
 import com.bobo.data_lotto_app.ViewModel.NoticeViewModel
-import com.bobo.data_lotto_app.components.BaseButton
 import com.bobo.data_lotto_app.components.CustomButton
-import com.bobo.data_lotto_app.components.MainNoticeTopTitleButton
+import com.bobo.data_lotto_app.components.BallDraw
+import com.bobo.data_lotto_app.components.LottoRowView
 import com.bobo.data_lotto_app.components.fontFamily
 import com.bobo.data_lotto_app.extentions.toWon
 import com.bobo.data_lotto_app.service.Post
@@ -71,8 +69,6 @@ import com.bobo.data_lotto_app.ui.theme.MainFirstBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.MainMenuBarColor
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
@@ -93,6 +89,10 @@ fun MainScreen(
 
     val lastWeekLottoNumber = dataViewModel.lastWeekLottoNumber.collectAsState()
 
+    val allLottoNumber = dataViewModel.allLottoNumberDataFlow.collectAsState()
+
+    val sortLottoNumber = allLottoNumber.value.sortedByDescending { it.drwNo }
+
     val noticeCardState = noticeViewModel.mainNoticeCardValue.collectAsState()
 
     val announcementPost = noticeViewModel.announcementPost.collectAsState()
@@ -101,19 +101,9 @@ fun MainScreen(
 
     val failLogin = authViewModel.failedLogIn.collectAsState()
 
-    val snackBarHostState = remember { SnackbarHostState() }
+    val lazyColumScrollState = rememberLazyListState()
 
-//    ModalDrawer(
-//        drawerState = drawerState,
-//        drawerShape = customShape(),
-//        drawerContent = {
-//            DrawerCustom(authViewModel, mainRouteAction)
-//                        },
-//
-//        ) {
-//
-//
-//    }
+    val snackBarHostState = remember { SnackbarHostState() }
 
     Column(
         modifier = Modifier
@@ -123,305 +113,86 @@ fun MainScreen(
 
         Spacer(modifier = Modifier.height(15.dp))
 
-        // 마이페이지
-        // 추후 마이페이지 사용 시 공개
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(end = 8.dp),
-//            horizontalArrangement = Arrangement.End
-//        ) {
-//            Image(
-//                modifier = Modifier
-//                    .size(30.dp)
-//                    .clickable {
-//                        coroutineScope.launch {
-//                            drawerState.open()
-//                        }
-//                    },
-//                painter = painterResource(id = R.drawable.list_icon), contentDescription = ""
-//            )
-//        }
-//
-//        Spacer(modifier = Modifier.height(5.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        LazyColumn(
+            modifier = Modifier,
+            state = lazyColumScrollState
         ) {
-            Text(
-                text = "이번주 당첨번호  ${resentLottoNumber.value.drwNo}회",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            itemsIndexed(items = sortLottoNumber, {index: Int, item: Lotto -> item.drwNo!!  }) {index, lotto->
+
+                allLottoNumberListView(
+                    index = index,
+                    drwNo = lotto.drwNo ?: 0L,
+                    oneBall = lotto.drwtNo1 ?: 0L,
+                    twoBall = lotto.drwtNo2 ?: 0L,
+                    threeBall = lotto.drwtNo3 ?: 0L,
+                    fourBall = lotto.drwtNo4 ?: 0L,
+                    fiveBall = lotto.drwtNo5 ?: 0L,
+                    sixBall = lotto.drwtNo6 ?: 0L,
+                    bonusBall = lotto.bnusNo ?: 0L,
+                    firstAccount = lotto.firstAccumamnt ?: 0L,
+                    firstWinamnt = lotto.firstWinamnt ?: 0L,
+                    firstPrzwnerCo = lotto.firstPrzwnerCo ?: 0L,
+                    date = lotto.drwNoDate ?: ""
+                )
+            }
+
         }
-
-        Spacer(modifier = Modifier.height(15.dp))
-
-        LottoRowView(
-            oneBall = resentLottoNumber.value.drwtNo1?.toInt() ?: 0,
-            twoBall = resentLottoNumber.value.drwtNo2?.toInt() ?: 0,
-            threeBall = resentLottoNumber.value.drwtNo3?.toInt() ?: 0,
-            fourBall = resentLottoNumber.value.drwtNo4?.toInt() ?: 0,
-            fiveBall = resentLottoNumber.value.drwtNo5?.toInt() ?: 0,
-            sixBall = resentLottoNumber.value.drwtNo6?.toInt() ?: 0,
-            bonusBall = resentLottoNumber.value.bnusNo?.toInt() ?: 0,
-            firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
-            firstWinamnt = resentLottoNumber.value.firstWinamnt ?: 0L,
-            firstPrzwnerCo = resentLottoNumber.value.firstPrzwnerCo ?: 0L,
-            modifier = Modifier.weight(1f)
-
-        )
-
-        // 게시판 뷰
-//            MainNoticeTopTitleButton(noticeViewModel = noticeViewModel)
-//
-//            Spacer(modifier = Modifier.height(15.dp))
-//
-//            when(noticeCardState.value) {
-//                1 -> {
-//                    NoticeContent(
-//                        modifier = Modifier.weight(1f),
-//                        announcementPost.value,
-//                        clicked = {
-//
-//                        }
-//                    )
-//                }
-//                2 -> {
-//                    NoticeContent(
-//                        modifier = Modifier.weight(1f),
-//                        bragPost.value,
-//                        clicked = {
-//
-//                        }
-//                    )
-//                }
-//            }
-
-        // 게시판 뷰 보류
-
-
-        Spacer(modifier = Modifier.height(5.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "저번주 당첨번호  ${lastWeekLottoNumber.value.drwNo}회",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(15.dp))
-
-        LottoRowView(
-            oneBall = lastWeekLottoNumber.value.drwtNo1?.toInt() ?: 0,
-            twoBall = lastWeekLottoNumber.value.drwtNo2?.toInt() ?: 0,
-            threeBall = lastWeekLottoNumber.value.drwtNo3?.toInt() ?: 0,
-            fourBall = lastWeekLottoNumber.value.drwtNo4?.toInt() ?: 0,
-            fiveBall = lastWeekLottoNumber.value.drwtNo5?.toInt() ?: 0,
-            sixBall = lastWeekLottoNumber.value.drwtNo6?.toInt() ?: 0,
-            bonusBall = lastWeekLottoNumber.value.bnusNo?.toInt() ?: 0,
-            firstAccount = resentLottoNumber.value.firstAccumamnt ?: 0L,
-            firstWinamnt = lastWeekLottoNumber.value.firstWinamnt ?: 0L,
-            firstPrzwnerCo = lastWeekLottoNumber.value.firstPrzwnerCo ?: 0L,
-            modifier = Modifier.weight(1f)
-
-        )
     }
-
-
-
-
 }
 
 
 @Composable
-fun LottoRowView(
-    oneBall: Int,
-    twoBall: Int,
-    threeBall: Int,
-    fourBall: Int,
-    fiveBall: Int,
-    sixBall: Int,
-    bonusBall: Int,
+fun allLottoNumberListView(
+    drwNo: Long,
+    oneBall: Long,
+    twoBall: Long,
+    threeBall: Long,
+    fourBall: Long,
+    fiveBall: Long,
+    sixBall: Long,
+    bonusBall: Long,
     firstAccount: Long,
     firstWinamnt: Long,
     firstPrzwnerCo: Long,
-    modifier: Modifier
-
-
+    date: String,
+    index: Int,
 ) {
+    Spacer(modifier = Modifier.height(5.dp))
 
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .padding(start = 3.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-
-            BallDraw(ballOder = "첫번째 볼", ballValue = oneBall)
-
-            BallDraw(ballOder = "두번째 볼", ballValue = twoBall)
-
-            BallDraw(ballOder = "세번째 볼", ballValue = threeBall)
-
-            BallDraw(ballOder = "네번째 볼", ballValue = fourBall)
-
-            BallDraw(ballOder = "다섯번째 볼", ballValue = fiveBall)
-
-            BallDraw(ballOder = "여섯번째 볼", ballValue = sixBall)
-
-            Image(
-                modifier = Modifier
-                    .size(20.dp)
-                    .padding(bottom = 3.dp),
-                painter = painterResource(id = R.drawable.plus_icon), contentDescription = ""
-            )
-
-            Spacer(modifier = Modifier.width(13.dp))
-
-            BallDraw(ballOder = "보너스 볼", ballValue = bonusBall)
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Column(
-            Modifier
-                .clip(shape = RoundedCornerShape(10.dp))
-                .background(MainFirstBackgroundColor)
-                .fillMaxWidth(0.9f)
-                .fillMaxSize(0.9f)
-                .padding(top = 20.dp, bottom = 20.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .fillMaxWidth(0.9f)
-                    .weight(1f)
-                    .background(MainMenuBarColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = "누적금액: ${firstAccount.toWon()}원 "
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .fillMaxWidth(0.9f)
-                    .weight(1f)
-                    .background(MainMenuBarColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = "1등 당첨금액: ${firstWinamnt.toWon()}원"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Row(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .fillMaxWidth(0.9f)
-                    .weight(1f)
-                    .background(MainMenuBarColor),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = "1등 당첨 인원: ${firstPrzwnerCo} 명"
-                )
-            }
-
-        }
-
-
-    }
-
-
-}
-
-
-@Composable
-fun BallDraw(
-    ballOder: String,
-    ballValue: Int,
-    modifier: Modifier = Modifier
-) {
-
-    Box(
-        modifier = modifier
-            .size(45.dp),
-        contentAlignment = Alignment.Center
-    ) {
-
-        val ballImage =
-
-            when (ballValue) {
-
-                in 1..9 -> {
-                    painterResource(id = R.drawable.yellow_ball)
-                }
-
-                in 10..19 -> {
-                    painterResource(id = R.drawable.blue_ball)
-                }
-
-                in 20..29 -> {
-                    painterResource(id = R.drawable.red_ball)
-                }
-
-                in 30..39 -> {
-                    painterResource(id = R.drawable.gray_ball)
-                }
-
-                in 40..45 -> {
-                    painterResource(id = R.drawable.green_ball)
-                }
-
-                else -> {
-                    null
-                }
-            }
-
-
-        Image(
-            modifier = Modifier.size(40.dp),
-            painter = ballImage!!,
-            contentDescription = "image description",
-//                    contentScale = ContentScale.None
-        )
-
         Text(
-            modifier = Modifier.padding(bottom = 5.dp, end = 6.dp),
-            text = ballValue.toString(),
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            text = "${drwNo}회 당첨번호",
+            fontSize = 25.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 
+    Spacer(modifier = Modifier.height(15.dp))
+
+    LottoRowView(
+        index = index,
+        oneBall = oneBall,
+        twoBall = twoBall,
+        threeBall = threeBall,
+        fourBall = fourBall,
+        fiveBall =fiveBall,
+        sixBall = sixBall,
+        bonusBall = bonusBall,
+        firstAccount = firstAccount,
+        firstWinamnt =  firstWinamnt,
+        firstPrzwnerCo = firstPrzwnerCo,
+        date = date
+    )
 }
+
+
+
+
 
 
 

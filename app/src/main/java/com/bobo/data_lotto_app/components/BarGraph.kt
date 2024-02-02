@@ -27,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobo.data_lotto_app.extentions.toPer
-import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.ui.theme.AColor
 import com.bobo.data_lotto_app.ui.theme.BColor
 import com.bobo.data_lotto_app.ui.theme.CColor

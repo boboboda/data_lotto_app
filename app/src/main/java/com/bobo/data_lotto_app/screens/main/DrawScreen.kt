@@ -79,6 +79,7 @@ import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.AutoSizeText
+import com.bobo.data_lotto_app.components.BallDraw
 import com.bobo.data_lotto_app.components.BigDataLottoAnimationDialog
 import com.bobo.data_lotto_app.components.FilterDialog
 import com.bobo.data_lotto_app.components.LotteryTopTitleButton

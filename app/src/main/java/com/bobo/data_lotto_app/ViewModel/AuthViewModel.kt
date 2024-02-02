@@ -626,42 +626,32 @@ class AuthViewModel @Inject
     }
 
     fun filterItem(itemCount: Int,
-                   searchDataCount: List<Triple<Int, Int, Float>>? = null,
                    useType: UseType) {
         if(itemCount == 0) {
             // 광고 나온 후
         } else {
             viewModelScope.launch {
 
-                if(searchDataCount!!.count() <= 0) {
-                    Log.d(TAG, "UseCountDialog 예외처리됨")
-                    return@launch
-                } else {
+                when(useType) {
 
-                    Log.d(TAG, "UseCountDialog 예외처리 안됨")
+                    UseType.ALLNUMBER -> {
 
-                    when(useType) {
+                        val changeValue = allNumberSearchCountFlow.value - 1
 
-                        UseType.ALLNUMBER -> {
+                        useItem(allNumberSearchCount = changeValue)
+                        allNumberSearchCountFlow.emit(changeValue) }
+                    UseType.MYNUMBER -> {
 
-                            val changeValue = allNumberSearchCountFlow.value - 1
+                        val changeValue = myNumberSearchCountFlow.value - 1
 
-                            useItem(allNumberSearchCount = changeValue)
-                            allNumberSearchCountFlow.emit(changeValue) }
-                        UseType.MYNUMBER -> {
+                        useItem(myNumberSearchCount = changeValue)
+                        myNumberSearchCountFlow.emit(changeValue) }
+                    UseType.LOTTERY -> {
 
-                            val changeValue = myNumberSearchCountFlow.value - 1
+                        val changeValue = numberLotteryCountFlow.value - 1
 
-                            useItem(myNumberSearchCount = changeValue)
-                            myNumberSearchCountFlow.emit(changeValue) }
-                        UseType.LOTTERY -> {
-
-                            val changeValue = numberLotteryCountFlow.value - 1
-
-                            useItem(numberLotteryCount = changeValue)
-                            numberLotteryCountFlow.emit(changeValue) }
-                    }
-
+                        useItem(numberLotteryCount = changeValue)
+                        numberLotteryCountFlow.emit(changeValue) }
                 }
             }
         }

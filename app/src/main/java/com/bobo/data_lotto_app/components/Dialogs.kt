@@ -62,7 +62,6 @@ import com.bobo.data_lotto_app.MainActivity.Companion.TAG
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.admob.showInterstitial
-import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.ui.theme.DataSelectFirstColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
 import com.bobo.data_lotto_app.ui.theme.DisableButtonColor
@@ -511,7 +510,7 @@ fun LottoAnimationDialog(
     val lottieComposition by rememberLottieComposition(
         LottieCompositionSpec.Asset(assetName = "lotto.json")
     )
-    val lottieAnimatable by animateLottieCompositionAsState(
+    val lottieAnimateble by animateLottieCompositionAsState(
         lottieComposition,
         iterations = animationStop.value,
         isPlaying = true,
@@ -591,7 +590,7 @@ fun LottoAnimationDialog(
                 LottieAnimation(
                     composition = lottieComposition,
                     contentScale = ContentScale.Fit,
-                    progress = lottieAnimatable,
+                    progress = lottieAnimateble,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .background(color = Color.White),

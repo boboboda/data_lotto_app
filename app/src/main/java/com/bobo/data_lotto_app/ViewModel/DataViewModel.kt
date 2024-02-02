@@ -267,10 +267,6 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val dateStringFlow = MutableStateFlow("모두")
 
-    val startDateFlow = MutableStateFlow("${LocalDate.now()}")
-
-    val endDateFlow = MutableStateFlow("${LocalDate.now()}")
-
     val allNumberAndPercentValue = MutableStateFlow<List<Triple<Int, Int, Float>>>(emptyList())
 
     val allNumberSortState = MutableStateFlow(true)
@@ -355,16 +351,112 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     val myNumberDateRangeFlow =  MutableStateFlow<List<BigDataDate>>(emptyList())
 
-    val startFilterMyNumber = allLottoNumberDataFlow.combine(myNumberStartDateFlow.filterNot { it.isEmpty() }) { recordList, startDate ->
-        recordList.filter { it.drwNoDate!! >= startDate } }
-
-    var endFilterMyNumber = startFilterMyNumber.combine(myNumberEndDateFlow) { sellRecordList, endDate ->
-        sellRecordList.filter { it.drwNoDate!! <= endDate }
-    }
-
-    val myNumberStateFlow = endFilterMyNumber.stateIn(viewModelScope, SharingStarted.Eagerly, allLottoNumberDataFlow.value)
-
     val myNumberSortState = MutableStateFlow(true)
+
+
+    // 숫자 별 퍼센트 계산
+    fun calculate(
+        type: ModeType = ModeType.AllNUMBERSEARCH
+    ): Any {
+
+        when(type) {
+            ModeType.AllNUMBERSEARCH -> {
+
+                Log.d(TAG, "날짜 범위 퍼센트 계산")
+
+                val lottoNumber = (1..45).toList()
+
+                var results : MutableList<Triple<Int, Int , Float>> = mutableListOf()
+
+                if(!_selectRangeLottoNumber.value.isEmpty()) {
+
+                    lottoNumber.forEach { number ->
+
+                        val selectData = _selectRangeLottoNumber.value
+                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
+                        val rangeCount = _selectRangeLottoNumber.value.count()
+                        val countNumber = numberFilterData.count()
+
+                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+
+                        results.add(Triple(number, countNumber ,result))
+
+                    }
+
+                }
+
+                return results
+            }
+
+            ModeType.MYNUMBERSEARCH -> {
+
+                Log.d(TAG, "나의 번호 날짜 범위 퍼센트 계산")
+
+                val lottoNumber = (1..45).toList()
+
+                var results : MutableList<Pair<Int, Float>> = mutableListOf()
+
+                if(!_selectRangeLottoNumber.value.isEmpty()) {
+
+                    lottoNumber.forEach { number ->
+
+                        // 날짜 관련
+                        val selectData = _selectRangeLottoNumber.value
+                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
+                        val rangeCount = _selectRangeLottoNumber.value.count()
+                        val countNumber = numberFilterData.count()
+
+                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+
+                        results.add(Pair(number, result))
+
+                    }
+
+                }
+
+                return results
+            }
+
+            ModeType.LOTTERY -> {
+
+                Log.d(TAG, "범위 퍼센트 계산 실행")
+
+                val lottoNumber = (1..45).toList()
+
+                var results : MutableList<Pair<Int, Float>> = mutableListOf()
+
+
+                // 날짜 관련, 모두 / 직접 설정
+                if(!bigDataModeRangeNumberStateFlow.value.isEmpty()) {
+                    lottoNumber.forEach {number ->
+                        val selectData = bigDataModeRangeNumberStateFlow.value
+                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
+                        val rangeCount = bigDataModeRangeNumberStateFlow.value.count()
+                        val countNumber = numberFilterData.count()
+
+                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+
+                        results.add(Pair(number, result))
+                    }
+                }
+//                else {
+//
+//                    lottoNumber.forEach {number ->
+//                        val selectData = allLottoNumberDataFlow.value
+//                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
+//                        val rangeCount = allLottoNumberDataFlow.value.count()
+//                        val countNumber = numberFilterData.count()
+//
+//                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
+//
+//                        results.add(Pair(number, result))
+//                    }
+//                }
+
+                return results
+            }
+        }
+    }
 
 
     // 입력한 나의 로또 번호
@@ -380,6 +472,23 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     val myNumberFiveFlow = MutableStateFlow("")
 
     val myNumberSixFlow = MutableStateFlow("")
+
+    private val _userInputLottoNumber = MutableStateFlow(listOf(0, 0, 0, 0, 0, 0))
+
+    val userInputLottoNumberFlow = _userInputLottoNumber.asStateFlow()
+
+    fun myNumberUserInPutReset() {
+        viewModelScope.launch {
+            _userInputLottoNumber.emit(listOf(0,0,0,0,0,0))
+
+            myNumberOneFlow.emit("")
+            myNumberTwoFlow.emit("")
+            myNumberThreeFlow.emit("")
+            myNumberFourFlow.emit("")
+            myNumberFiveFlow.emit("")
+            myNumberSixFlow.emit("")
+        }
+    }
 
     // 서치 완료된 데이터
 
@@ -556,109 +665,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
 
     // 필터 날짜 설정 모두// 일년// 한달// 직접설정
 
-    // 숫자 별 퍼센트 계산
-    fun calculate(
-        type: ModeType = ModeType.AllNUMBERSEARCH
-    ): Any {
 
-        when(type) {
-            ModeType.AllNUMBERSEARCH -> {
-
-                Log.d(TAG, "날짜 범위 퍼센트 계산")
-
-                val lottoNumber = (1..45).toList()
-
-                var results : MutableList<Triple<Int, Int , Float>> = mutableListOf()
-
-                if(!_selectRangeLottoNumber.value.isEmpty()) {
-
-                    lottoNumber.forEach { number ->
-
-                        val selectData = _selectRangeLottoNumber.value
-                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
-                        val rangeCount = _selectRangeLottoNumber.value.count()
-                        val countNumber = numberFilterData.count()
-
-                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
-
-                        results.add(Triple(number, countNumber ,result))
-
-                    }
-
-                }
-
-                return results
-            }
-
-            ModeType.MYNUMBERSEARCH -> {
-
-                Log.d(TAG, "나의 번호 날짜 범위 퍼센트 계산")
-
-                val lottoNumber = (1..45).toList()
-
-                var results : MutableList<Pair<Int, Float>> = mutableListOf()
-
-                if(!_selectRangeLottoNumber.value.isEmpty()) {
-
-                    lottoNumber.forEach { number ->
-
-                        // 날짜 관련
-                        val selectData = _selectRangeLottoNumber.value
-                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
-                        val rangeCount = _selectRangeLottoNumber.value.count()
-                        val countNumber = numberFilterData.count()
-
-                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
-
-                        results.add(Pair(number, result))
-
-                    }
-
-                }
-
-                return results
-            }
-
-            ModeType.LOTTERY -> {
-
-                Log.d(TAG, "범위 퍼센트 계산 실행")
-
-                val lottoNumber = (1..45).toList()
-
-                var results : MutableList<Pair<Int, Float>> = mutableListOf()
-
-
-                // 날짜 관련, 모두 / 직접 설정
-                if(!bigDataModeRangeNumberStateFlow.value.isEmpty()) {
-                    lottoNumber.forEach {number ->
-                        val selectData = bigDataModeRangeNumberStateFlow.value
-                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
-                        val rangeCount = bigDataModeRangeNumberStateFlow.value.count()
-                        val countNumber = numberFilterData.count()
-
-                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
-
-                        results.add(Pair(number, result))
-                    }
-                }
-//                else {
-//
-//                    lottoNumber.forEach {number ->
-//                        val selectData = allLottoNumberDataFlow.value
-//                        val numberFilterData : List<Lotto> = selectData.filter { it.hasNumber(number.toString()) }
-//                        val rangeCount = allLottoNumberDataFlow.value.count()
-//                        val countNumber = numberFilterData.count()
-//
-//                        val result = (countNumber.toFloat()/rangeCount.toFloat()) * 100
-//
-//                        results.add(Pair(number, result))
-//                    }
-//                }
-
-                return results
-            }
-        }
-    }
 
 
     // 유저 선택 값
@@ -685,6 +692,10 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
         val aSix = myNumberSixFlow.value.toIntOrNull()
 
         val numbers = listOf(aOne!!, aTwo!!, aThree!! ,aFour!!, aFive!!, aSix!!)
+
+        viewModelScope.launch {
+            _userInputLottoNumber.emit(numbers)
+        }
 
         val twoValue = mutableListOf<List<Int>>()
 
@@ -735,7 +746,7 @@ class DataViewModel @Inject constructor(private val localRepository: LocalReposi
     fun searchLotto (numbers: List<Int>): Pair<Int, Int> {
         var trueValueCount = 0
 
-        val data = if(myNumberStateFlow.value.isEmpty()) { allLottoNumberDataFlow.value } else { myNumberStateFlow.value }
+        val data = _selectRangeLottoNumber.value
 
         val dataCount = data.count()
 

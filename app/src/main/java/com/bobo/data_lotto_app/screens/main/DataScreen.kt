@@ -8,6 +8,7 @@ import android.provider.ContactsContract.CommonDataKinds.Im
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -72,7 +73,6 @@ import com.bobo.data_lotto_app.ViewModel.DataViewModel
 import com.bobo.data_lotto_app.components.LottoNumberTextField
 import com.bobo.data_lotto_app.components.StickBar
 import com.bobo.data_lotto_app.extentions.toPer
-import com.bobo.data_lotto_app.screens.main.BallDraw
 import com.bobo.data_lotto_app.ui.theme.DateBackgroundColor
 import com.bobo.data_lotto_app.ui.theme.DbContentColor
 import com.bobo.data_lotto_app.ui.theme.WelcomeScreenBackgroundColor
@@ -83,9 +83,13 @@ import java.time.ZoneId
 import java.util.Calendar
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.ThresholdConfig
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.bobo.data_lotto_app.ViewModel.AuthViewModel
 import com.bobo.data_lotto_app.ViewModel.BigDataDate
 import com.bobo.data_lotto_app.components.AutoSizeText
+import com.bobo.data_lotto_app.components.MyNumberLottoRowView
 import com.bobo.data_lotto_app.components.RangeDateDialog
 import com.bobo.data_lotto_app.components.SliderAdvanced
 import com.bobo.data_lotto_app.components.TopTitleButton
@@ -105,10 +109,12 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
 
     val currentId = dataViewModel.dataCardId.collectAsState()
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.LightGray),
-    horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.LightGray),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
         Spacer(
             modifier = Modifier
@@ -131,19 +137,20 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
                 .padding(horizontal = 10.dp)
 //                .padding(start = 5.dp)
         ) {
-            SliderAdvanced() { sliderValue->
+            SliderAdvanced() { sliderValue ->
                 dataViewModel.allDataFilter(sliderValue)
             }
         }
 
         Column(
             modifier = Modifier
-            .weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally) {
+                .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             when (currentId.value) {
                 1 -> {
-                    
-                    BigDataSearchView(dataViewModel = dataViewModel, authViewModel)
+
+                    BigDataSearchView(dataViewModel = dataViewModel)
                 }
 
                 2 -> {
@@ -153,43 +160,41 @@ fun DataScreen(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
         }
 
     }
-        
+
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun BigDataSearchView(dataViewModel: DataViewModel,
-                      authViewModel: AuthViewModel) {
+fun BigDataSearchView(dataViewModel: DataViewModel) {
 
 
     val resentLottoNumber = dataViewModel.resentLottoNumber.collectAsState()
 
     val selectedRangeLotto = dataViewModel.selectRangeLottoNumber.collectAsState()
 
-    val showOpenCountDialog = remember { mutableStateOf(false) }
-
-
     val scope = rememberCoroutineScope()
 
     val snackBarHostState = remember { SnackbarHostState() }
 
-    val allNumberSearchCount = authViewModel.allNumberSearchCountFlow.collectAsState()
-
     val lazyListState = rememberLazyListState()
 
     val allNumberAndPercentValue = dataViewModel.allNumberAndPercentValue.collectAsState()
-    
+
     val sortState = dataViewModel.allNumberSortState.collectAsState()
 
     val context = LocalContext.current
 
 
-    Column(modifier = Modifier
-        .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-        Spacer(modifier = Modifier
-            .height(5.dp))
+        Spacer(
+            modifier = Modifier
+                .height(5.dp)
+        )
 
         Column(
             Modifier
@@ -235,48 +240,58 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Row(modifier = Modifier
-            .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 modifier = Modifier.padding(start = 10.dp),
                 text = "데이터 리스트",
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold
             )
-            
+
             Spacer(modifier = Modifier.weight(1f))
-            
+
             Card(modifier = Modifier
                 .padding(end = 20.dp)
                 .wrapContentSize(),
                 shape = RoundedCornerShape(5.dp),
                 onClick = {
-                scope.launch {
-                    if(sortState.value) {
-                        dataViewModel.allNumberSortState.emit(false)
-                        dataViewModel.allNumberSort()
-                    } else {
-                        dataViewModel.allNumberSortState.emit(true)
-                        dataViewModel.allNumberSort()
+                    scope.launch {
+                        if (sortState.value) {
+                            dataViewModel.allNumberSortState.emit(false)
+                            dataViewModel.allNumberSort()
+                        } else {
+                            dataViewModel.allNumberSortState.emit(true)
+                            dataViewModel.allNumberSort()
+                        }
                     }
-                }
 
 
-            }) {
+                }) {
 
-                Row(modifier = Modifier
-                    .padding(5.dp)
-                    .wrapContentSize()) {
-                    if(sortState.value) {
+                Row(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .wrapContentSize()
+                ) {
+                    if (sortState.value) {
                         Text(text = "내림차순")
 
-                        Image(painter = painterResource(id = R.drawable.arrow_down_icon), contentDescription = "")
+                        Image(
+                            painter = painterResource(id = R.drawable.arrow_down_icon),
+                            contentDescription = ""
+                        )
 
                     } else {
                         Text(text = "오름차순")
 
-                        Image(painter = painterResource(id = R.drawable.arrow_up_icon), contentDescription = "")
+                        Image(
+                            painter = painterResource(id = R.drawable.arrow_up_icon),
+                            contentDescription = ""
+                        )
 
                     }
                 }
@@ -289,19 +304,24 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                 .clip(shape = RoundedCornerShape(10.dp))
                 .fillMaxWidth(0.9f)
                 .background(color = Color.White)
-                .weight(1f)
-            ,
+                .weight(1f),
             state = lazyListState
         ) {
             items(allNumberAndPercentValue.value) { numberAndPercents ->
-                StickBar(ballNumber = numberAndPercents.first, count = numberAndPercents.second, data = numberAndPercents.third)
+                StickBar(
+                    ballNumber = numberAndPercents.first,
+                    count = numberAndPercents.second,
+                    data = numberAndPercents.third
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        Box(modifier = Modifier
-            .fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -312,89 +332,22 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
 
                 FloatingActionButton(
                     onClick = {
-                        showOpenCountDialog.value = true
+                        scope.launch {
+
+                            val rangePercentValue =
+                                dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Triple<Int, Int, Float>>
+
+                            val sortRangePercent = rangePercentValue.sortedByDescending { it.third }
+
+                            dataViewModel.allNumberAndPercentValue.emit(sortRangePercent)
+                        }
                     },
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Image(painter = painterResource(id = R.drawable.search_icon), contentDescription = "")
-                }
-
-
-                if(showOpenCountDialog.value) {
-
-                    UseCountDialog(
-                        onClicked = {
-                            if(allNumberAndPercentValue.value.count() <= 0) {
-
-                                Log.d(TAG, "UseCountDialog 예외처리됨")
-
-                                scope.launch {
-                                    snackBarHostState.showSnackbar(
-                                        "날짜 범위가 지정되어 있지 않습니다.\n" +
-                                                "지정 후 사용해주세요"
-                                    )
-                                }
-                                showOpenCountDialog.value = false
-
-                            } else {
-
-                                if(allNumberSearchCount.value == 0) {
-
-                                    showInterstitial(context) {
-
-                                        scope.launch {
-
-                                            val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Triple<Int, Int, Float>>
-
-                                            val sortRangePercent = rangePercentValue.sortedByDescending { it.third }
-
-                                            dataViewModel.allNumberAndPercentValue.emit(sortRangePercent)
-                                        }
-
-                                        authViewModel.filterItem(
-                                            itemCount = allNumberSearchCount.value,
-                                            searchDataCount = allNumberAndPercentValue.value,
-                                            useType = UseType.ALLNUMBER
-                                        )
-
-                                        showOpenCountDialog.value = false
-
-                                    }
-
-                                } else {
-
-                                    scope.launch {
-
-                                        val rangePercentValue = dataViewModel.calculate(type = DataViewModel.ModeType.AllNUMBERSEARCH) as List<Triple<Int, Int, Float>>
-
-                                        val sortRangePercent = rangePercentValue.sortedByDescending { it.third }
-
-                                        dataViewModel.allNumberAndPercentValue.emit(sortRangePercent)
-                                    }
-
-                                    Log.d(TAG, "UseCountDialog 예외처리 안됨")
-
-                                    authViewModel.filterItem(
-                                        itemCount = allNumberSearchCount.value,
-                                        searchDataCount = allNumberAndPercentValue.value,
-                                        useType = UseType.ALLNUMBER
-                                    )
-
-                                    showOpenCountDialog.value = false
-
-
-                                }
-
-                            }
-
-                        },
-
-                        onDismissRequest = {
-                            showOpenCountDialog.value = it
-                        },
-                        label = "조회 (무료기회:${allNumberSearchCount.value})"
+                    Image(
+                        painter = painterResource(id = R.drawable.search_icon),
+                        contentDescription = ""
                     )
-
                 }
             }
             SnackbarHost(hostState = snackBarHostState, modifier = Modifier,
@@ -420,7 +373,8 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
                                 text = snackbarData.message,
                                 fontSize = 15.sp,
                                 lineHeight = 20.sp,
-                                fontWeight = FontWeight.Bold)
+                                fontWeight = FontWeight.Bold
+                            )
 
                             Spacer(modifier = Modifier.weight(1f))
 
@@ -444,17 +398,12 @@ fun BigDataSearchView(dataViewModel: DataViewModel,
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class,
+@OptIn(
+    ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class,
     ExperimentalMaterial3Api::class
 )
 @Composable
 fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewModel) {
-
-    val callStartDate = dataViewModel.myNumberStartDateFlow.collectAsState()
-
-    val callEndDate = dataViewModel.myNumberEndDateFlow.collectAsState()
-
-    val showOpenDialog = remember { mutableStateOf(false) }
 
     val oneNumber = dataViewModel.myNumberOneFlow.collectAsState()
 
@@ -476,15 +425,28 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
     val rangeDateState = dataViewModel.myNumberDateRangeFlow.collectAsState()
 
-    val showOpenCountDialog = remember { mutableStateOf(false) }
-
-    val isSelectDateValue = dataViewModel.myNumberStateFlow.collectAsState()
 
     val myNumberCount = authViewModel.myNumberSearchCountFlow.collectAsState()
 
     val myNumberSortState = dataViewModel.myNumberSortState.collectAsState()
 
     val context = LocalContext.current
+
+    var inputFieldState by remember { mutableStateOf(false) }
+
+    val userInPutLottoNumber = dataViewModel.userInputLottoNumberFlow.collectAsState()
+
+    LaunchedEffect(key1 = userInPutLottoNumber.value, block = {
+        if (userInPutLottoNumber.value.all { it != 0 }) {
+            // 모든 요소가 빈 문자열이 아닌 경우
+            inputFieldState = true
+            Log.d(TAG, "유저 입력 데이터에 값이 있습니다.")
+        } else {
+            // 하나라도 빈 문자열인 요소가 있는 경우
+            inputFieldState = false
+            Log.d(TAG, "유저 입력 데이터에 값이 없습니다.")
+        }
+    })
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -498,255 +460,308 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(modifier = Modifier
-            .fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
+                modifier = Modifier.padding(start = 10.dp),
                 text = "나의 로또 번호",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.15f)
-                .padding(horizontal = 15.dp)
-        ) {
 
-            Column(
+
+            AnimatedVisibility(visible = inputFieldState) {
+                Text(
+                    modifier = Modifier.padding(start = 10.dp),
+                    text = "다시 입력하시려면 로또번호를 클릭해주세요",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        if(inputFieldState) {
+            Row {
+                MyNumberLottoRowView(
+                    oneBall = userInPutLottoNumber.value[0].takeIf { it != null } ?: 0,
+                    twoBall = userInPutLottoNumber.value[1].takeIf { it != null } ?: 0,
+                    threeBall = userInPutLottoNumber.value[2].takeIf { it != null } ?: 0,
+                    fourBall = userInPutLottoNumber.value[3].takeIf { it != null } ?: 0,
+                    fiveBall = userInPutLottoNumber.value[4].takeIf { it != null } ?: 0,
+                    sixBall = userInPutLottoNumber.value[5].takeIf { it != null } ?: 0
+                ) {
+                    dataViewModel.myNumberUserInPutReset()
+                }
+            }
+        } else {
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center,
-                Alignment.CenterHorizontally) {
-                LottoNumberTextField(
-                    modifier = Modifier,
-                    value = oneNumber.value,
-                    textFiledClicked = {
-                        dataViewModel.myNumberOneFlow.value = ""
-                    },
-                    onValueChanged = {
+                    .fillMaxWidth()
+                    .weight(0.15f)
+                    .padding(horizontal = 15.dp)
+            ) {
 
-                        // 스트링을 숫자로 변환합니다.
-                        val number = it.toIntOrNull()
-
-                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
-                        if (number == null) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    Alignment.CenterHorizontally
+                ) {
+                    LottoNumberTextField(
+                        modifier = Modifier,
+                        value = oneNumber.value,
+                        textFiledClicked = {
                             dataViewModel.myNumberOneFlow.value = ""
-                        } else {
-                            // 숫자 범위를 확인합니다.
-                            if (0 < number && number <= 45) {
-                                dataViewModel.myNumberOneFlow.value = number.toString()
-                            } else {
+                        },
+                        onValueChanged = {
+
+                            // 스트링을 숫자로 변환합니다.
+                            val number = it.toIntOrNull()
+
+                            // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                            if (number == null) {
                                 dataViewModel.myNumberOneFlow.value = ""
-                                coroutineScope.launch {
+                            } else {
+                                // 숫자 범위를 확인합니다.
+                                if (0 < number && number <= 45) {
+                                    dataViewModel.myNumberOneFlow.value = number.toString()
+                                } else {
+                                    dataViewModel.myNumberOneFlow.value = ""
+                                    coroutineScope.launch {
 
-                                    keyboardController?.hide()
-                                    snackBarHostState.showSnackbar(
-                                        "1~45 범위의 숫자만 입력해주세요.",
-                                        actionLabel = "닫기", SnackbarDuration.Short
-                                    )
+                                        keyboardController?.hide()
+                                        snackBarHostState.showSnackbar(
+                                            "1~45 범위의 숫자만 입력해주세요.",
+                                            actionLabel = "닫기", SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                    })
-            }
-            Spacer(modifier = Modifier.width(10.dp))
+                        })
+                }
+                Spacer(modifier = Modifier.width(10.dp))
 
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
-                LottoNumberTextField(
-                    modifier = Modifier,
-                    value = twoNumber.value,
-                    textFiledClicked = {
-                        dataViewModel.myNumberTwoFlow.value = ""
-                    },
-                    onValueChanged = {
-
-                        // 스트링을 숫자로 변환합니다.
-                        val number = it.toIntOrNull()
-
-                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
-                        if (number == null) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    Alignment.CenterHorizontally
+                ) {
+                    LottoNumberTextField(
+                        modifier = Modifier,
+                        value = twoNumber.value,
+                        textFiledClicked = {
                             dataViewModel.myNumberTwoFlow.value = ""
-                        } else {
-                            // 숫자 범위를 확인합니다.
-                            if (0 < number && number <= 45) {
-                                dataViewModel.myNumberTwoFlow.value = number.toString()
-                            } else {
+                        },
+                        onValueChanged = {
+
+                            // 스트링을 숫자로 변환합니다.
+                            val number = it.toIntOrNull()
+
+                            // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                            if (number == null) {
                                 dataViewModel.myNumberTwoFlow.value = ""
-                                coroutineScope.launch {
+                            } else {
+                                // 숫자 범위를 확인합니다.
+                                if (0 < number && number <= 45) {
+                                    dataViewModel.myNumberTwoFlow.value = number.toString()
+                                } else {
+                                    dataViewModel.myNumberTwoFlow.value = ""
+                                    coroutineScope.launch {
 
-                                    keyboardController?.hide()
-                                    snackBarHostState.showSnackbar(
-                                        "1~45 범위의 숫자만 입력해주세요.",
-                                        actionLabel = "닫기", SnackbarDuration.Short
-                                    )
+                                        keyboardController?.hide()
+                                        snackBarHostState.showSnackbar(
+                                            "1~45 범위의 숫자만 입력해주세요.",
+                                            actionLabel = "닫기", SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                    })
-            }
+                        })
+                }
 
-            Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
-                LottoNumberTextField(
-                    modifier = Modifier,
-                    value = threeNumber.value,
-                    textFiledClicked = {
-                        dataViewModel.myNumberThreeFlow.value = ""
-                    },
-                    onValueChanged = {
-
-                        // 스트링을 숫자로 변환합니다.
-                        val number = it.toIntOrNull()
-
-                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
-                        if (number == null) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    Alignment.CenterHorizontally
+                ) {
+                    LottoNumberTextField(
+                        modifier = Modifier,
+                        value = threeNumber.value,
+                        textFiledClicked = {
                             dataViewModel.myNumberThreeFlow.value = ""
-                        } else {
-                            // 숫자 범위를 확인합니다.
-                            if (0 < number && number <= 45) {
-                                dataViewModel.myNumberThreeFlow.value = number.toString()
-                            } else {
+                        },
+                        onValueChanged = {
+
+                            // 스트링을 숫자로 변환합니다.
+                            val number = it.toIntOrNull()
+
+                            // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                            if (number == null) {
                                 dataViewModel.myNumberThreeFlow.value = ""
-                                coroutineScope.launch {
+                            } else {
+                                // 숫자 범위를 확인합니다.
+                                if (0 < number && number <= 45) {
+                                    dataViewModel.myNumberThreeFlow.value = number.toString()
+                                } else {
+                                    dataViewModel.myNumberThreeFlow.value = ""
+                                    coroutineScope.launch {
 
-                                    keyboardController?.hide()
-                                    snackBarHostState.showSnackbar(
-                                        "1~45 범위의 숫자만 입력해주세요.",
-                                        actionLabel = "닫기", SnackbarDuration.Short
-                                    )
+                                        keyboardController?.hide()
+                                        snackBarHostState.showSnackbar(
+                                            "1~45 범위의 숫자만 입력해주세요.",
+                                            actionLabel = "닫기", SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                    })
-            }
+                        })
+                }
 
-            Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
-                LottoNumberTextField(
-                    modifier = Modifier,
-                    value = fourNumber.value,
-                    textFiledClicked = {
-                        dataViewModel.myNumberFourFlow.value = ""
-                    },
-                    onValueChanged = {
-
-                        // 스트링을 숫자로 변환합니다.
-                        val number = it.toIntOrNull()
-
-                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
-                        if (number == null) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    Alignment.CenterHorizontally
+                ) {
+                    LottoNumberTextField(
+                        modifier = Modifier,
+                        value = fourNumber.value,
+                        textFiledClicked = {
                             dataViewModel.myNumberFourFlow.value = ""
-                        } else {
-                            // 숫자 범위를 확인합니다.
-                            if (0 < number && number <= 45) {
-                                dataViewModel.myNumberFourFlow.value = number.toString()
-                            } else {
+                        },
+                        onValueChanged = {
+
+                            // 스트링을 숫자로 변환합니다.
+                            val number = it.toIntOrNull()
+
+                            // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                            if (number == null) {
                                 dataViewModel.myNumberFourFlow.value = ""
-                                coroutineScope.launch {
+                            } else {
+                                // 숫자 범위를 확인합니다.
+                                if (0 < number && number <= 45) {
+                                    dataViewModel.myNumberFourFlow.value = number.toString()
+                                } else {
+                                    dataViewModel.myNumberFourFlow.value = ""
+                                    coroutineScope.launch {
 
-                                    keyboardController?.hide()
-                                    snackBarHostState.showSnackbar(
-                                        "1~45 범위의 숫자만 입력해주세요.",
-                                        actionLabel = "닫기", SnackbarDuration.Short
-                                    )
+                                        keyboardController?.hide()
+                                        snackBarHostState.showSnackbar(
+                                            "1~45 범위의 숫자만 입력해주세요.",
+                                            actionLabel = "닫기", SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                    })
-            }
+                        })
+                }
 
-            Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
-                LottoNumberTextField(
-                    modifier = Modifier,
-                    value = fiveNumber.value,
-                    textFiledClicked = {
-                        dataViewModel.myNumberFiveFlow.value = ""
-                    },
-                    onValueChanged = {
-
-                        // 스트링을 숫자로 변환합니다.
-                        val number = it.toIntOrNull()
-
-                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
-                        if (number == null) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    Alignment.CenterHorizontally
+                ) {
+                    LottoNumberTextField(
+                        modifier = Modifier,
+                        value = fiveNumber.value,
+                        textFiledClicked = {
                             dataViewModel.myNumberFiveFlow.value = ""
-                        } else {
-                            // 숫자 범위를 확인합니다.
-                            if (0 < number && number <= 45) {
-                                dataViewModel.myNumberFiveFlow.value = number.toString()
-                            } else {
+                        },
+                        onValueChanged = {
+
+                            // 스트링을 숫자로 변환합니다.
+                            val number = it.toIntOrNull()
+
+                            // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                            if (number == null) {
                                 dataViewModel.myNumberFiveFlow.value = ""
-                                coroutineScope.launch {
-
-                                    keyboardController?.hide()
-                                    snackBarHostState.showSnackbar(
-                                        "1~45 범위의 숫자만 입력해주세요.",
-                                        actionLabel = "닫기", SnackbarDuration.Short
-                                    )
-                                }
-                            }
-                        }
-
-                    })
-            }
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(), verticalArrangement = Arrangement.Center, Alignment.CenterHorizontally) {
-                LottoNumberTextField(
-                    modifier = Modifier,
-                    value = sixNumber.value,
-                    textFiledClicked = {
-                        dataViewModel.myNumberSixFlow.value = ""
-                    },
-                    onValueChanged = {
-
-                        // 스트링을 숫자로 변환합니다.
-                        val number = it.toIntOrNull()
-
-                        // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
-                        if (number == null) {
-                            dataViewModel.myNumberSixFlow.value = ""
-                        } else {
-                            // 숫자 범위를 확인합니다.
-                            if (0 < number && number <= 45) {
-                                dataViewModel.myNumberSixFlow.value = number.toString()
                             } else {
-                                dataViewModel.myNumberSixFlow.value = ""
-                                coroutineScope.launch {
+                                // 숫자 범위를 확인합니다.
+                                if (0 < number && number <= 45) {
+                                    dataViewModel.myNumberFiveFlow.value = number.toString()
+                                } else {
+                                    dataViewModel.myNumberFiveFlow.value = ""
+                                    coroutineScope.launch {
 
-                                    keyboardController?.hide()
-                                    snackBarHostState.showSnackbar(
-                                        "1~45 범위의 숫자만 입력해주세요.",
-                                        actionLabel = "닫기", SnackbarDuration.Short
-                                    )
+                                        keyboardController?.hide()
+                                        snackBarHostState.showSnackbar(
+                                            "1~45 범위의 숫자만 입력해주세요.",
+                                            actionLabel = "닫기", SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    })
+
+                        })
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    Alignment.CenterHorizontally
+                ) {
+                    LottoNumberTextField(
+                        modifier = Modifier,
+                        value = sixNumber.value,
+                        textFiledClicked = {
+                            dataViewModel.myNumberSixFlow.value = ""
+                        },
+                        onValueChanged = {
+
+                            // 스트링을 숫자로 변환합니다.
+                            val number = it.toIntOrNull()
+
+                            // 숫자로 변환할 수 없으면 빈 문자열을 반환합니다.
+                            if (number == null) {
+                                dataViewModel.myNumberSixFlow.value = ""
+                            } else {
+                                // 숫자 범위를 확인합니다.
+                                if (0 < number && number <= 45) {
+                                    dataViewModel.myNumberSixFlow.value = number.toString()
+                                } else {
+                                    dataViewModel.myNumberSixFlow.value = ""
+                                    coroutineScope.launch {
+
+                                        keyboardController?.hide()
+                                        snackBarHostState.showSnackbar(
+                                            "1~45 범위의 숫자만 입력해주세요.",
+                                            actionLabel = "닫기", SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            }
+                        })
+                }
             }
         }
+
+
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -765,9 +780,11 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                     FilterCard(number = "${date.startDate}~${date.endDate}",
                         deleteClicked = {
                             coroutineScope.launch {
-                                val removeList = dataViewModel.myNumberDateRangeFlow.value.toMutableList().apply {
-                                    remove(date)
-                                }
+                                val removeList =
+                                    dataViewModel.myNumberDateRangeFlow.value.toMutableList()
+                                        .apply {
+                                            remove(date)
+                                        }
                                 dataViewModel.myNumberDateRangeFlow.emit(removeList)
 
                                 dataViewModel.myNumberStartDateFlow.emit("${LocalDate.now()}")
@@ -780,8 +797,10 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
         )
 
 
-        Row(modifier = Modifier
-            .fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             Text(
                 modifier = Modifier.padding(start = 10.dp, bottom = 10.dp),
                 text = "내 번호 조회 결과",
@@ -799,18 +818,26 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                     dataViewModel.myNumberSort()
                 }) {
 
-                Row(modifier = Modifier
-                    .padding(5.dp)
-                    .wrapContentSize()) {
-                    if(myNumberSortState.value) {
+                Row(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .wrapContentSize()
+                ) {
+                    if (myNumberSortState.value) {
                         Text(text = "내림차순")
 
-                        Image(painter = painterResource(id = R.drawable.arrow_down_icon), contentDescription = "")
+                        Image(
+                            painter = painterResource(id = R.drawable.arrow_down_icon),
+                            contentDescription = ""
+                        )
 
                     } else {
                         Text(text = "오름차순")
 
-                        Image(painter = painterResource(id = R.drawable.arrow_up_icon), contentDescription = "")
+                        Image(
+                            painter = painterResource(id = R.drawable.arrow_up_icon),
+                            contentDescription = ""
+                        )
 
                     }
                 }
@@ -819,10 +846,11 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
 
 
         }
-        Column(modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .weight(1f)
-            .background(Color.White, shape = RoundedCornerShape(5.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .weight(1f)
+                .background(Color.White, shape = RoundedCornerShape(5.dp))
         ) {
 
             MyNumberViewPager(dataViewModel = dataViewModel)
@@ -838,66 +866,58 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                FloatingActionButton(
-                    onClick = {
-                        if(dataViewModel.myNumberDateRangeFlow.value.isEmpty()) {
-                            showOpenDialog.value = true
-                        } else {
-                            coroutineScope.launch {
-                                snackBarHostState.showSnackbar(
-                                    "이미 날짜가 설정되어 있습니다.\n" +
-                                            "삭제 후 클릭해주세요."
-                                )
-                            }
-                        }
-
-                        showOpenDialog.value = true
-                    },
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.outline_calendar_icon),
-                        contentDescription = ""
-                    )
-                }
-
-                if (showOpenDialog.value) {
-                    RangeDateDialog(
-                        dataViewModel = dataViewModel,
-                        onDismissRequest = {
-                            showOpenDialog.value = it
-                        },
-                        callStartDate = callStartDate.value,
-                        callEndDate = callEndDate.value,
-                        onClicked = { startDate, endDate ->
-
-                            dataViewModel.myNumberStartDateFlow.value = startDate
-                            dataViewModel.myNumberEndDateFlow.value = endDate
-
-                            coroutineScope.launch {
-                                val dateData = BigDataDate(
-                                    startDate = dataViewModel.myNumberStartDateFlow.value,
-                                    endDate = dataViewModel.myNumberEndDateFlow.value
-                                )
-                                val addList =
-                                    dataViewModel.myNumberDateRangeFlow.value.toMutableList()
-                                        .apply {
-                                            add(dateData)
-                                        }
-
-                                dataViewModel.myNumberDateRangeFlow.emit(addList)
-                            }
-                        }
-                    )
-                }
-
                 Spacer(modifier = Modifier.width(5.dp))
 
                 // 조회 버튼
                 FloatingActionButton(
                     onClick = {
-                        showOpenCountDialog.value = true
+                        coroutineScope.launch {
+
+                            if (oneNumber.value == "" &&
+                                twoNumber.value == "" &&
+                                threeNumber.value == "" &&
+                                fourNumber.value == "" &&
+                                fiveNumber.value == "" &&
+                                sixNumber.value == ""
+                            ) {
+                                return@launch
+                            } else {
+
+                                val chunkValue = dataViewModel.chunkMake()
+
+                                coroutineScope.launch {
+                                    dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
+
+                                    dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
+
+                                    dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
+
+                                    dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
+
+                                    dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
+
+
+                                    if (chunkValue.secondNumber != null &&
+                                        chunkValue.thirdNumber != null &&
+                                        chunkValue.fourthNumber != null &&
+                                        chunkValue.fifthNumber != null &&
+                                        chunkValue.sixthNumber != null
+                                    ) {
+
+                                        Log.d(TAG, "myNumberChunkEmit() 실행됨")
+                                        dataViewModel.myNumberChunkEmit()
+
+                                        inputFieldState = true
+
+                                    } else {
+                                        Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
+                                    }
+                                }
+
+                            }
+
+
+                        }
                     },
                     modifier = Modifier.padding(8.dp)
                 ) {
@@ -907,195 +927,53 @@ fun MyNumberSearchView(dataViewModel: DataViewModel, authViewModel: AuthViewMode
                     )
                 }
             }
-
-            // 토스트
-
-            if (showOpenCountDialog.value) {
-
-                UseCountDialog(
-                    onClicked = {
-                        if (isSelectDateValue.value.count() <= 0) {
-
-                            Log.d(TAG, "UseCountDialog 예외처리됨")
-
-                            coroutineScope.launch {
-                                snackBarHostState.showSnackbar(
-                                    "날짜 범위가 지정되어 있지 않습니다.\n" +
-                                            "지정 후 사용해주세요"
-                                )
-                            }
-                            showOpenCountDialog.value = false
-
-                        } else {
-
-                            if(myNumberCount.value == 0) {
-                                showInterstitial(context) {
-                                    coroutineScope.launch {
-
-                                        if (oneNumber.value == "" &&
-                                            twoNumber.value == "" &&
-                                            threeNumber.value == "" &&
-                                            fourNumber.value == "" &&
-                                            fiveNumber.value == "" &&
-                                            sixNumber.value == ""
-                                        ) {
-                                            return@launch
-                                        } else {
-
-                                            val chunkValue = dataViewModel.chunkMake()
-
-                                            coroutineScope.launch {
-                                                dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
-
-                                                dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
-
-                                                dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
-
-                                                dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
-
-                                                dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
-
-
-                                                if(chunkValue.secondNumber != null &&
-                                                    chunkValue.thirdNumber != null &&
-                                                    chunkValue.fourthNumber != null &&
-                                                    chunkValue.fifthNumber != null &&
-                                                    chunkValue.sixthNumber != null) {
-
-                                                    Log.d(TAG, "myNumberChunkEmit() 실행됨")
-                                                    dataViewModel.myNumberChunkEmit()
-
-                                                    authViewModel.filterItem(
-                                                        itemCount = myNumberCount.value,
-                                                        useType = UseType.MYNUMBER
-                                                    )
-
-
-                                                } else {
-                                                    Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
-                                                }
-                                            }
-
-                                        }
-
-
-                                    }
-
-                                    Log.d(TAG, "UseCountDialog 예외처리 안됨")
-                                    showOpenCountDialog.value = false
-                                }
-                            } else {
-                                coroutineScope.launch {
-
-                                    if (oneNumber.value == "" &&
-                                        twoNumber.value == "" &&
-                                        threeNumber.value == "" &&
-                                        fourNumber.value == "" &&
-                                        fiveNumber.value == "" &&
-                                        sixNumber.value == ""
-                                    ) {
-                                        return@launch
-                                    } else {
-
-                                        val chunkValue = dataViewModel.chunkMake()
-
-                                        coroutineScope.launch {
-                                            dataViewModel.twoChunkNumberFlow.emit(chunkValue.secondNumber)
-
-                                            dataViewModel.threeChunkNumberFlow.emit(chunkValue.thirdNumber)
-
-                                            dataViewModel.fourChunkNumberFlow.emit(chunkValue.fourthNumber)
-
-                                            dataViewModel.fiveChunkNumberFlow.emit(chunkValue.fifthNumber)
-
-                                            dataViewModel.sixChunkNumberFlow.emit(chunkValue.sixthNumber)
-
-
-                                            if(chunkValue.secondNumber != null &&
-                                                chunkValue.thirdNumber != null &&
-                                                chunkValue.fourthNumber != null &&
-                                                chunkValue.fifthNumber != null &&
-                                                chunkValue.sixthNumber != null) {
-
-                                                Log.d(TAG, "myNumberChunkEmit() 실행됨")
-                                                dataViewModel.myNumberChunkEmit()
-
-                                                authViewModel.filterItem(
-                                                    itemCount = myNumberCount.value,
-                                                    useType = UseType.MYNUMBER
-                                                )
-
-
-                                            } else {
-                                                Log.d(TAG, "myNumberChunkEmit() 실행되지 않음")
-                                            }
-                                        }
-
-                                    }
-
-
-                                }
-
-                                Log.d(TAG, "UseCountDialog 예외처리 안됨")
-                                showOpenCountDialog.value = false
-                            }
-
-                        }
-
-                    },
-                    onDismissRequest = {
-                        showOpenCountDialog.value = it
-                    },
-                    label = "조회 (무료기회:${myNumberCount.value})"
-                )
-
-            }
         }
 
-            Row(modifier = Modifier.fillMaxWidth()) {
-                SnackbarHost(hostState = snackBarHostState, modifier = Modifier,
-                    snackbar = { snackbarData ->
+        Row(modifier = Modifier.fillMaxWidth()) {
+            SnackbarHost(hostState = snackBarHostState, modifier = Modifier,
+                snackbar = { snackbarData ->
 
-                        androidx.compose.material.Card(
-                            shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(2.dp, Color.Black),
+                    androidx.compose.material.Card(
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(2.dp, Color.Black),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Row(
                             modifier = Modifier
-                                .padding(10.dp)
                                 .fillMaxWidth()
+                                .padding(8.dp)
+                                .padding(start = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                                    .padding(start = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start
-                            ) {
 
+                            androidx.compose.material.Text(
+                                text = snackbarData.message,
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            androidx.compose.material.Card(
+                                modifier = Modifier.wrapContentSize(),
+                                onClick = {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                }) {
                                 androidx.compose.material.Text(
-                                    text = snackbarData.message,
-                                    fontSize = 15.sp,
-                                    lineHeight = 20.sp,
-                                    fontWeight = FontWeight.Bold)
-
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                androidx.compose.material.Card(
-                                    modifier = Modifier.wrapContentSize(),
-                                    onClick = {
-                                        snackBarHostState.currentSnackbarData?.dismiss()
-                                    }) {
-                                    androidx.compose.material.Text(
-                                        modifier = Modifier.padding(8.dp),
-                                        text = "닫기"
-                                    )
-                                }
+                                    modifier = Modifier.padding(8.dp),
+                                    text = "닫기"
+                                )
                             }
                         }
                     }
-                )
-            }
+                }
+            )
         }
+    }
 
 }
 

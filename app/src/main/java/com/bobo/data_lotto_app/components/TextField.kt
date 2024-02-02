@@ -194,6 +194,5 @@ fun LottoNumberTextField(
                 start = 2.dp, top = 1.dp, end = 1.dp, bottom = 3.dp
             )
         )
-
-}
+    }
 }
